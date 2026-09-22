@@ -122,6 +122,7 @@
     background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow);
   }
   .player-row .clickable{ display:flex; align-items:center; gap:12px; flex:1; min-width:0; cursor:pointer; }
+  .player-row .player-info{ display:flex; align-items:center; gap:12px; flex:1; min-width:0; }
   .bib{
     flex:0 0 auto; width:46px; height:46px; border-radius:50%;
     background:var(--surface-alt); border:2px solid var(--border);
@@ -1512,8 +1513,9 @@
       var canScoutHere = Auth.isHoofdtrainer() || Auth.myRole() === "scout";
       var canEditPlayer = Auth.isHoofdtrainer();
       var isFav = Store.isMyFavorite(p.id);
+      var rowOpenAttrs = canEditPlayer ? 'class="clickable" data-open="' + p.id + '"' : 'class="player-info"';
       return '<div class="player-row" data-id="' + p.id + '">' +
-        '<div class="clickable" data-open="' + p.id + '">' +
+        '<div ' + rowOpenAttrs + '>' +
         '<div class="bib num">' + (p.hesje ? esc(p.hesje) : "–") + '</div>' +
         '<div class="player-meta"><div class="name">' + flag + esc(p.naam) + scoutBadge + '</div>' +
         '<div class="sub">Lichting ' + esc(lichtingLabel(p.lichting)) + (p.q ? " · " + esc(p.q) : "") + '</div></div>' +
