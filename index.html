@@ -31,11 +31,11 @@
 
   *{ box-sizing:border-box; }
   [hidden]{ display:none !important; }
-  html,body{ height:100%; }
+  html,body{ height:100%; width:100%; overflow-x:hidden; background:var(--bg); }
   body{
     margin:0; background:var(--bg); color:var(--ink);
     font-family:"Barlow", -apple-system, "Segoe UI", sans-serif;
-    display:flex; flex-direction:column; overflow-x:hidden;
+    display:flex; flex-direction:column; overflow-x:hidden; max-width:100vw; position:relative;
   }
   h1,h2,h3,.display{
     font-family:"Barlow Condensed","Arial Narrow",sans-serif;
@@ -47,6 +47,7 @@
     position:sticky; top:env(safe-area-inset-top,0px); z-index:20;
     background:var(--surface); border-bottom:1px solid var(--border);
     padding:14px 16px 12px; display:flex; flex-direction:column; gap:10px;
+    overflow:hidden; max-width:100vw;
   }
   .top-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
   .top-row > div:first-child{ min-width:0; }
@@ -228,16 +229,17 @@
   .bd-note{ font-size:12.5px; color:var(--ink-muted); font-style:italic; margin-top:2px; }
 
   nav.tabbar{
-    position:fixed; left:0; right:0; bottom:0; z-index:30; display:flex; gap:4px; background:var(--surface);
-    border-top:1px solid var(--border); padding:8px 8px calc(10px + env(safe-area-inset-bottom,0px));
-    box-shadow:0 -2px 12px rgba(0,0,0,.05);
+    position:fixed; left:0; right:0; bottom:0; z-index:30; display:flex; gap:2px; background:var(--surface);
+    border-top:1px solid var(--border); padding:8px 6px calc(10px + env(safe-area-inset-bottom,0px));
+    box-shadow:0 -2px 12px rgba(0,0,0,.05); overflow:hidden; max-width:100vw;
   }
   nav.tabbar button{
-    flex:1; background:none; border:none; border-radius:12px; display:flex; flex-direction:column; align-items:center; gap:3px;
-    padding:7px 4px; color:var(--ink-muted); cursor:pointer; font-family:"Barlow",sans-serif; font-weight:600; font-size:11.5px;
+    flex:1; min-width:0; background:none; border:none; border-radius:12px; display:flex; flex-direction:column; align-items:center; gap:3px;
+    padding:7px 2px; color:var(--ink-muted); cursor:pointer; font-family:"Barlow",sans-serif; font-weight:600; font-size:10.5px;
     transition:background .15s ease, color .15s ease;
   }
-  nav.tabbar button svg{ width:22px; height:22px; }
+  nav.tabbar button svg{ width:21px; height:21px; flex:0 0 auto; }
+  nav.tabbar button .tab-label{ max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   nav.tabbar button.active{ background:var(--accent); color:var(--accent-ink); }
 
   .toast{
@@ -492,27 +494,27 @@
 <nav class="tabbar">
   <button class="tab-btn active" data-tab="spelers">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 4l2 2h4l2-2 3 3-2 3v10a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V10L5 7z" stroke-linejoin="round"/></svg>
-    Spelers
+    <span class="tab-label">Spelers</span>
   </button>
   <button class="tab-btn" data-tab="beoordelen">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 17.3l-5.2 3 1.4-6-4.6-4h6l2.4-6 2.4 6h6l-4.6 4 1.4 6z" stroke-linejoin="round"/></svg>
-    Beoordelen
+    <span class="tab-label">Beoordelen</span>
   </button>
   <button class="tab-btn" data-tab="overzicht">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V10M12 19V5M20 19v-7" stroke-linecap="round"/></svg>
-    Overzicht
+    <span class="tab-label">Overzicht</span>
   </button>
   <button class="tab-btn" data-tab="absenties">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9h16M8 3v4M16 3v4M9 14l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    Aanwezigheid
+    <span class="tab-label">Aanwezigheid</span>
   </button>
   <button class="tab-btn" data-tab="evaluatie">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 4h9l4 4v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" stroke-linejoin="round"/><path d="M9 12h6M9 16h6M9 8h3" stroke-linecap="round"/></svg>
-    Evaluatie
+    <span class="tab-label">Evaluatie</span>
   </button>
   <button class="tab-btn" data-tab="scouting">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.5-4.5" stroke-linecap="round"/></svg>
-    Scouting
+    <span class="tab-label">Scouting</span>
   </button>
 </nav>
 
