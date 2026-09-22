@@ -395,7 +395,7 @@
       <h2>Spelers</h2>
       <span class="count" id="spelersCount"></span>
     </div>
-    <div class="btn-row">
+    <div class="btn-row" id="spelersBtnRow">
       <button class="btn primary" id="addPlayerBtn" style="flex:1;">+ Nieuwe speler</button>
       <button class="btn ghost" id="importBtn" style="flex:1;">Importeer ART 1 (AS&rsquo;80)</button>
     </div>
@@ -1493,13 +1493,18 @@
 
   /* ---------- SPELERS tab ---------- */
   function renderSpelers(){
+    var btnRow = $("spelersBtnRow");
+    if (btnRow) btnRow.style.display = Auth.isHoofdtrainer() ? "flex" : "none";
     var players = filteredPlayers();
     $("spelersCount").textContent = players.length + (players.length === 1 ? " speler" : " spelers");
     var list = $("spelersList");
     if (!players.length){
+      var emptyDesc = Auth.isHoofdtrainer()
+        ? 'Voeg spelers handmatig toe, of importeer de ART 1 (AS&rsquo;80) spelerslijst met de knop hierboven.'
+        : 'Er zijn nog geen spelers toegevoegd.';
       list.innerHTML = '<div class="empty card">' + emptySvg +
         '<div class="t">Nog geen spelers</div>' +
-        '<div class="d">Voeg spelers handmatig toe, of importeer de ART 1 (AS&rsquo;80) spelerslijst met de knop hierboven.</div></div>';
+        '<div class="d">' + emptyDesc + '</div></div>';
       return;
     }
     var cancelled = Store.getCancelled();
