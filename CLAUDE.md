@@ -42,8 +42,8 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   plus een notitie "waarom". Eén beoordeling per scout per speler per blok (tabel `scout_reports`,
   kolommen `wedstrijdbeoordeling`, `potentieel`, `notitie`). Oude uitgebreide rapportvelden blijven bestaan voor oude data.
 - Scouts zien alleen hun eigen beoordelingen (RLS); de hoofdtrainer ziet alles.
-- Scout-signaal: speler met >= `app_settings.scout_signaal_drempel` (standaard 3, instelbaar) scoutbeoordelingen met een A of B
-  wordt gemarkeerd in Overzicht en Spelers. Alleen een melding; contact met jeugdcoördinator/jeugdscout doet Sofian zelf.
+- Overzicht toont per speler "Scout A/B" (aantal scoutbeoordelingen met A of B) en bovenaan de Sterspelers. Alleen een
+  melding; contact met jeugdcoördinator/jeugdscout doet Sofian zelf.
 - Migraties staan in `supabase/migrations/`.
 
 ## Praktische afspraken in de app
@@ -62,6 +62,14 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   Terugkeren zonder open venster = stil vernieuwen; anders een balk "Nieuwe versie" met knop.
 - Foto-links (signed URLs) 24 uur geldig en bewaard in localStorage; gewist bij uitloggen. Nieuwe upload = nieuwe bestandsnaam.
 - Hesjenummer overal groot in rood/geel naast de foto (`playerIdentHtml`, `fillPlayerPhotos`).
+- Tabblad Spelers = smoelenboek (3 kolommen, 4 op tablet): foto, hesje linksboven, kwartaal rechtsonder (scouts wegen het
+  kwartaal mee), ster/! linksonder. Geen knoppen in de lijst: tikken opent de spelerskaart (`openPlayerCard`) met per rol
+  de info en acties (Beoordelen; hoofdtrainer ook Bewerken). Beheer (nieuwe speler, importeren, foto's, prullenbak) staat
+  in Instellingen → Spelers beheren. Instellingen is ingedeeld in uitklapbare groepen.
+- Favorieten (eigen top 3) zijn geschrapt (besluit Sofian): de ster ★ komt vanzelf uit de beoordelingen. Ster = aantal
+  trainer- + scoutbeoordelingen met een A of B >= `app_settings.scout_signaal_drempel`. Alleen zichtbaar voor de hoofdtrainer.
+  Tabel `player_favorites` bestaat nog in de database maar wordt niet meer gebruikt.
+- Denkwijze bij ontwerp (Sofian): per knop afwegen wie hem gebruikt en hoe vaak; zelden gebruikt = naar Instellingen.
 
 ## Git zonder git
 De Command Line Developer Tools (en dus `git`) zijn nog niet geïnstalleerd. Tot die tijd:

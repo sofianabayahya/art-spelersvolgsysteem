@@ -116,8 +116,6 @@
   .icon-btn.danger:hover{ color:var(--low); border-color:var(--low-soft); }
   .icon-btn.danger.confirming{ background:var(--low); color:#fff; border-color:var(--low); }
   .icon-btn svg{ width:16px; height:16px; }
-  .icon-btn.star-btn.active{ color:var(--mid); border-color:var(--mid-soft); background:var(--mid-soft); }
-  .icon-btn.star-btn:hover{ color:var(--mid); }
 
   .card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); }
 
@@ -170,6 +168,72 @@
     .grade-btn{ padding:14px 0; font-size:20px; }
     .chip{ padding:9px 16px; }
   }
+  /* Spelers: smoelenboek in 3 kolommen. Hesjenummer (rood/geel) linksboven, geboortekwartaal rechtsboven. */
+  .player-grid{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:8px; }
+  @media (min-width:600px){ .player-grid{ grid-template-columns:repeat(4, minmax(0, 1fr)); gap:12px; } }
+  .pcard{
+    display:flex; flex-direction:column; padding:0; margin:0; text-align:left; cursor:pointer; font:inherit; color:var(--ink);
+    background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden;
+  }
+  .pcard:active{ transform:scale(.98); }
+  .pc-photo{ position:relative; height:0; padding-top:100%; background:var(--surface-alt); } /* vierkant, ook op oudere iPhones */
+  .pc-photo .pc-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
+  .pc-photo .pc-empty{ display:flex; align-items:center; justify-content:center; color:var(--ink-muted); }
+  .pc-hesje{
+    position:absolute; left:5px; top:5px; min-width:40px; height:36px; padding:0 5px; border-radius:8px;
+    background:#C62828; color:#FFE66D; border:2px solid #E53935; display:flex; align-items:center; justify-content:center;
+    font-family:"Barlow Condensed",sans-serif; font-weight:700; font-size:24px; line-height:1; font-variant-numeric:tabular-nums;
+  }
+  .pc-hesje.none{ background:var(--surface); color:var(--ink-muted); border-color:var(--border); font-size:18px; }
+  .pc-q{
+    position:absolute; right:5px; bottom:5px; height:30px; padding:0 7px; border-radius:8px;
+    background:#0E1930; color:#fff; border:2px solid #A8BEE0; display:flex; align-items:center;
+    font-family:"Barlow Condensed",sans-serif; font-weight:700; font-size:19px; line-height:1;
+  }
+  .pc-marks{ position:absolute; left:5px; bottom:5px; display:flex; gap:4px; }
+  .pc-mark{
+    min-width:26px; height:26px; border-radius:999px; display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:15px; border:2px solid rgba(0,0,0,.25);
+  }
+  .pc-mark.star{ background:#DDB456; color:#1a1405; }
+  .pc-mark.warn{ background:#E28A8A; color:#2a0c0c; }
+  .pc-name{ padding:6px 7px 8px; font-weight:600; font-size:13px; line-height:1.2; overflow-wrap:break-word; hyphens:auto; }
+
+  .q-inline{
+    display:inline-block; margin-left:4px; padding:1px 7px; border-radius:6px; background:#0E1930; color:#fff; border:1.5px solid #A8BEE0;
+    font-family:"Barlow Condensed",sans-serif; font-weight:700; font-size:15px; line-height:1.3; vertical-align:middle;
+  }
+  /* Spelerskaart (na tikken op een speler) */
+  .card-head{ display:flex; gap:14px; align-items:flex-start; }
+  .card-photo{ width:128px; height:128px; border-radius:14px; object-fit:cover; flex:0 0 auto; background:var(--surface-alt); cursor:zoom-in; }
+  .card-photo.empty{ display:flex; align-items:center; justify-content:center; color:var(--ink-muted); cursor:default; }
+  .card-badges{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .card-badges .hesje-tile{ height:44px; min-width:52px; font-size:28px; }
+  .card-q{
+    height:44px; padding:0 10px; border-radius:10px; background:#0E1930; color:#fff; border:2px solid #A8BEE0;
+    display:flex; align-items:center; font-family:"Barlow Condensed",sans-serif; font-weight:700; font-size:26px;
+  }
+  .card-name{ font-size:21px; margin-top:8px; }
+  .card-sub{ color:var(--ink-muted); font-size:13.5px; margin-top:2px; }
+  .card-rows{ margin-top:12px; }
+  .card-row{ display:flex; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); font-size:14.5px; }
+  .card-row:last-child{ border-bottom:none; }
+  .card-row .k{ color:var(--ink-muted); }
+  .card-row .v{ text-align:right; font-weight:600; }
+  .card-actions{ display:flex; gap:8px; margin-top:14px; }
+  .card-actions .btn{ flex:1; justify-content:center; padding:13px 10px; font-size:15px; }
+
+  /* Instellingen: uitklapbare groepen */
+  .set-group{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:10px; }
+  .set-group > summary{
+    list-style:none; cursor:pointer; padding:16px; font-family:"Barlow Condensed",sans-serif; font-weight:700; font-size:19px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .set-group > summary::-webkit-details-marker{ display:none; }
+  .set-group > summary::after{ content:"›"; font-size:24px; color:var(--ink-muted); transition:transform .2s; }
+  .set-group[open] > summary::after{ transform:rotate(90deg); }
+  .set-body{ padding:0 14px 16px; }
+  .set-body > .section-title:first-child{ margin-top:0 !important; }
   .confirm-sheet{ max-width:400px; display:flex; flex-direction:column; gap:12px; }
   .confirm-sheet h3{ font-size:20px; }
   .confirm-message{ font-size:14.5px; line-height:1.45; color:var(--ink); }
@@ -463,11 +527,7 @@
       <h2>Spelers</h2>
       <span class="count" id="spelersCount"></span>
     </div>
-    <div class="btn-row" id="spelersBtnRow">
-      <button class="btn primary" id="addPlayerBtn" style="flex:1;">+ Nieuwe speler</button>
-      <button class="btn ghost" id="importBtn" style="flex:1;">Importeer ART 1 (AS&rsquo;80)</button>
-    </div>
-    <div id="spelersList" style="display:flex; flex-direction:column; gap:10px;"></div>
+    <div id="spelersList" class="player-grid"></div>
   </section>
 
   <!-- BEOORDELEN -->
@@ -505,7 +565,6 @@
       </div>
       <div class="note">Rank: alleen voor de 3 beste en 3 onderste spelers per lichting, de rest is middenmoot. Advies: 1 uitstroom &middot; 2 doorstroom &middot; 3 vervolg AVS &middot; 4 direct aannemen. Bij meer dan 20% afwezig (van de trainingen tot nu toe) kleurt de naam en de cijfers rood.</div>
     </div>
-    <div id="favoritesOverviewWrap"></div>
     <div id="overzichtWrap"></div>
   </section>
 
@@ -653,6 +712,16 @@
       <button class="btn ghost" id="deletePlayerBtn" style="display:none; color:var(--low); border-color:var(--low-soft);">Verwijderen</button>
       <button class="btn primary block" id="savePlayerBtn">Opslaan</button>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="playerCardOverlay" hidden>
+  <div class="sheet">
+    <div class="sheet-head">
+      <h3>Speler</h3>
+      <button class="icon-btn" id="closePlayerCard">&times;</button>
+    </div>
+    <div id="playerCardBody"></div>
   </div>
 </div>
 
@@ -938,33 +1007,6 @@
     { value:"3", label:"3 – Vervolg AVS" },
     { value:"4", label:"4 – Direct aannemen" }
   ];
-  var IMPORT_ROSTER = [
-    { naam:"Aiden Bosnie", lichting:"l2019", q:"Q3", hesje:"90" },
-    { naam:"Elia Buadee", lichting:"l2019", q:"Q2", hesje:"91" },
-    { naam:"Jevaun Oliveira", lichting:"l2019", q:"Q3", hesje:"92" },
-    { naam:"Kylai Boldewijn", lichting:"l2019", q:"Q1", hesje:"93" },
-    { naam:"Mahir Emin Yargan", lichting:"l2019", q:"Q1", hesje:"94" },
-    { naam:"Zayn Thompson", lichting:"l2019", q:"Q3", hesje:"95" },
-    { naam:"Zayn de Jong", lichting:"l2019", q:"Q2", hesje:"96" },
-    { naam:"Devayo Schaken", lichting:"l2018", q:"Q2", hesje:"97" },
-    { naam:"Mex Ooms", lichting:"l2018", q:"Q2", hesje:"" },
-    { naam:"Nouri Bouali", lichting:"l2018", q:"Q3", hesje:"" },
-    { naam:"Omari Westenburg", lichting:"l2018", q:"Q2", hesje:"98" },
-    { naam:"Royce Kinman", lichting:"l2018", q:"Q1", hesje:"99" },
-    { naam:"Usain Dundas", lichting:"l2018", q:"Q3", hesje:"" },
-    { naam:"Adam Harrus", lichting:"l2017", q:"Q2", hesje:"100" },
-    { naam:"Anass Belhaj", lichting:"l2017", q:"Q1", hesje:"101" },
-    { naam:"Djavincely Schaardenburg", lichting:"l2017", q:"Q2", hesje:"102" },
-    { naam:"Noah Daafi", lichting:"l2017", q:"Q3", hesje:"103" },
-    { naam:"Senna Balaydin", lichting:"l2017", q:"Q1", hesje:"105" },
-    { naam:"Zayn Xavi Day", lichting:"l2017", q:"Q1", hesje:"" },
-    { naam:"Isaiah Dalfour", lichting:"l2016", q:"Q1", hesje:"107" },
-    { naam:"Jaël Martina", lichting:"l2016", q:"Q1", hesje:"108" },
-    { naam:"Lenny Ricardo", lichting:"l2016", q:"Q4", hesje:"109" },
-    { naam:"Leshawn Campagne", lichting:"l2016", q:"Q2", hesje:"110" },
-    { naam:"Mase da Veiga Cabral", lichting:"l2016", q:"Q1", hesje:"111" },
-    { naam:"Zack Hang", lichting:"l2016", q:"Q2", hesje:"112" }
-  ];
 
   var TRAINING_DATES = [
     { date:"2026-09-13", blok:1 }, { date:"2026-09-20", blok:1 }, { date:"2026-09-27", blok:1 }, { date:"2026-10-04", blok:1 },
@@ -1165,8 +1207,8 @@
   /* ---------- Store: Supabase-backed data laag ---------- */
   var Store = (function(){
     var trash = [];
-    var players = [], scores = [], evaluations = [], scoutReports = [], cancelled = [], profiles = {}, favorites = [];
-    var listeners = { players: [], scores: [], settings: [], evals: [], scout: [], favorites: [] };
+    var players = [], scores = [], evaluations = [], scoutReports = [], cancelled = [], profiles = {};
+    var listeners = { players: [], scores: [], settings: [], evals: [], scout: [] };
     var modeCb = function(){};
     var channel = null;
 
@@ -1187,9 +1229,6 @@
         doel: row.doel, oefeningen: row.oefeningen || [], vorm: row.vorm, watGoed: row.wat_goed, watBeter: row.wat_beter,
         groep: row.groep, spelersNotitie: row.spelers_notitie, zelfGoed: row.zelf_goed, zelfOntwikkelpunt: row.zelf_ontwikkelpunt,
         vrijeNotitie: row.vrije_notitie, updatedAt: row.updated_at };
-    }
-    function mapFavorite(row){
-      return { playerId: row.player_id, userId: row.user_id };
     }
     function mapScout(row){
       return Object.assign({
@@ -1249,13 +1288,6 @@
         emit("settings");
       });
     }
-    function loadFavorites(){
-      return sb.from("player_favorites").select("*").then(function(res){
-        if (res.error){ console.error(res.error); return; }
-        favorites = (res.data || []).map(mapFavorite);
-        emit("favorites");
-      });
-    }
 
     function subscribeRealtime(){
       if (channel) return;
@@ -1265,7 +1297,6 @@
         .on("postgres_changes", { event:"*", schema:"public", table:"evaluations" }, function(){ loadEvals(); })
         .on("postgres_changes", { event:"*", schema:"public", table:"scout_reports" }, function(){ loadScoutReports(); })
         .on("postgres_changes", { event:"*", schema:"public", table:"cancelled_trainings" }, function(){ loadCancelled(); })
-        .on("postgres_changes", { event:"*", schema:"public", table:"player_favorites" }, function(){ loadFavorites(); })
         .on("postgres_changes", { event:"*", schema:"public", table:"profiles" }, function(){
           loadProfiles().then(function(){ loadScores(); loadEvals(); loadScoutReports(); });
         })
@@ -1274,7 +1305,7 @@
 
     function init(){
       loadProfiles().then(function(){
-        return Promise.all([loadPlayers(), loadScores(), loadEvals(), loadScoutReports(), loadCancelled(), loadFavorites()]);
+        return Promise.all([loadPlayers(), loadScores(), loadEvals(), loadScoutReports(), loadCancelled()]);
       }).then(function(){
         modeCb("db");
         subscribeRealtime();
@@ -1288,7 +1319,6 @@
     function onSettings(fn){ listeners.settings.push(fn); }
     function onEvals(fn){ listeners.evals.push(fn); }
     function onScoutReports(fn){ listeners.scout.push(fn); }
-    function onFavorites(fn){ listeners.favorites.push(fn); }
 
     function getPlayers(){ return players.slice(); }
     function getScores(){ return scores.slice(); }
@@ -1296,15 +1326,6 @@
     function getEvaluations(){ return evaluations.slice(); }
     function getScoutReports(){ return scoutReports.slice(); }
     function getProfiles(){ return Object.keys(profiles).map(function(id){ return Object.assign({}, profiles[id]); }); }
-    function getFavorites(){ return favorites.slice(); }
-    function myFavoriteIds(){
-      var me = myUserId();
-      return favorites.filter(function(f){ return f.userId === me; }).map(function(f){ return f.playerId; });
-    }
-    function isMyFavorite(playerId){
-      var me = myUserId();
-      return favorites.some(function(f){ return f.userId === me && f.playerId === playerId; });
-    }
 
     function addPlayer(data){
       return sb.from("players").insert({ hesje:data.hesje||null, naam:data.naam, lichting:data.lichting, q:data.q||null }).then(function(res){
@@ -1540,28 +1561,11 @@
         return action === "list" ? data : loadProfiles().then(function(){ return data; });
       });
     }
-    function toggleFavorite(playerId){
-      var me = myUserId();
-      if (isMyFavorite(playerId)){
-        return sb.from("player_favorites").delete().eq("player_id", playerId).eq("user_id", me).then(function(res){
-          if (res.error) throw res.error;
-          return loadFavorites();
-        });
-      }
-      if (myFavoriteIds().length >= 3){
-        return Promise.reject(new Error("Je kunt maximaal 3 favorieten selecteren. Haal er eerst één weg."));
-      }
-      return sb.from("player_favorites").insert({ player_id: playerId, user_id: me }).then(function(res){
-        if (res.error) throw res.error;
-        return loadFavorites();
-      });
-    }
 
     return {
-      init: init, onPlayers: onPlayers, onScores: onScores, onSettings: onSettings, onEvals: onEvals, onScoutReports: onScoutReports, onFavorites: onFavorites, onModeReady: onModeReady,
+      init: init, onPlayers: onPlayers, onScores: onScores, onSettings: onSettings, onEvals: onEvals, onScoutReports: onScoutReports, onModeReady: onModeReady,
       getPlayers: getPlayers, getScores: getScores, getCancelled: getCancelled, getEvaluations: getEvaluations, getScoutReports: getScoutReports, getMode: getMode,
       getProfiles: getProfiles, updateProfileRole: updateProfileRole, manageUsers: manageUsers, listBackups: listBackups, getBackupData: getBackupData, makeBackup: makeBackup,
-      getFavorites: getFavorites, myFavoriteIds: myFavoriteIds, isMyFavorite: isMyFavorite, toggleFavorite: toggleFavorite,
       addPlayer: addPlayer, updatePlayer: updatePlayer, deletePlayer: deletePlayer,
       getTrash: getTrash, restorePlayer: restorePlayer, deletePlayerForever: deletePlayerForever, getFotoUrls: getFotoUrls, clearFotoUrlCache: clearFotoUrlCache, uploadPlayerFoto: uploadPlayerFoto, deletePlayerFoto: deletePlayerFoto,
       upsertScore: upsertScore, setAttendance: setAttendance, toggleCancelled: toggleCancelled,
@@ -1663,8 +1667,6 @@
   var editSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" stroke-linejoin="round" stroke-linecap="round"/></svg>';
   var trashSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   var scoutSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.5-4.5" stroke-linecap="round"/></svg>';
-  var starOutlineSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" stroke-linejoin="round"/></svg>';
-  var starFilledSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg>';
 
   /* ---------- state ---------- */
   var state = {
@@ -1723,77 +1725,115 @@
   });
 
   /* ---------- SPELERS tab ---------- */
+  var personSvg = '<svg width="44" height="44" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="20" r="8" fill="currentColor" opacity=".45"/><path d="M11 43c2.5-8 8.5-12 15-12s12.5 4 15 12" fill="currentColor" opacity=".45"/></svg>';
+
+  /* ---------- SPELERS tab: smoelenboek ----------
+     Alleen kijken: grote foto, hesjenummer en geboortekwartaal. Alle acties zitten in de spelerskaart. */
   function renderSpelers(){
-    var btnRow = $("spelersBtnRow");
-    if (btnRow) btnRow.style.display = Auth.isHoofdtrainer() ? "flex" : "none";
     var players = filteredPlayers();
     $("spelersCount").textContent = players.length + (players.length === 1 ? " speler" : " spelers");
     var list = $("spelersList");
     if (!players.length){
-      var emptyDesc = Auth.isHoofdtrainer()
-        ? 'Voeg spelers handmatig toe, of importeer de ART 1 (AS&rsquo;80) spelerslijst met de knop hierboven.'
-        : 'Er zijn nog geen spelers toegevoegd.';
-      list.innerHTML = '<div class="empty card">' + emptySvg +
+      list.innerHTML = '<div class="empty card" style="grid-column:1 / -1;">' + emptySvg +
         '<div class="t">Nog geen spelers</div>' +
-        '<div class="d">' + emptyDesc + '</div></div>';
+        '<div class="d">' + (Auth.isHoofdtrainer() ? 'Voeg spelers toe via Instellingen &rarr; Spelers beheren.' : 'Er zijn nog geen spelers toegevoegd.') + '</div></div>';
       return;
     }
-    var cancelled = Store.getCancelled();
-    var passed = passedDates(cancelled);
+    var isHoofd = Auth.isHoofdtrainer();
+    var passed = passedDates(Store.getCancelled());
     list.innerHTML = players.map(function(p){
-      var stats = attendanceStats(p, passed);
-      var flag = stats.flagged ? '<span class="flag-warn" title="Meer dan 20% afwezig (' + stats.absentCount + '/' + stats.total + ')">!</span>' : "";
-      var sig = Auth.isHoofdtrainer() ? scoutSignal(p.id) : null;
-      var scoutBadge = sig && sig.flagged ? '<span class="pill good" style="margin-left:6px;" title="' + sig.ab + ' scoutbeoordelingen met een A of B">Scout-signaal ' + sig.ab + '&times; A/B</span>' : "";
-      var canScoutHere = Auth.isHoofdtrainer() || Auth.myRole() === "scout";
-      var canEditPlayer = Auth.isHoofdtrainer();
-      var isFav = Store.isMyFavorite(p.id);
-      var rowOpenAttrs = canEditPlayer ? 'class="clickable" data-open="' + p.id + '"' : 'class="player-info"';
-      var bibHtml = playerIdentHtml(p);
-      return '<div class="player-row" data-id="' + p.id + '">' +
-        '<div ' + rowOpenAttrs + '>' +
-        bibHtml +
-        '<div class="player-meta"><div class="name">' + flag + esc(p.naam) + scoutBadge + '</div>' +
-        '<div class="sub">Lichting ' + esc(lichtingLabel(p.lichting)) + (p.q ? " · " + esc(p.q) : "") + '</div></div>' +
+      var marks = "";
+      if (isHoofd){
+        if (starInfo(p.id).star) marks += '<span class="pc-mark star" title="Ster: vaak A of B">&#9733;</span>';
+        if (attendanceStats(p, passed).flagged) marks += '<span class="pc-mark warn" title="Meer dan 20% afwezig">!</span>';
+      }
+      var photo = p.fotoPath
+        ? '<img class="pc-img" data-ident-photo="' + p.id + '" data-foto-path="' + esc(p.fotoPath) + '" alt="">'
+        : '<div class="pc-img pc-empty">' + personSvg + '</div>';
+      return '<button type="button" class="pcard" data-card="' + p.id + '" aria-label="' + esc(p.naam) + '">' +
+        '<div class="pc-photo">' + photo +
+        '<span class="pc-hesje' + (p.hesje ? '' : ' none') + '">' + (p.hesje ? esc(p.hesje) : "–") + '</span>' +
+        (p.q ? '<span class="pc-q">' + esc(p.q) + '</span>' : '') +
+        (marks ? '<span class="pc-marks">' + marks + '</span>' : '') +
         '</div>' +
-        '<div class="row-actions">' +
-        '<button class="icon-btn star-btn' + (isFav ? " active" : "") + '" data-fav="' + p.id + '" title="' + (isFav ? "Favoriet — klik om te verwijderen" : "Markeer als favoriet (top 3)") + '">' + (isFav ? starFilledSvg : starOutlineSvg) + '</button>' +
-        (canScoutHere ? '<button class="icon-btn" data-scout="' + p.id + '" title="Scouten">' + scoutSvg + '</button>' : "") +
-        (canEditPlayer ? '<button class="icon-btn" data-edit="' + p.id + '" title="Bewerken">' + editSvg + '</button>' +
-        '<button class="icon-btn danger" data-del="' + p.id + '" title="Verwijderen">' + trashSvg + '</button>' : "") +
-        '</div></div>';
+        '<div class="pc-name">' + esc(p.naam) + '</div></button>';
     }).join("");
-    Array.prototype.forEach.call(list.querySelectorAll("[data-open]"), function(el){
-      el.addEventListener("click", function(){ openPlayerSheet(el.getAttribute("data-open")); });
-    });
-    fillPlayerPhotos(list);
-    Array.prototype.forEach.call(list.querySelectorAll("[data-fav]"), function(el){
-      el.addEventListener("click", function(e){
-        e.stopPropagation();
-        Store.toggleFavorite(el.getAttribute("data-fav")).catch(function(err){
-          console.error(err);
-          showToast(err && err.message ? err.message : "Favoriet wijzigen mislukt");
-        });
-      });
-    });
-    Array.prototype.forEach.call(list.querySelectorAll("[data-edit]"), function(el){
-      el.addEventListener("click", function(){ openPlayerSheet(el.getAttribute("data-edit")); });
-    });
-    Array.prototype.forEach.call(list.querySelectorAll("[data-scout]"), function(el){
-      el.addEventListener("click", function(e){
-        e.stopPropagation();
-        var pid = el.getAttribute("data-scout");
-        switchTab("scouting");
-        openScoutGradeSheet(pid);
-      });
-    });
-    Array.prototype.forEach.call(list.querySelectorAll("[data-del]"), function(el){
-      el.addEventListener("click", function(e){
-        e.stopPropagation();
-        askDeletePlayer(el.getAttribute("data-del"));
-      });
+    fillPlayerPhotos(list, { zoom: false });
+    Array.prototype.forEach.call(list.querySelectorAll("[data-card]"), function(el){
+      el.addEventListener("click", function(){ openPlayerCard(el.getAttribute("data-card")); });
     });
   }
+
+  /* ---------- Spelerskaart: alles over één speler, per rol ---------- */
+  function openPlayerCard(playerId){
+    var p = Store.getPlayers().find(function(x){ return x.id === playerId; });
+    if (!p) return;
+    var role = Auth.myRole(), isHoofd = Auth.isHoofdtrainer();
+    var blok = currentBlok();
+    var rows = [];
+    function row(k, v){ rows.push('<div class="card-row"><span class="k">' + k + '</span><span class="v">' + v + '</span></div>'); }
+
+    if (isHoofd || role === "trainer"){
+      var att = attendanceStats(p, passedDates(Store.getCancelled()));
+      row("Aanwezig", att.total ? (att.total - att.absentCount) + " van " + att.total + " (" + (100 - att.pct) + "%)" +
+        (att.flagged ? ' <span style="color:var(--low);">!</span>' : '') : "nog geen trainingen");
+    }
+    if (isHoofd){
+      var scoresBlok = Store.getScores().filter(function(s){ return s.blok === blok; });
+      var wed = summarize(p.id, "wedstrijdbeoordeling", scoresBlok), pot = summarize(p.id, "potentieel", scoresBlok);
+      row("Trainers &middot; " + esc(blokLabel(blok)), (wed.letter || pot.letter)
+        ? "Wedstrijd " + (wed.letter || "–") + " &middot; Potentieel " + (pot.letter || "–") : "nog niet beoordeeld");
+      var st = starInfo(p.id), sig = scoutSignal(p.id);
+      row("Scouts", sig.total ? sig.ab + "&times; A/B van " + sig.total : "nog niet gescout");
+      row("Ster", st.star ? '<span style="color:var(--mid);">&#9733; ' + st.total + '&times; A/B</span>' : st.total + "&times; A/B (ster vanaf " + Branding.getScoutDrempel() + ")");
+      var rk = RANK_OPTIONS.find(function(o){ return o.value === String(p.rank || ""); });
+      var ad = ADVIES_OPTIONS.find(function(o){ return o.value === String(p.advies || ""); });
+      row("Rank &middot; advies", (p.rank ? esc(rk ? rk.label : "Rank " + p.rank) : "–") + " &middot; " + (p.advies ? esc(ad ? ad.label : p.advies) : "–"));
+    } else if (role === "trainer"){
+      var mine = Store.getScores().find(function(s){ return s.playerId === p.id && s.trainerId === myUserId() && s.blok === state.beoordelenBlok; });
+      row("Jouw beoordeling &middot; " + esc(blokLabel(state.beoordelenBlok)), mine
+        ? "Wedstrijd " + (mine.wedstrijdbeoordeling || "–") + " &middot; Potentieel " + (mine.potentieel || "–") : "nog niet");
+    } else if (role === "scout"){
+      var g = myScoutGrade(p.id, state.scoutBlok);
+      row("Jouw beoordeling &middot; " + esc(blokLabel(state.scoutBlok)), g ? esc(gradePair(g)) : "nog niet");
+    }
+
+    var photo = p.fotoPath
+      ? '<img class="card-photo" data-ident-photo="' + p.id + '" data-foto-path="' + esc(p.fotoPath) + '" alt="" title="Foto vergroten">'
+      : '<div class="card-photo empty">' + personSvg + '</div>';
+    var actions = [];
+    if (role === "scout") actions.push('<button class="btn primary" data-card-act="scout">Beoordelen</button>');
+    else if (isHoofd || role === "trainer") actions.push('<button class="btn primary" data-card-act="score">Beoordelen</button>');
+    if (isHoofd) actions.push('<button class="btn ghost" data-card-act="edit">Bewerken</button>');
+
+    var body = $("playerCardBody");
+    body.innerHTML =
+      '<div class="card-head">' + photo +
+      '<div style="min-width:0;"><div class="card-badges">' +
+      '<div class="hesje-tile' + (p.hesje ? '' : ' none') + '">' + (p.hesje ? esc(p.hesje) : "–") + '</div>' +
+      (p.q ? '<div class="card-q">' + esc(p.q) + '</div>' : '') +
+      '</div>' +
+      '<h3 class="card-name">' + esc(p.naam) + '</h3>' +
+      '<div class="card-sub">Lichting ' + esc(lichtingLabel(p.lichting)) + (p.q ? ' &middot; geboren in ' + esc(p.q) : '') + '</div>' +
+      '</div></div>' +
+      (rows.length ? '<div class="card-rows">' + rows.join("") + '</div>' : '') +
+      (actions.length ? '<div class="card-actions">' + actions.join("") + '</div>' : '');
+    fillPlayerPhotos(body);
+    Array.prototype.forEach.call(body.querySelectorAll("[data-card-act]"), function(b){
+      b.addEventListener("click", function(){
+        var act = b.getAttribute("data-card-act");
+        closePlayerCard();
+        if (act === "score") openScoreSheet(p.id);
+        else if (act === "scout") openScoutGradeSheet(p.id);
+        else if (act === "edit") openPlayerSheet(p.id);
+      });
+    });
+    $("playerCardOverlay").hidden = false;
+  }
+  function closePlayerCard(){ $("playerCardOverlay").hidden = true; }
+  $("closePlayerCard").addEventListener("click", closePlayerCard);
+  $("playerCardOverlay").addEventListener("click", function(e){ if (e.target === $("playerCardOverlay")) closePlayerCard(); });
+  document.addEventListener("keydown", function(e){ if (e.key === "Escape" && !$("playerCardOverlay").hidden && $("confirmOverlay").hidden) closePlayerCard(); });
 
   // Speler verwijderen: altijd eerst een duidelijk venster met naam en gevolgen.
   function askDeletePlayer(id, onDeleted){
@@ -1878,7 +1918,6 @@
   }
   function closePlayerSheet(){ $("playerOverlay").hidden = true; editingPlayerId = null; resetDeleteConfirm(); }
 
-  $("addPlayerBtn").addEventListener("click", function(){ openPlayerSheet(null); });
 
   function processPlayerFotoFile(file){
     return new Promise(function(resolve, reject){
@@ -1995,7 +2034,7 @@
     return '<div class="player-ident">' + photo + tile + '</div>';
   }
   // Vult de foto's in een lijst (signed URLs) en maakt ze aanklikbaar voor een grote weergave.
-  function fillPlayerPhotos(container){
+  function fillPlayerPhotos(container, opts){
     var imgs = Array.prototype.slice.call(container.querySelectorAll("[data-ident-photo]"));
     if (!imgs.length) return;
     var paths = imgs.map(function(img){ return img.getAttribute("data-foto-path"); });
@@ -2005,6 +2044,7 @@
         if (map[path]) img.src = map[path];
       });
     });
+    if (opts && opts.zoom === false) return; // bv. smoelenboek: tikken opent de spelerskaart
     imgs.forEach(function(img){
       img.addEventListener("click", function(e){
         e.stopPropagation();
@@ -2048,16 +2088,6 @@
     askDeletePlayer(editingPlayerId, closePlayerSheet);
   });
 
-  $("importBtn").addEventListener("click", function(){
-    var existing = Store.getPlayers();
-    var toAdd = IMPORT_ROSTER.filter(function(r){
-      return !existing.some(function(p){ return p.naam === r.naam && p.lichting === r.lichting; });
-    });
-    if (!toAdd.length){ showToast("Alle 25 spelers staan al in de lijst"); return; }
-    Promise.all(toAdd.map(function(r){ return Store.addPlayer(r); })).then(function(){
-      showToast(toAdd.length + " spelers geïmporteerd" + (toAdd.length < IMPORT_ROSTER.length ? " (rest stond er al)" : ""));
-    }).catch(function(err){ console.error(err); showToast("Importeren gedeeltelijk mislukt"); });
-  });
 
   /* ---------- identiteitsbalk (gedeeld door Beoordelen en Evaluatie) ---------- */
   function renderTrainerGate(wrapId, noteText){
@@ -2090,7 +2120,7 @@
       return '<div class="player-row"><div class="clickable" data-open="' + p.id + '">' +
         playerIdentHtml(p) +
         '<div class="player-meta"><div class="name">' + esc(p.naam) + '</div>' +
-        '<div class="sub">Lichting ' + esc(lichtingLabel(p.lichting)) + '</div></div>' +
+        '<div class="sub">Lichting ' + esc(lichtingLabel(p.lichting)) + (p.q ? ' <span class="q-inline">' + esc(p.q) + '</span>' : '') + '</div></div>' +
         '</div>' +
         '<span class="pill ' + (mine ? "done" : "todo") + '">' + (mine ? "Beoordeeld" : "Nog niet") + '</span>' +
         '</div>';
@@ -2310,7 +2340,7 @@
       }).join("") : "";
       return '<tr class="ov-row" data-id="' + r.player.id + '">' +
         '<td class="num">' + (r.player.hesje ? esc(r.player.hesje) : "–") + '</td>' +
-        '<td>' + flag + esc(r.player.naam) + '</td>' +
+        '<td>' + flag + esc(r.player.naam) + (starInfo(r.player.id).star ? ' <span style="color:var(--mid);" title="Ster">&#9733;</span>' : '') + '</td>' +
         '<td>' + afwPill + '</td>' +
         '<td>' + wedPill + '</td>' +
         '<td>' + potPill + '</td>' +
@@ -2319,14 +2349,15 @@
         '<td>' + scoutPill + '</td></tr>' +
         '<tr class="breakdown-row" data-for="' + r.player.id + '" hidden><td colspan="8" class="breakdown">' + breakdown + scoutBreakdown + '</td></tr>';
     }).join("");
-    var signalen = rows.filter(function(r){ return r.sig.flagged; });
-    var signalHtml = signalen.length
-      ? '<div class="card" style="padding:12px 14px; margin-bottom:12px; border-color:var(--good);">' +
-        '<div style="font-weight:700; margin-bottom:4px;">Scout-signalen</div>' +
-        '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:0 0 8px;">Deze spelers kregen ' + Branding.getScoutDrempel() + ' of meer keer een A of B van scouts. Overweeg contact met de jeugdcoördinator of jeugdscout.</div>' +
-        signalen.map(function(r){
-          return '<div>' + (r.player.hesje ? '<b>' + esc(r.player.hesje) + '</b> ' : '') + esc(r.player.naam) +
-            ' &middot; ' + r.sig.ab + '&times; A/B van ' + r.sig.total + ' scoutbeoordelingen</div>';
+    var sterren = rows.map(function(r){ return { r: r, s: starInfo(r.player.id) }; }).filter(function(x){ return x.s.star; })
+      .sort(function(a, b){ return b.s.total - a.s.total; });
+    var signalHtml = sterren.length
+      ? '<div class="card" style="padding:12px 14px; margin-bottom:12px; border-color:var(--mid);">' +
+        '<div style="font-weight:700; margin-bottom:4px;">&#9733; Sterspelers</div>' +
+        '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:0 0 8px;">Kregen ' + Branding.getScoutDrempel() + ' of meer keer een A of B van trainers en scouts samen. Overweeg contact met de jeugdcoördinator of jeugdscout.</div>' +
+        sterren.map(function(x){
+          return '<div>' + (x.r.player.hesje ? '<b>' + esc(x.r.player.hesje) + '</b> ' : '') + esc(x.r.player.naam) +
+            ' &middot; ' + x.s.total + '&times; A/B (trainers ' + x.s.trainerAB + ', scouts ' + x.s.scoutAB + ')</div>';
         }).join("") +
         '</div>'
       : '';
@@ -2357,46 +2388,6 @@
         openScoutSheet(btn.getAttribute("data-open-scout"));
       });
     });
-  }
-
-  function renderFavoritesOverview(){
-    var wrap = $("favoritesOverviewWrap");
-    if (!wrap) return;
-    if (!Auth.isHoofdtrainer()){ wrap.innerHTML = ""; return; }
-    var favs = Store.getFavorites();
-    var profiles = {};
-    Store.getProfiles().forEach(function(p){ profiles[p.id] = p; });
-    var playersById = {};
-    filteredPlayers().forEach(function(p){ playersById[p.id] = p; });
-    var byPlayer = {};
-    favs.forEach(function(f){
-      if (!playersById[f.playerId]) return;
-      if (!byPlayer[f.playerId]) byPlayer[f.playerId] = [];
-      byPlayer[f.playerId].push(f.userId);
-    });
-    var rows = Object.keys(byPlayer).map(function(pid){ return { player: playersById[pid], userIds: byPlayer[pid] }; });
-    if (!rows.length){
-      wrap.innerHTML = '<div class="section-title" style="margin-top:0;"><h2 style="font-size:15px;">Favorieten</h2></div>' +
-        '<div class="card" style="padding:14px; font-size:13px; color:var(--ink-muted);">Nog niemand heeft een favoriet (top 3) gemarkeerd op de Spelerslijst.</div>';
-      return;
-    }
-    rows.sort(function(a,b){ return b.userIds.length - a.userIds.length || a.player.naam.localeCompare(b.player.naam); });
-    var body = rows.map(function(r){
-      var overlap = r.userIds.length >= 2;
-      var chips = r.userIds.map(function(uid){
-        var prof = profiles[uid];
-        return '<span class="pill none" style="margin:0 4px 4px 0; display:inline-block;">' + roleLabel(prof ? prof.role : "") + (prof ? ': ' + esc(prof.naam) : '') + '</span>';
-      }).join("");
-      return '<div class="card" style="padding:12px 14px; display:flex; flex-direction:column; gap:6px;' + (overlap ? ' border-color:var(--good);' : '') + '">' +
-        '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">' +
-        '<div style="font-weight:600;">' + esc(r.player.naam) + '</div>' +
-        (overlap ? '<span class="pill good">Raakvlak &middot; ' + r.userIds.length + '&times;</span>' : '<span class="pill none">1&times;</span>') +
-        '</div>' +
-        '<div>' + chips + '</div></div>';
-    }).join("");
-    wrap.innerHTML = '<div class="section-title" style="margin-top:0;"><h2 style="font-size:15px;">Favorieten</h2></div>' +
-      '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Ieders eigen top 3 is priv&eacute; &mdash; alleen jij ziet hier wie wie heeft gesterd. Spelers die door meerdere mensen zijn gekozen staan gemarkeerd als raakvlak.</div>' +
-      '<div style="display:flex; flex-direction:column; gap:8px; margin-bottom:18px;">' + body + '</div>';
   }
 
   function buildOverzichtRows(){
@@ -2488,7 +2479,7 @@
         '<div style="display:flex; align-items:center; gap:12px;">' +
         playerIdentHtml(p) +
         '<div class="player-meta" style="flex:1;"><div class="name">' + esc(p.naam) + '</div>' +
-        '<div class="sub">Lichting ' + esc(lichtingLabel(p.lichting)) + '</div></div>' +
+        '<div class="sub">Lichting ' + esc(lichtingLabel(p.lichting)) + (p.q ? ' <span class="q-inline">' + esc(p.q) + '</span>' : '') + '</div></div>' +
         '<button type="button" class="pill attendance-btn ' + (afwezig ? "low" : "good") + '" data-toggle="' + p.id + '">' + (afwezig ? "Afwezig" : "Aanwezig") + '</button>' +
         '</div>' +
         (afwezig ? '<div class="chips">' + REDEN_OPTIONS.map(function(r){
@@ -2878,6 +2869,16 @@
     var ab = graded.filter(function(r){ return isAB(r.wedstrijdbeoordeling) || isAB(r.potentieel); });
     return { total: graded.length, ab: ab.length, flagged: ab.length >= Branding.getScoutDrempel() };
   }
+  // Ster ★ (alleen voor de hoofdtrainer, die alle beoordelingen ziet): beoordelingen van trainers én scouts
+  // met minstens één A of B, over alle blokken. Vanaf de drempel uit Instellingen krijgt de speler een ster.
+  function starInfo(playerId){
+    var trainerAB = Store.getScores().filter(function(s){
+      return s.playerId === playerId && (isAB(s.wedstrijdbeoordeling) || isAB(s.potentieel));
+    }).length;
+    var scoutAB = scoutSignal(playerId).ab;
+    var total = trainerAB + scoutAB;
+    return { trainerAB: trainerAB, scoutAB: scoutAB, total: total, star: total >= Branding.getScoutDrempel() };
+  }
   function gradePair(r){
     return "W: " + (r.wedstrijdbeoordeling || "–") + " · P: " + (r.potentieel || "–") +
       (r.rank ? " · #" + r.rank : "") + (r.advies ? " · Adv " + r.advies : "");
@@ -2903,7 +2904,7 @@
       return '<div class="player-row"><div class="clickable" data-open-player="' + p.id + '">' +
         playerIdentHtml(p) +
         '<div class="player-meta"><div class="name">' + esc(p.naam) + '</div>' +
-        '<div class="sub">Lichting ' + esc(lichtingLabel(p.lichting)) + '</div></div>' +
+        '<div class="sub">Lichting ' + esc(lichtingLabel(p.lichting)) + (p.q ? ' <span class="q-inline">' + esc(p.q) + '</span>' : '') + '</div></div>' +
         '</div>' +
         (g ? '<span class="pill done">' + esc(gradePair(g)) + '</span>' : '<span class="pill todo">Nog niet</span>') +
         '</div>';
@@ -3031,6 +3032,7 @@
   }
 
   var bulkFotoStatus = "";
+  var settingsOpen = {}; // welke groepen in Instellingen openstaan (blijft zo bij opnieuw tekenen)
 
   function renderInstellingen(){
     var body = $("instellingenBody");
@@ -3081,6 +3083,7 @@
         }).join("");
 
     body.innerHTML =
+      '<details class="set-group" data-group="accounts"' + (settingsOpen.accounts ? ' open' : '') + '><summary>Accounts</summary><div class="set-body">' +
       '<div class="section-title" style="margin-top:4px;"><h2 style="font-size:15px;">Nieuw account</h2></div>' +
       '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Maak een account voor een trainer of scout. De app bedenkt een wachtwoord dat je direct via WhatsApp kunt doorsturen.</div>' +
       '<div class="card" style="padding:14px; display:flex; flex-direction:column; gap:10px;">' +
@@ -3096,21 +3099,18 @@
       '<div id="credResult"></div>' +
       '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Accounts en rollen</h2></div>' +
       '<div id="profilesList" style="display:flex; flex-direction:column; gap:10px;">' + rows + '</div>' +
-      '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Prullenbak</h2></div>' +
-      '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Verwijderde spelers blijven hier 30 dagen staan, met al hun gegevens. Daarna worden ze automatisch definitief verwijderd.</div>' +
-      '<div id="trashList" style="display:flex; flex-direction:column; gap:10px;">' + trashHtml + '</div>' +
-      '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Back-ups</h2></div>' +
-      '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Elke maandagnacht wordt automatisch een back-up gemaakt van alle spelers, beoordelingen, aanwezigheid en scoutrapporten (de laatste 26 blijven bewaard). Daarnaast maakt Supabase dagelijks een volledige back-up.</div>' +
+      '</div></details>' +
+      '<details class="set-group" data-group="spelers"' + (settingsOpen.spelers ? ' open' : '') + '><summary>Spelers beheren</summary><div class="set-body">' +
+      '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Nieuwe speler</h2></div>' +
+      '<button class="btn primary" id="settingsAddPlayerBtn">+ Speler toevoegen</button>' +
+      '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Spelerslijst importeren</h2></div>' +
+      '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Plak hier een nieuwe lijst spelers (bijvoorbeeld gekopieerd uit een Excel- of Word-bestand van Ajax) om ze in één keer toe te voegen. Spelers die al in de lijst staan (zelfde naam + lichting) worden automatisch overgeslagen, dus dit kan veilig meerdere keren.</div>' +
       '<div class="card" style="padding:14px; display:flex; flex-direction:column; gap:10px;">' +
-      '<div id="backupList" style="display:flex; flex-direction:column; gap:6px; font-size:13.5px;">Laden&hellip;</div>' +
-      '<button class="btn ghost" id="makeBackupBtn">Nu een back-up maken</button>' +
-      '</div>' +
-      '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Scout-signaal</h2></div>' +
-      '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Een speler wordt in het Overzicht gemarkeerd zodra hij dit aantal keer een A of B van scouts heeft gekregen (alle blokken samen).</div>' +
-      '<div class="card" style="padding:14px; display:flex; align-items:flex-end; gap:10px;">' +
-      '<div class="field" style="margin-bottom:0; flex:1;"><label for="fScoutDrempel">Aantal keer A of B</label>' +
-      '<input type="number" id="fScoutDrempel" min="1" max="20" value="' + Branding.getScoutDrempel() + '"></div>' +
-      '<button class="btn primary" id="saveScoutDrempelBtn">Opslaan</button>' +
+      '<div class="field" style="margin-bottom:0;"><label for="fRosterPaste">Eén speler per regel: Naam, Geboortejaar, Kwartaal (optioneel), Hesjenummer (optioneel)</label>' +
+      '<textarea id="fRosterPaste" rows="6" placeholder="Bijv.:\nJan Jansen, 2019, Q2, 90\nPiet Pietersen, 2018, , 91"></textarea></div>' +
+      '<div class="note" style="font-size:11.5px; color:var(--ink-muted); margin:0;">Beschikbare lichtingen op dit moment: ' + LICHTINGEN.map(function(l){ return l.label; }).join(", ") + '. Komt er een nieuw geboortejaar bij (bijvoorbeeld 2020), laat het me dan even weten &mdash; dat ene stapje moet ik nog voor je toevoegen.</div>' +
+      '<div class="hint" id="rosterPasteHint"></div>' +
+      '<button class="btn primary" id="importPasteBtn">Spelers toevoegen</button>' +
       '</div>' +
       '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Spelersfoto\'s in één keer uploaden</h2></div>' +
       '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Kies meerdere foto\'s tegelijk. De bestandsnaam moet met het hesjenummer beginnen (bijv. <b>97.jpg</b>); de foto komt dan bij de speler met dat hesje. Een bestaande foto wordt vervangen.</div>' +
@@ -3120,14 +3120,25 @@
       '<div class="hint" id="bulkFotoHint">' + esc(bulkFotoStatus) + '</div>' +
       '<button class="btn primary" id="bulkFotoBtn" disabled>Foto\'s uploaden</button>' +
       '</div>' +
-      '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Spelerslijst importeren</h2></div>' +
-      '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Plak hier een nieuwe lijst spelers (bijvoorbeeld gekopieerd uit een Excel- of Word-bestand van Ajax) om ze in één keer toe te voegen. Spelers die al in de lijst staan (zelfde naam + lichting) worden automatisch overgeslagen, dus dit kan veilig meerdere keren.</div>' +
+      '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Prullenbak</h2></div>' +
+      '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Verwijderde spelers blijven hier 30 dagen staan, met al hun gegevens. Daarna worden ze automatisch definitief verwijderd.</div>' +
+      '<div id="trashList" style="display:flex; flex-direction:column; gap:10px;">' + trashHtml + '</div>' +
+      '</div></details>' +
+      '<details class="set-group" data-group="beoordelen"' + (settingsOpen.beoordelen ? ' open' : '') + '><summary>Beoordelen &amp; ster</summary><div class="set-body">' +
+      '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Ster &#9733;</h2></div>' +
+      '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Een speler krijgt vanzelf een ster zodra hij dit aantal keer een A of B heeft gekregen van trainers en scouts samen (alle blokken). Alleen jij ziet de sterren.</div>' +
+      '<div class="card" style="padding:14px; display:flex; align-items:flex-end; gap:10px;">' +
+      '<div class="field" style="margin-bottom:0; flex:1;"><label for="fScoutDrempel">Ster vanaf (aantal keer A of B)</label>' +
+      '<input type="number" id="fScoutDrempel" min="1" max="20" value="' + Branding.getScoutDrempel() + '"></div>' +
+      '<button class="btn primary" id="saveScoutDrempelBtn">Opslaan</button>' +
+      '</div>' +
+      '</div></details>' +
+      '<details class="set-group" data-group="app"' + (settingsOpen.app ? ' open' : '') + '><summary>App</summary><div class="set-body">' +
+      '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Back-ups</h2></div>' +
+      '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Elke maandagnacht wordt automatisch een back-up gemaakt van alle spelers, beoordelingen, aanwezigheid en scoutrapporten (de laatste 26 blijven bewaard). Daarnaast maakt Supabase dagelijks een volledige back-up.</div>' +
       '<div class="card" style="padding:14px; display:flex; flex-direction:column; gap:10px;">' +
-      '<div class="field" style="margin-bottom:0;"><label for="fRosterPaste">Eén speler per regel: Naam, Geboortejaar, Kwartaal (optioneel), Hesjenummer (optioneel)</label>' +
-      '<textarea id="fRosterPaste" rows="6" placeholder="Bijv.:\nJan Jansen, 2019, Q2, 90\nPiet Pietersen, 2018, , 91"></textarea></div>' +
-      '<div class="note" style="font-size:11.5px; color:var(--ink-muted); margin:0;">Beschikbare lichtingen op dit moment: ' + LICHTINGEN.map(function(l){ return l.label; }).join(", ") + '. Komt er een nieuw geboortejaar bij (bijvoorbeeld 2020), laat het me dan even weten &mdash; dat ene stapje moet ik nog voor je toevoegen.</div>' +
-      '<div class="hint" id="rosterPasteHint"></div>' +
-      '<button class="btn primary" id="importPasteBtn">Spelers toevoegen</button>' +
+      '<div id="backupList" style="display:flex; flex-direction:column; gap:6px; font-size:13.5px;">Laden&hellip;</div>' +
+      '<button class="btn ghost" id="makeBackupBtn">Nu een back-up maken</button>' +
       '</div>' +
       '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Huisstijl</h2></div>' +
       '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Upload je eigen logo. Dit verschijnt op de inlogpagina en bovenin de app. Je bent zelf verantwoordelijk voor wat je hier plaatst.</div>' +
@@ -3143,7 +3154,8 @@
       '<button class="btn primary small" id="uploadLogoBtn">Logo uploaden</button>' +
       (Branding.getUrl() ? '<button class="btn ghost small" id="removeLogoBtn" style="color:var(--low); border-color:var(--low-soft);">Logo verwijderen</button>' : '') +
       '</div>' +
-      '</div>';
+      '</div>' +
+      '</div></details>';
 
     Array.prototype.forEach.call(body.querySelectorAll("select[data-role]"), function(sel){
       sel.addEventListener("change", function(){
@@ -3153,6 +3165,10 @@
         }).catch(function(err){ console.error(err); showToast("Bijwerken mislukt"); });
       });
     });
+    Array.prototype.forEach.call(body.querySelectorAll("details.set-group"), function(d){
+      d.addEventListener("toggle", function(){ settingsOpen[d.getAttribute("data-group")] = d.open; });
+    });
+    $("settingsAddPlayerBtn").addEventListener("click", function(){ openPlayerSheet(null); });
     fillPlayerPhotos($("trashList"));
     Array.prototype.forEach.call(body.querySelectorAll("[data-restore]"), function(b){
       b.addEventListener("click", function(){
@@ -3220,7 +3236,7 @@
       sb.from("app_settings").update({ scout_signaal_drempel: n }).eq("id", 1).then(function(res){
         if (res.error) throw res.error;
         Branding.setScoutDrempel(n);
-        showToast("Scout-signaal: vanaf " + n + "× A of B");
+        showToast("Ster vanaf " + n + "× A of B");
       }).catch(function(err){ console.error(err); showToast("Opslaan mislukt"); });
     });
 
@@ -3488,7 +3504,7 @@
     updateTabVisibility();
     if (state.tab === "spelers") renderSpelers();
     else if (state.tab === "beoordelen") renderBeoordelen();
-    else if (state.tab === "overzicht"){ renderFavoritesOverview(); renderOverzicht(); }
+    else if (state.tab === "overzicht") renderOverzicht();
     else if (state.tab === "absenties") renderAbsenties();
     else if (state.tab === "evaluatie") renderEvaluatie();
     else if (state.tab === "scouting") renderScouting();
@@ -3500,7 +3516,6 @@
   Store.onSettings(renderAll);
   Store.onEvals(renderAll);
   Store.onScoutReports(renderAll);
-  Store.onFavorites(renderAll);
   Store.onModeReady(function(mode){
     var pill = $("modePill"), text = $("modePillText");
     pill.className = "mode-pill db";
