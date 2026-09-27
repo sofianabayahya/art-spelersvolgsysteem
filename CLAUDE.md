@@ -53,7 +53,12 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   via `make_backup()`; pg_cron-job `art-wekelijkse-backup` (maandag 03:00 UTC), laatste 26 bewaard, downloadbaar in Instellingen.
 - Invulvensters vragen bevestiging bij sluiten met niet-opgeslagen wijzigingen (`guardSheet`).
 - supabase-js staat vast op 2.117.2 met SRI-integrity; bij updaten ook de hash vernieuwen.
-- iOS-beginscherm-app: strook onder de tabbalk valt buiten de pagina; `html` heeft daarom de tabbalkkleur.
+- Vast app-frame: html/body overflow hidden, #appRoot 100% hoog (flex), kop en tabbalk zijn gewone flex-items, alleen
+  <main> scrollt (overscroll contain). Geen position:sticky/fixed voor kop/tabbalk: dat liet ze op iOS meeschuiven.
+- iOS-beginscherm-app: de app valt tussen statusbalk en thuis-streepje; die stroken kleurt iOS met theme-color /
+  manifest-kleur. Die staan op #16223F (= kleur van kop en tabbalk), zodat de balken doorlopen tot de rand.
+  Na wijzigen van manifest-kleuren kan opnieuw toevoegen aan het beginscherm nodig zijn.
+- Tabbalk zoals Magister: actief = gekleurd icoon/tekst + streepje bovenaan, geen groot blok.
 - Als Vercel een push niet oppakt (geen deployment voor de commit): nieuwe push geeft een nieuw seintje.
 - Mobiel: invoervelden 16px (anders zoomt iOS in), grotere tikvlakken bij `pointer:coarse`.
 - Supabase heeft twee projecten in dezelfde Pro-organisatie: ARTsvs Project (deze app) en ClubComm (ander project, niet aanraken).

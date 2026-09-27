@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ART Spelersvolgsysteem</title>
-<meta name="theme-color" content="#0E1930">
+<meta name="theme-color" content="#16223F">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -43,8 +43,9 @@
 
   *{ box-sizing:border-box; }
   [hidden]{ display:none !important; }
-  html,body{ height:100%; width:100%; overflow-x:hidden; background:var(--bg); }
-  /* iOS (app vanaf beginscherm) toont onder de tabbalk soms een strook buiten de pagina; die krijgt de kleur van de tabbalk. */
+  /* Vast app-frame: kop en tabbalk staan stil, alleen <main> scrollt. Voorkomt dat iOS de hele pagina verend laat
+     meebewegen (kop en tabbalk schoven mee) en dat tekst achter de kop verdwijnt. */
+  html,body{ height:100%; width:100%; overflow:hidden; overscroll-behavior:none; background:var(--bg); }
   html{ background:var(--surface); }
   body{
     margin:0; background:var(--bg); color:var(--ink);
@@ -58,7 +59,8 @@
   .num{ font-variant-numeric:tabular-nums; }
 
   header.top{
-    position:sticky; top:env(safe-area-inset-top,0px); z-index:20;
+    position:relative; flex:0 0 auto; z-index:20;
+    padding-top:calc(14px + env(safe-area-inset-top,0px)) !important;
     background:var(--surface); border-bottom:1px solid var(--border);
     padding:14px 16px 12px; display:flex; flex-direction:column; gap:10px;
     max-width:100vw;
@@ -86,7 +88,10 @@
   }
   .chip.active{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
 
-  main{ flex:1; overflow-y:auto; padding:14px 16px calc(76px + env(safe-area-inset-bottom,0px)); }
+  main{
+    flex:1 1 auto; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior-y:contain;
+    padding:14px 16px 24px;
+  }
   .panel{ display:flex; flex-direction:column; gap:12px; max-width:760px; margin:0 auto; width:100%; }
 
   .section-title{ display:flex; align-items:baseline; justify-content:space-between; margin-top:4px; gap:10px; flex-wrap:wrap; }
@@ -384,21 +389,22 @@
   .bd-blok-group:first-child .bd-blok-label{ margin-top:0; }
   .blok-timeline{ font-size:10.5px; color:var(--ink-muted); margin-top:2px; letter-spacing:.3px; }
 
+  body.no-tabbar main{ padding-bottom:calc(24px + env(safe-area-inset-bottom,0px)); }
   nav.tabbar{
-    position:fixed; left:0; right:0; bottom:0; z-index:30; display:flex; gap:2px; background:var(--surface);
-    border-top:1px solid var(--border);
-    /* Knoppen tot vlak boven het thuis-streepje van de iPhone; de achtergrond loopt door tot de onderrand. */
-    padding:6px 6px max(6px, calc(env(safe-area-inset-bottom, 0px) - 14px));
-    box-shadow:0 -2px 12px rgba(0,0,0,.05); overflow:hidden; max-width:100vw;
+    position:relative; flex:0 0 auto; z-index:30; display:flex; background:var(--surface);
+    border-top:1px solid var(--border); padding:0 4px env(safe-area-inset-bottom,0px); max-width:100vw;
   }
   nav.tabbar button{
-    flex:1; min-width:0; background:none; border:none; border-radius:12px; display:flex; flex-direction:column; align-items:center; gap:3px;
-    padding:7px 2px; color:var(--ink-muted); cursor:pointer; font-family:"Barlow",sans-serif; font-weight:600; font-size:10.5px;
+    flex:1; min-width:0; background:none; border:none; border-radius:0; display:flex; flex-direction:column; align-items:center; gap:3px;
+    padding:9px 2px 7px; color:var(--ink-muted); cursor:pointer; font-family:"Barlow",sans-serif; font-weight:600; font-size:11.5px;
+    position:relative;
     transition:background .15s ease, color .15s ease;
   }
   nav.tabbar button svg{ width:21px; height:21px; flex:0 0 auto; }
   nav.tabbar button .tab-label{ max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  nav.tabbar button.active{ background:var(--accent); color:var(--accent-ink); }
+  /* Actief tabblad zoals in Magister: gekleurd icoon + tekst en een dun streepje bovenaan, geen groot blok. */
+  nav.tabbar button.active{ color:var(--accent-hover); }
+  nav.tabbar button.active::before{ content:""; position:absolute; top:0; left:18%; right:18%; height:3px; border-radius:0 0 3px 3px; background:var(--accent); }
 
   .toast{
     position:fixed; left:50%; transform:translateX(-50%); bottom:calc(80px + env(safe-area-inset-bottom,0px));
@@ -478,8 +484,8 @@
   }
   .account-menu button:hover{ background:var(--surface-alt); }
   .account-menu button.danger{ color:var(--low); }
-  #appRoot{ display:flex; flex-direction:column; min-height:100%; }
-  #authScreen, #authLoading{ flex:1; }
+  #appRoot{ display:flex; flex-direction:column; height:100%; min-height:0; }
+  #authScreen, #authLoading{ flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; }
 </style>
 </head>
 <body>
@@ -3431,6 +3437,7 @@
     // Maar één tabblad (bv. een scout)? Dan heeft de tabbalk onderin geen zin.
     var visibleTabs = Array.prototype.filter.call(document.querySelectorAll(".tab-btn"), function(b){ return b.style.display !== "none"; }).length;
     document.querySelector(".tabbar").hidden = visibleTabs <= 1;
+    document.body.classList.toggle("no-tabbar", visibleTabs <= 1);
     var menuBtn = $("menuInstellingenBtn");
     if (menuBtn) menuBtn.hidden = !isHoofd;
     if (!tabAllowedForRole(state.tab, role, isHoofd) && state.tab !== "spelers"){
