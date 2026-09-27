@@ -16,6 +16,7 @@ use File::Temp qw(tempfile);
 use File::Path qw(make_path);
 use File::Basename qw(dirname);
 use FindBin;
+use Encode qw(decode_utf8);
 
 my $OWNER  = 'sofianabayahya';
 my $REPO   = 'art-spelersvolgsysteem';
@@ -142,6 +143,7 @@ elsif ($cmd eq 'pull') {
 }
 elsif ($cmd eq 'push') {
   my $msg = shift @ARGV;
+  $msg = decode_utf8($msg) if defined $msg;
   die "Gebruik: perl tools/gh.pl push \"bericht\" bestand1 [bestand2 ...]\n" unless $msg && @ARGV;
   my $head = head_sha();
   my $synced = last_sync();
@@ -163,6 +165,7 @@ elsif ($cmd eq 'push-test') {
   # Zet main + de genoemde bestanden op branch "test" (overschrijft die branch). Vercel maakt daar
   # een Preview-deployment van; www.artsvs.nl blijft ongemoeid.
   my $msg = shift @ARGV;
+  $msg = decode_utf8($msg) if defined $msg;
   die "Gebruik: perl tools/gh.pl push-test \"bericht\" bestand1 [bestand2 ...]\n" unless $msg && @ARGV;
   my $head = head_sha();
   my @tree;
