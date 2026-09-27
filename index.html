@@ -12,9 +12,13 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ART Spelers">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://vosamkqhdnmkkecvebyl.supabase.co" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap">
+<!-- Vaste versie + integrity: een gewijzigd of gemanipuleerd bestand op de CDN wordt geweigerd. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js" integrity="sha384-WgXwGL6fUsYJWNaKJgVbrJKGRQwc1vieh2oy4kw9nXqpNDz3tdSsqEYUgeHD/NuF" crossorigin="anonymous"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap');
 
   :root{
     --bg:#0E1930;
@@ -136,10 +140,43 @@
   }
   .bib-badge{
     position:absolute; right:-4px; bottom:-4px; min-width:20px; height:20px; padding:0 4px; box-sizing:border-box;
-    border-radius:999px; background:var(--ink); color:#fff; font-family:"Barlow Condensed",sans-serif;
+    border-radius:999px; background:#C62828; color:#FFE66D; font-family:"Barlow Condensed",sans-serif;
     font-weight:700; font-size:11px; display:flex; align-items:center; justify-content:center;
     border:2px solid var(--surface);
   }
+  /* Foto + groot hesjenummer, in de kleuren van de ART-hesjes (rood met geel), goed leesbaar buiten. */
+  .player-ident{ display:flex; align-items:center; gap:8px; flex:0 0 auto; }
+  .player-ident .ident-photo{
+    width:52px; height:52px; border-radius:50%; object-fit:cover; display:block; flex:0 0 auto;
+    background:var(--surface-alt); border:2px solid var(--border); cursor:pointer;
+  }
+  .player-ident .ident-photo.empty{ cursor:default; color:var(--ink-muted); }
+  .hesje-tile{
+    flex:0 0 auto; min-width:52px; height:52px; padding:0 6px; border-radius:10px;
+    background:#C62828; color:#FFE66D; border:2px solid #E53935;
+    display:flex; align-items:center; justify-content:center;
+    font-family:"Barlow Condensed",sans-serif; font-weight:700; font-size:30px; line-height:1;
+    font-variant-numeric:tabular-nums; letter-spacing:.5px;
+  }
+  .hesje-tile.none{ background:var(--surface-alt); color:var(--ink-muted); border-color:var(--border); font-size:20px; }
+  #confirmOverlay{ z-index:70; align-items:center; padding:16px; }
+  #confirmOverlay .sheet{ border-radius:20px; }
+  /* Telefoon/tablet (vinger in plaats van muis): grotere tikvlakken en geen automatisch inzoomen op iPhone. */
+  @media (pointer:coarse){
+    .icon-btn{ width:42px; height:42px; }
+    .icon-btn svg{ width:18px; height:18px; }
+    .btn.small{ padding:9px 14px; font-size:14px; }
+    .table-select{ font-size:16px; padding:8px; }
+    .grade-btn{ padding:14px 0; font-size:20px; }
+    .chip{ padding:9px 16px; }
+  }
+  .confirm-sheet{ max-width:400px; display:flex; flex-direction:column; gap:12px; }
+  .confirm-sheet h3{ font-size:20px; }
+  .confirm-message{ font-size:14.5px; line-height:1.45; color:var(--ink); }
+  .confirm-message .warn{ color:var(--low); font-weight:600; }
+  .confirm-actions{ display:flex; gap:10px; margin-top:4px; }
+  .confirm-actions .btn{ flex:1; justify-content:center; padding:12px 16px; }
+  .confirm-actions .btn.danger{ background:#C62828; border-color:#C62828; color:#fff; }
   .foto-edit-wrap{ display:flex; align-items:center; gap:16px; }
   .foto-edit-preview{ position:relative; flex:0 0 auto; width:88px; height:88px; }
   .foto-edit-preview img, .foto-edit-preview .bib{ width:88px; height:88px; font-size:26px; }
@@ -152,7 +189,11 @@
   .player-meta{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
   .player-meta .name{ font-weight:600; font-size:15.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .player-meta .sub{ font-size:12.5px; color:var(--ink-muted); }
-  .row-actions{ display:flex; gap:6px; flex:0 0 auto; }
+  .row-actions{ display:flex; gap:6px; flex:0 0 auto; margin-left:auto; }
+  /* Smal scherm: naam houdt ruimte, knoppen schuiven zo nodig naar de volgende regel. */
+  .player-row{ flex-wrap:wrap; row-gap:8px; }
+  .player-row .clickable, .player-row .player-info{ min-width:220px; }
+  .player-row .player-meta .name{ white-space:normal; overflow-wrap:anywhere; line-height:1.2; }
 
   .pill{
     font-size:12px; font-weight:700; padding:4px 10px; border-radius:999px;
@@ -184,7 +225,7 @@
   .field{ display:flex; flex-direction:column; gap:5px; margin-bottom:14px; }
   .field label{ font-size:12.5px; font-weight:600; color:var(--ink-muted); text-transform:uppercase; letter-spacing:.4px; }
   .field input[type=text], .field input[type=number], .field input[type=password], .field select, .field textarea{
-    font-family:"Barlow",sans-serif; font-size:15px; padding:10px 12px;
+    font-family:"Barlow",sans-serif; font-size:16px; padding:10px 12px;
     border:1px solid var(--border); border-radius:10px; background:var(--bg); color:var(--ink); width:100%;
   }
   .field textarea{ resize:vertical; min-height:70px; }
@@ -283,6 +324,13 @@
     max-width:88vw; text-align:center;
   }
   .toast.show{ opacity:1; transform:translateX(-50%) translateY(-4px); }
+  .update-banner{
+    position:fixed; left:12px; right:12px; bottom:calc(80px + env(safe-area-inset-bottom,0px)); z-index:65;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:var(--accent); color:var(--accent-ink); padding:10px 12px 10px 16px; border-radius:14px;
+    font-weight:600; font-size:14px; box-shadow:var(--shadow); max-width:520px; margin:0 auto;
+  }
+  .update-banner .btn.primary{ background:var(--accent-ink); color:var(--accent); border-color:var(--accent-ink); }
 
   .trainer-gate{ display:flex; flex-direction:column; gap:10px; padding:6px 2px 2px; }
   .trainer-chip{
@@ -488,16 +536,8 @@
       <label for="scoutBlokSelect">Blok</label>
       <select id="scoutBlokSelect"></select>
     </div>
-    <div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Wie van ART 1 is klaar voor de AVS? Tik een speler aan om te scouten. Dit is een eerste versie; ik pas 'm aan zodra je de scouts hebt gesproken.</div>
+    <div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Tik een speler aan en beoordeel op A/B/C/D, net als de trainers. Schrijf er kort bij waarom. Je ziet alleen je eigen beoordelingen; de hoofdtrainer ziet ze allemaal.</div>
     <div id="scoutPlayerList" style="display:flex; flex-direction:column; gap:10px;"></div>
-
-    <div class="section-title" style="margin-top:22px;">
-      <h2>Externe spelers</h2>
-      <span class="count" id="scoutExtCount"></span>
-    </div>
-    <div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Voor kinderen die je scout buiten AS&rsquo;80, los van de ART-lijst.</div>
-    <button class="btn primary" id="addScoutBtn" style="margin-bottom:12px;">+ Extern scoutrapport toevoegen</button>
-    <div id="scoutList" style="display:flex; flex-direction:column; gap:10px;"></div>
   </section>
 
   <!-- ABSENTIES -->
@@ -616,6 +656,17 @@
   </div>
 </div>
 
+<div class="overlay" id="confirmOverlay" hidden>
+  <div class="sheet confirm-sheet" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <h3 id="confirmTitle"></h3>
+    <div id="confirmMessage" class="confirm-message"></div>
+    <div class="confirm-actions">
+      <button type="button" class="btn ghost" id="confirmCancelBtn">Annuleren</button>
+      <button type="button" class="btn primary" id="confirmOkBtn"></button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="pwOverlay" hidden>
   <div class="sheet">
     <div class="sheet-head">
@@ -653,8 +704,31 @@
       <button class="icon-btn" id="closeScoreSheet">&times;</button>
     </div>
     <div id="scoreGrades"></div>
+    <div id="scoutExtraFields" hidden>
+      <div class="field-row">
+        <div class="field">
+          <label for="fScoutRank">Rank</label>
+          <select id="fScoutRank">
+            <option value="">Middenmoot</option>
+            <option value="1">#1 &ndash; bij de bovenste 3</option>
+            <option value="3">#3 &ndash; bij de onderste 3</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="fScoutAdvies">Advies</label>
+          <select id="fScoutAdvies">
+            <option value="">Nog geen advies</option>
+            <option value="1">1 &ndash; Uitstroom ART</option>
+            <option value="2">2 &ndash; Doorstroom ART</option>
+            <option value="3">3 &ndash; Vervolg AVS</option>
+            <option value="4">4 &ndash; Direct aannemen</option>
+          </select>
+        </div>
+      </div>
+      <div class="hint" id="scoutRankHint" style="margin:-4px 0 10px;"></div>
+    </div>
     <div class="field">
-      <label for="fNotitie">Notitie (optioneel)</label>
+      <label for="fNotitie" id="fNotitieLabel">Notitie (optioneel)</label>
       <textarea id="fNotitie" placeholder="Korte observatie voor dit scoutingsmoment&hellip;"></textarea>
     </div>
     <button class="btn primary block" id="saveScoreBtn">Beoordeling opslaan</button>
@@ -958,6 +1032,7 @@
   /* ---------- Branding: eigen logo, door de hoofdtrainer te beheren ---------- */
   var Branding = (function(){
     var url = null;
+    var scoutDrempel = 3; // aantal scoutbeoordelingen met een A of B voordat een speler gesignaleerd wordt
     function apply(){
       var badgeImg = document.getElementById("authBadgeImg");
       var badgeDefault = document.getElementById("authBadgeDefault");
@@ -974,15 +1049,18 @@
     }
     function load(){
       if (!sb) return Promise.resolve();
-      return sb.from("app_settings").select("logo_url").eq("id", 1).maybeSingle().then(function(res){
+      return sb.from("app_settings").select("*").eq("id", 1).maybeSingle().then(function(res){
         if (res.error){ console.error(res.error); return; }
         url = (res.data && res.data.logo_url) || null;
+        if (res.data && res.data.scout_signaal_drempel) scoutDrempel = res.data.scout_signaal_drempel;
         apply();
       }).catch(function(err){ console.error(err); });
     }
     function getUrl(){ return url; }
+    function getScoutDrempel(){ return scoutDrempel; }
+    function setScoutDrempel(n){ scoutDrempel = n; }
     function setUrl(u){ url = u || null; apply(); }
-    return { load:load, apply:apply, getUrl:getUrl, setUrl:setUrl };
+    return { load:load, apply:apply, getUrl:getUrl, setUrl:setUrl, getScoutDrempel:getScoutDrempel, setScoutDrempel:setScoutDrempel };
   })();
 
   /* ---------- Auth: echte login i.p.v. naam-kiezer / toegangscode ---------- */
@@ -1057,6 +1135,7 @@
       });
     }
     function logout(){
+      Store.clearFotoUrlCache(); // foto-links horen niet op het toestel te blijven na uitloggen
       return sb.auth.signOut().then(function(){ user = null; profile = null; showAuthScreen(); });
     }
 
@@ -1085,6 +1164,7 @@
 
   /* ---------- Store: Supabase-backed data laag ---------- */
   var Store = (function(){
+    var trash = [];
     var players = [], scores = [], evaluations = [], scoutReports = [], cancelled = [], profiles = {}, favorites = [];
     var listeners = { players: [], scores: [], settings: [], evals: [], scout: [], favorites: [] };
     var modeCb = function(){};
@@ -1095,7 +1175,7 @@
 
     function mapPlayer(row){
       return { id: row.id, hesje: row.hesje, naam: row.naam, lichting: row.lichting, q: row.q,
-        rank: row.rank, advies: row.advies, attendance: row.attendance || {}, fotoPath: row.foto_path || null };
+        rank: row.rank, advies: row.advies, attendance: row.attendance || {}, fotoPath: row.foto_path || null, deletedAt: row.deleted_at || null };
     }
     function mapScore(row){
       return { id: row.id, playerId: row.player_id, trainerId: row.trainer_id, trainerName: profileName(row.trainer_id),
@@ -1119,6 +1199,8 @@
         techniek: row.techniek || {}, tactiek: row.tactiek || {}, motoriek: row.motoriek || {}, mentaliteit: row.mentaliteit || {},
         positiespecifiek: row.positiespecifiek, potentie: row.potentie, notitie: row.notitie,
         ontwikkelpunt: row.ontwikkelpunt, projectie: row.projectie, eindoordeel: row.eindoordeel,
+        wedstrijdbeoordeling: row.wedstrijdbeoordeling || null, potentieel: row.potentieel || null,
+        rank: row.rank || "", advies: row.advies || "",
         blok: row.blok || 1, updatedAt: row.updated_at
       });
     }
@@ -1133,7 +1215,9 @@
     function loadPlayers(){
       return sb.from("players").select("*").then(function(res){
         if (res.error){ console.error(res.error); return; }
-        players = (res.data || []).map(mapPlayer);
+        var all = (res.data || []).map(mapPlayer);
+        players = all.filter(function(p){ return !p.deletedAt; });
+        trash = all.filter(function(p){ return p.deletedAt; }); // alleen gevuld voor de hoofdtrainer (RLS)
         emit("players");
       });
     }
@@ -1236,14 +1320,41 @@
         return loadPlayers();
       });
     }
+    // Verwijderen = naar de prullenbak. Na 30 dagen ruimt de database hem zelf op (pg_cron).
     function deletePlayer(id){
+      return sb.from("players").update({ deleted_at: new Date().toISOString() }).eq("id", id).then(function(res){
+        if (res.error) throw res.error;
+        return loadPlayers();
+      });
+    }
+    function restorePlayer(id){
+      return sb.from("players").update({ deleted_at: null }).eq("id", id).then(function(res){
+        if (res.error) throw res.error;
+        return loadPlayers();
+      });
+    }
+    function deletePlayerForever(id){
       return sb.from("players").delete().eq("id", id).then(function(res){
         if (res.error) throw res.error;
         return loadPlayers();
       });
     }
+    function getTrash(){ return trash.slice(); }
 
-    var fotoUrlCache = {};
+    // Signed URLs 24 uur geldig en bewaard op dit toestel, zodat de browser de foto's kan cachen
+    // (een nieuwe URL per keer = elke keer opnieuw downloaden). Wordt gewist bij uitloggen.
+    var FOTO_URL_KEY = "art-foto-urls";
+    var FOTO_URL_SECONDS = 24 * 3600;
+    var fotoUrlCache = (function(){
+      try { return JSON.parse(localStorage.getItem(FOTO_URL_KEY) || "{}") || {}; } catch(e){ return {}; }
+    })();
+    function saveFotoUrlCache(){
+      try { localStorage.setItem(FOTO_URL_KEY, JSON.stringify(fotoUrlCache)); } catch(e){}
+    }
+    function clearFotoUrlCache(){
+      fotoUrlCache = {};
+      try { localStorage.removeItem(FOTO_URL_KEY); } catch(e){}
+    }
     function getFotoUrls(paths){
       var now = Date.now();
       var uniq = [];
@@ -1252,29 +1363,39 @@
       var have = {};
       uniq.forEach(function(p){ if (fotoUrlCache[p] && fotoUrlCache[p].expiresAt >= now) have[p] = fotoUrlCache[p].url; });
       if (!need.length) return Promise.resolve(have);
-      return sb.storage.from("player-photos").createSignedUrls(need, 3600).then(function(res){
+      return sb.storage.from("player-photos").createSignedUrls(need, FOTO_URL_SECONDS).then(function(res){
         if (res.error) throw res.error;
         (res.data || []).forEach(function(item){
           if (item && item.path && item.signedUrl){
-            fotoUrlCache[item.path] = { url: item.signedUrl, expiresAt: now + 55 * 60 * 1000 };
+            fotoUrlCache[item.path] = { url: item.signedUrl, expiresAt: now + (FOTO_URL_SECONDS - 3600) * 1000 };
             have[item.path] = item.signedUrl;
           }
         });
+        saveFotoUrlCache();
         return have;
       }).catch(function(err){ console.error(err); return have; });
     }
+    // Elke upload krijgt een nieuwe bestandsnaam, zodat niemand een oude foto uit de cache blijft zien.
     function uploadPlayerFoto(playerId, blob){
-      var path = "players/" + playerId + ".jpg";
-      return sb.storage.from("player-photos").upload(path, blob, { upsert: true, cacheControl: "3600", contentType: "image/jpeg" }).then(function(res){
+      var old = (players.find(function(x){ return x.id === playerId; }) || {}).fotoPath;
+      var path = "players/" + playerId + "-" + Date.now() + ".jpg";
+      return sb.storage.from("player-photos").upload(path, blob, { upsert: false, cacheControl: "86400", contentType: "image/jpeg" }).then(function(res){
         if (res.error) throw res.error;
-        delete fotoUrlCache[path];
         return updatePlayer(playerId, { foto_path: path });
+      }).then(function(r){
+        if (old && old !== path){
+          delete fotoUrlCache[old];
+          saveFotoUrlCache();
+          sb.storage.from("player-photos").remove([old]).then(function(res){ if (res.error) console.error(res.error); });
+        }
+        return r;
       });
     }
     function deletePlayerFoto(playerId, path){
       return sb.storage.from("player-photos").remove([path]).then(function(res){
         if (res.error) throw res.error;
         delete fotoUrlCache[path];
+        saveFotoUrlCache();
         return updatePlayer(playerId, { foto_path: null });
       });
     }
@@ -1344,8 +1465,29 @@
         return loadScoutReports();
       });
     }
+    // Scoutbeoordeling A/B/C/D: één per scout per speler per blok (net als bij de trainers).
+    function saveScoutGrade(playerId, blok, data, existingId){
+      var fields = {
+        wedstrijdbeoordeling: data.wedstrijdbeoordeling || null,
+        potentieel: data.potentieel || null,
+        rank: data.rank || null,
+        advies: data.advies || null,
+        notitie: data.notitie || null,
+        updated_at: new Date().toISOString()
+      };
+      var p = players.find(function(x){ return x.id === playerId; });
+      var q = existingId
+        ? sb.from("scout_reports").update(fields).eq("id", existingId)
+        : sb.from("scout_reports").insert(Object.assign({ scout_id: myUserId(), player_id: playerId, blok: blok, naam: p ? p.naam : null }, fields));
+      return q.then(function(res){
+        if (res.error) throw res.error;
+        return loadScoutReports();
+      });
+    }
     function updateScoutReport(id, data){
-      return sb.from("scout_reports").update(scoutRowFromData(data, myUserId())).eq("id", id).then(function(res){
+      var row = scoutRowFromData(data, null);
+      delete row.scout_id; // maker blijft de maker, ook als de hoofdtrainer wijzigt
+      return sb.from("scout_reports").update(row).eq("id", id).then(function(res){
         if (res.error) throw res.error;
         return loadScoutReports();
       });
@@ -1364,6 +1506,26 @@
         });
       });
     }
+    // Back-ups (alleen hoofdtrainer): lijst zonder de inhoud, inhoud pas bij downloaden.
+    function listBackups(){
+      return sb.from("backups").select("id, created_at, soort").order("created_at", { ascending: false }).then(function(res){
+        if (res.error) throw res.error;
+        return res.data || [];
+      });
+    }
+    function getBackupData(id){
+      return sb.from("backups").select("created_at, data").eq("id", id).single().then(function(res){
+        if (res.error) throw res.error;
+        return res.data;
+      });
+    }
+    function makeBackup(){
+      return sb.rpc("make_backup", { p_soort: "handmatig" }).then(function(res){
+        if (res.error) throw res.error;
+        return res.data;
+      });
+    }
+
     // Accountbeheer loopt via de Edge Function "manage-users" (alleen hoofdtrainer).
     function manageUsers(action, payload){
       var body = Object.assign({ action: action }, payload || {});
@@ -1398,13 +1560,13 @@
     return {
       init: init, onPlayers: onPlayers, onScores: onScores, onSettings: onSettings, onEvals: onEvals, onScoutReports: onScoutReports, onFavorites: onFavorites, onModeReady: onModeReady,
       getPlayers: getPlayers, getScores: getScores, getCancelled: getCancelled, getEvaluations: getEvaluations, getScoutReports: getScoutReports, getMode: getMode,
-      getProfiles: getProfiles, updateProfileRole: updateProfileRole, manageUsers: manageUsers,
+      getProfiles: getProfiles, updateProfileRole: updateProfileRole, manageUsers: manageUsers, listBackups: listBackups, getBackupData: getBackupData, makeBackup: makeBackup,
       getFavorites: getFavorites, myFavoriteIds: myFavoriteIds, isMyFavorite: isMyFavorite, toggleFavorite: toggleFavorite,
       addPlayer: addPlayer, updatePlayer: updatePlayer, deletePlayer: deletePlayer,
-      getFotoUrls: getFotoUrls, uploadPlayerFoto: uploadPlayerFoto, deletePlayerFoto: deletePlayerFoto,
+      getTrash: getTrash, restorePlayer: restorePlayer, deletePlayerForever: deletePlayerForever, getFotoUrls: getFotoUrls, clearFotoUrlCache: clearFotoUrlCache, uploadPlayerFoto: uploadPlayerFoto, deletePlayerFoto: deletePlayerFoto,
       upsertScore: upsertScore, setAttendance: setAttendance, toggleCancelled: toggleCancelled,
       upsertEvaluation: upsertEvaluation, deleteEvaluation: deleteEvaluation,
-      addScoutReport: addScoutReport, updateScoutReport: updateScoutReport, deleteScoutReport: deleteScoutReport
+      addScoutReport: addScoutReport, saveScoutGrade: saveScoutGrade, updateScoutReport: updateScoutReport, deleteScoutReport: deleteScoutReport
     };
   })();
 
@@ -1474,15 +1636,6 @@
     var absentCount = passed.filter(function(d){ return att[d] && att[d].afwezig; }).length;
     var pct = total ? Math.round((absentCount / total) * 100) : null;
     return { total: total, absentCount: absentCount, pct: pct, flagged: pct != null && pct > 20 };
-  }
-
-  function latestScoutForPlayer(playerId, blok){
-    var reports = Store.getScoutReports().filter(function(r){
-      return r.playerId === playerId && (blok == null || r.blok === blok);
-    });
-    if (!reports.length) return null;
-    reports.sort(function(a,b){ return (b.updatedAt||"").localeCompare(a.updatedAt||""); });
-    return reports[0];
   }
 
   function showToast(msg){
@@ -1590,19 +1743,13 @@
     list.innerHTML = players.map(function(p){
       var stats = attendanceStats(p, passed);
       var flag = stats.flagged ? '<span class="flag-warn" title="Meer dan 20% afwezig (' + stats.absentCount + '/' + stats.total + ')">!</span>' : "";
-      var scout = latestScoutForPlayer(p.id);
-      var eo = scout ? EINDOORDEEL_OPTIONS.find(function(o){ return o.value === scout.eindoordeel; }) : null;
-      var scoutBadge = (eo && eo.value) ? '<span class="pill ' + EINDOORDEEL_BAND[eo.value] + '" style="margin-left:6px;" title="Laatste scoutoordeel">Scout: ' + esc(eo.label) + '</span>' : "";
+      var sig = Auth.isHoofdtrainer() ? scoutSignal(p.id) : null;
+      var scoutBadge = sig && sig.flagged ? '<span class="pill good" style="margin-left:6px;" title="' + sig.ab + ' scoutbeoordelingen met een A of B">Scout-signaal ' + sig.ab + '&times; A/B</span>' : "";
       var canScoutHere = Auth.isHoofdtrainer() || Auth.myRole() === "scout";
       var canEditPlayer = Auth.isHoofdtrainer();
       var isFav = Store.isMyFavorite(p.id);
       var rowOpenAttrs = canEditPlayer ? 'class="clickable" data-open="' + p.id + '"' : 'class="player-info"';
-      var bibHtml = p.fotoPath
-        ? '<div class="bib-photo-wrap" data-foto-wrap="' + p.id + '" data-foto-path="' + esc(p.fotoPath) + '" title="Foto vergroten">' +
-          '<img class="bib-photo" data-foto-img="' + p.id + '" alt="">' +
-          '<span class="bib-badge">' + (p.hesje ? esc(p.hesje) : "–") + '</span>' +
-          '</div>'
-        : '<div class="bib num">' + (p.hesje ? esc(p.hesje) : "–") + '</div>';
+      var bibHtml = playerIdentHtml(p);
       return '<div class="player-row" data-id="' + p.id + '">' +
         '<div ' + rowOpenAttrs + '>' +
         bibHtml +
@@ -1619,28 +1766,7 @@
     Array.prototype.forEach.call(list.querySelectorAll("[data-open]"), function(el){
       el.addEventListener("click", function(){ openPlayerSheet(el.getAttribute("data-open")); });
     });
-    var fotoPaths = players.filter(function(p){ return p.fotoPath; }).map(function(p){ return p.fotoPath; });
-    if (fotoPaths.length){
-      Store.getFotoUrls(fotoPaths).then(function(map){
-        Array.prototype.forEach.call(list.querySelectorAll("[data-foto-img]"), function(img){
-          var wrap = img.closest("[data-foto-wrap]");
-          var path = wrap ? wrap.getAttribute("data-foto-path") : null;
-          if (path && map[path]) img.src = map[path];
-        });
-      });
-    }
-    Array.prototype.forEach.call(list.querySelectorAll("[data-foto-wrap]"), function(el){
-      el.addEventListener("click", function(e){
-        e.stopPropagation();
-        var pid = el.getAttribute("data-foto-wrap");
-        var path = el.getAttribute("data-foto-path");
-        var p = Store.getPlayers().find(function(pp){ return pp.id === pid; });
-        if (!p || !path) return;
-        Store.getFotoUrls([path]).then(function(map){
-          openFotoLightbox(map[path], p.naam);
-        });
-      });
-    });
+    fillPlayerPhotos(list);
     Array.prototype.forEach.call(list.querySelectorAll("[data-fav]"), function(el){
       el.addEventListener("click", function(e){
         e.stopPropagation();
@@ -1657,28 +1783,31 @@
       el.addEventListener("click", function(e){
         e.stopPropagation();
         var pid = el.getAttribute("data-scout");
-        var existing = latestScoutForPlayer(pid, state.scoutBlok);
         switchTab("scouting");
-        if (existing) openScoutSheet(existing.id);
-        else openScoutSheet(null, pid, state.scoutBlok);
+        openScoutGradeSheet(pid);
       });
     });
     Array.prototype.forEach.call(list.querySelectorAll("[data-del]"), function(el){
-      var confirmTimer = null;
       el.addEventListener("click", function(e){
         e.stopPropagation();
-        var id = el.getAttribute("data-del");
-        if (!el.classList.contains("confirming")){
-          el.classList.add("confirming");
-          el.title = "Zeker weten? Klik nogmaals om te verwijderen";
-          confirmTimer = setTimeout(function(){ el.classList.remove("confirming"); el.title = "Verwijderen"; }, 4000);
-          return;
-        }
-        clearTimeout(confirmTimer);
-        el.classList.remove("confirming");
-        Store.deletePlayer(id).then(function(){ showToast("Speler verwijderd"); })
-          .catch(function(err){ console.error(err); showToast("Verwijderen is niet gelukt, probeer het nog eens."); });
+        askDeletePlayer(el.getAttribute("data-del"));
       });
+    });
+  }
+
+  // Speler verwijderen: altijd eerst een duidelijk venster met naam en gevolgen.
+  function askDeletePlayer(id, onDeleted){
+    var p = Store.getPlayers().find(function(x){ return x.id === id; });
+    if (!p) return;
+    confirmDialog({
+      title: "Speler naar de prullenbak?",
+      messageHtml: 'Je gaat <b>' + esc(p.naam) + '</b>' + (p.hesje ? ' (hesje ' + esc(p.hesje) + ')' : '') + ' uit lichting ' + esc(lichtingLabel(p.lichting)) + ' verwijderen.' +
+        '<div style="margin-top:8px;">Hij verdwijnt uit alle lijsten, maar staat nog <b>30 dagen in de prullenbak</b> (Instellingen). Daar kun je hem terugzetten met al zijn gegevens. Daarna is hij definitief weg.</div>',
+      confirmLabel: "Naar prullenbak"
+    }).then(function(ok){
+      if (!ok) return;
+      Store.deletePlayer(id).then(function(){ showToast(p.naam + " staat in de prullenbak"); if (onDeleted) onDeleted(); })
+        .catch(function(err){ console.error(err); showToast("Verwijderen is niet gelukt, probeer het nog eens."); });
     });
   }
 
@@ -1750,8 +1879,6 @@
   function closePlayerSheet(){ $("playerOverlay").hidden = true; editingPlayerId = null; resetDeleteConfirm(); }
 
   $("addPlayerBtn").addEventListener("click", function(){ openPlayerSheet(null); });
-  $("closePlayerSheet").addEventListener("click", closePlayerSheet);
-  $("playerOverlay").addEventListener("click", function(e){ if (e.target === $("playerOverlay")) closePlayerSheet(); });
 
   function processPlayerFotoFile(file){
     return new Promise(function(resolve, reject){
@@ -1805,11 +1932,18 @@
     if (!editingPlayerId) return;
     var p = Store.getPlayers().find(function(pp){ return pp.id === editingPlayerId; });
     if (!p || !p.fotoPath) return;
+    confirmDialog({
+      title: "Foto verwijderen?",
+      messageHtml: 'De foto van <b>' + esc(p.naam) + '</b> wordt verwijderd.' + NOT_UNDO,
+      confirmLabel: "Foto verwijderen"
+    }).then(function(ok){ if (ok) removeFoto(p); });
+  });
+  function removeFoto(p){
     var hint = $("fFotoHint");
     hint.textContent = "Bezig met verwijderen…";
     $("fFotoUploadBtn").disabled = true;
     $("fFotoRemoveBtn").disabled = true;
-    Store.deletePlayerFoto(editingPlayerId, p.fotoPath).then(function(){
+    Store.deletePlayerFoto(p.id, p.fotoPath).then(function(){
       hint.textContent = "";
       updateFotoEditUI(Store.getPlayers().find(function(pp){ return pp.id === editingPlayerId; }) || null);
     }).catch(function(err){
@@ -1819,7 +1953,67 @@
       $("fFotoUploadBtn").disabled = false;
       $("fFotoRemoveBtn").disabled = false;
     });
-  });
+  }
+
+  // Bevestigingsvenster voor alles wat niet ongedaan kan worden. Geeft een Promise<boolean>.
+  // Bewust geen "twee keer tikken": dat gaat buiten op een telefoon te makkelijk per ongeluk.
+  function confirmDialog(opts){
+    return new Promise(function(resolve){
+      var overlay = $("confirmOverlay"), ok = $("confirmOkBtn"), cancel = $("confirmCancelBtn");
+      $("confirmTitle").textContent = opts.title || "Weet je het zeker?";
+      $("confirmMessage").innerHTML = opts.messageHtml || "";
+      ok.textContent = opts.confirmLabel || "Doorgaan";
+      ok.classList.toggle("danger", opts.danger !== false);
+      overlay.hidden = false;
+      cancel.focus(); // standaard veilig: Enter = annuleren
+      function done(result){
+        overlay.hidden = true;
+        ok.removeEventListener("click", onOk);
+        cancel.removeEventListener("click", onCancel);
+        overlay.removeEventListener("click", onBackdrop);
+        document.removeEventListener("keydown", onKey);
+        resolve(result);
+      }
+      function onOk(){ done(true); }
+      function onCancel(){ done(false); }
+      function onBackdrop(e){ if (e.target === overlay) done(false); }
+      function onKey(e){ if (e.key === "Escape") done(false); }
+      ok.addEventListener("click", onOk);
+      cancel.addEventListener("click", onCancel);
+      overlay.addEventListener("click", onBackdrop);
+      document.addEventListener("keydown", onKey);
+    });
+  }
+  var NOT_UNDO = '<div class="warn" style="margin-top:8px;">Dit kan niet ongedaan worden gemaakt.</div>';
+
+  // Foto + groot hesjenummer, gedeeld door Spelers, Scouting en Beoordelen.
+  function playerIdentHtml(p){
+    var photo = p.fotoPath
+      ? '<img class="ident-photo" data-ident-photo="' + p.id + '" data-foto-path="' + esc(p.fotoPath) + '" alt="" title="Foto vergroten">'
+      : '<svg class="ident-photo empty" width="52" height="52" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="20" r="8" fill="currentColor" opacity=".45"/><path d="M11 43c2.5-8 8.5-12 15-12s12.5 4 15 12" fill="currentColor" opacity=".45"/></svg>';
+    var tile = '<div class="hesje-tile' + (p.hesje ? '' : ' none') + '">' + (p.hesje ? esc(p.hesje) : "–") + '</div>';
+    return '<div class="player-ident">' + photo + tile + '</div>';
+  }
+  // Vult de foto's in een lijst (signed URLs) en maakt ze aanklikbaar voor een grote weergave.
+  function fillPlayerPhotos(container){
+    var imgs = Array.prototype.slice.call(container.querySelectorAll("[data-ident-photo]"));
+    if (!imgs.length) return;
+    var paths = imgs.map(function(img){ return img.getAttribute("data-foto-path"); });
+    Store.getFotoUrls(paths).then(function(map){
+      imgs.forEach(function(img){
+        var path = img.getAttribute("data-foto-path");
+        if (map[path]) img.src = map[path];
+      });
+    });
+    imgs.forEach(function(img){
+      img.addEventListener("click", function(e){
+        e.stopPropagation();
+        var p = Store.getPlayers().find(function(pp){ return pp.id === img.getAttribute("data-ident-photo"); });
+        var path = img.getAttribute("data-foto-path");
+        Store.getFotoUrls([path]).then(function(map){ openFotoLightbox(map[path], p ? p.naam : ""); });
+      });
+    });
+  }
 
   function openFotoLightbox(url, naam){
     if (!url) return;
@@ -1851,17 +2045,7 @@
   });
   $("deletePlayerBtn").addEventListener("click", function(){
     if (!editingPlayerId) return;
-    var delBtn = $("deletePlayerBtn");
-    if (!delBtn.classList.contains("confirming")){
-      delBtn.classList.add("confirming");
-      delBtn.textContent = "Zeker weten? Klik nogmaals";
-      deleteConfirmTimer = setTimeout(resetDeleteConfirm, 4000);
-      return;
-    }
-    resetDeleteConfirm();
-    var id = editingPlayerId;
-    Store.deletePlayer(id).then(function(){ showToast("Speler verwijderd"); closePlayerSheet(); })
-      .catch(function(err){ console.error(err); showToast("Verwijderen is niet gelukt, probeer het nog eens."); });
+    askDeletePlayer(editingPlayerId, closePlayerSheet);
   });
 
   $("importBtn").addEventListener("click", function(){
@@ -1904,13 +2088,14 @@
       var mine = scores.find(function(s){ return s.playerId === p.id && s.trainerId === myUserId(); });
       if (mine) doneCount++;
       return '<div class="player-row"><div class="clickable" data-open="' + p.id + '">' +
-        '<div class="bib num">' + (p.hesje ? esc(p.hesje) : "–") + '</div>' +
+        playerIdentHtml(p) +
         '<div class="player-meta"><div class="name">' + esc(p.naam) + '</div>' +
         '<div class="sub">Lichting ' + esc(lichtingLabel(p.lichting)) + '</div></div>' +
         '</div>' +
         '<span class="pill ' + (mine ? "done" : "todo") + '">' + (mine ? "Beoordeeld" : "Nog niet") + '</span>' +
         '</div>';
     }).join("");
+    fillPlayerPhotos(list);
     $("beoordelenCount").textContent = doneCount + " / " + players.length + " door jou · " + blokLabel(state.beoordelenBlok);
     Array.prototype.forEach.call(list.querySelectorAll("[data-open]"), function(el){
       el.addEventListener("click", function(){ openScoreSheet(el.getAttribute("data-open")); });
@@ -1918,22 +2103,56 @@
   }
 
   function openScoreSheet(playerId){
-    state.scoringPlayerId = playerId;
+    var existing = Store.getScores().find(function(s){ return s.playerId === playerId && s.trainerId === myUserId() && s.blok === state.beoordelenBlok; });
+    showGradeSheet("trainer", playerId, state.beoordelenBlok, existing);
+  }
+  // Ajax-lijst: per lichting maximaal 3 spelers op #1 en 3 op #3. Alleen een hint, geen blokkade.
+  function updateScoutRankHint(){
+    var rank = $("fScoutRank").value;
+    var hint = $("scoutRankHint");
+    if (!rank){ hint.textContent = ""; return; }
+    var p = Store.getPlayers().find(function(x){ return x.id === state.scoringPlayerId; });
+    if (!p) return;
+    var sameLichting = {};
+    Store.getPlayers().forEach(function(x){ if (x.lichting === p.lichting) sameLichting[x.id] = true; });
+    var others = Store.getScoutReports().filter(function(r){
+      return r.scoutId === myUserId() && r.blok === state.scoringBlok && r.rank === rank && sameLichting[r.playerId] && r.playerId !== p.id;
+    }).length;
+    var n = others + 1;
+    hint.textContent = "Rank #" + rank + " in lichting " + lichtingLabel(p.lichting) + ": " + n + " van max. 3" +
+      (n > 3 ? " — dat zijn er meer dan 3." : ".");
+  }
+  $("fScoutRank").addEventListener("change", updateScoutRankHint);
+
+  // Scouts gebruiken hetzelfde venster; opslaan gaat dan naar scout_reports.
+  function openScoutGradeSheet(playerId){
+    showGradeSheet("scout", playerId, state.scoutBlok, myScoutGrade(playerId, state.scoutBlok));
+  }
+  function showGradeSheet(mode, playerId, blok, existing){
     var p = Store.getPlayers().find(function(p){ return p.id === playerId; });
     if (!p) return;
-    var existing = Store.getScores().find(function(s){ return s.playerId === playerId && s.trainerId === myUserId() && s.blok === state.beoordelenBlok; });
+    state.scoreMode = mode;
+    state.scoringPlayerId = playerId;
+    state.scoringBlok = blok;
+    state.scoringExistingId = existing ? existing.id : null;
     state.scoreDraft = {
       wedstrijdbeoordeling: existing ? (existing.wedstrijdbeoordeling || null) : null,
       potentieel: existing ? (existing.potentieel || null) : null
     };
     $("fNotitie").value = existing ? (existing.notitie || "") : "";
-    $("scoreSheetTitle").textContent = (p.hesje ? "Hesje " + p.hesje + " – " : "") + p.naam + " · " + blokLabel(state.beoordelenBlok);
+    $("scoutExtraFields").hidden = mode !== "scout";
+    if (mode === "scout"){
+      $("fScoutRank").value = existing ? (existing.rank || "") : "";
+      $("fScoutAdvies").value = existing ? (existing.advies || "") : "";
+      updateScoutRankHint();
+    }
+    $("fNotitieLabel").textContent = mode === "scout" ? "Waarom deze beoordeling?" : "Notitie (optioneel)";
+    $("fNotitie").placeholder = mode === "scout" ? "Wat zag je waardoor je voor deze letters kiest?" : "Korte observatie voor dit scoutingsmoment…";
+    $("scoreSheetTitle").textContent = (p.hesje ? "Hesje " + p.hesje + " – " : "") + p.naam + " · " + blokLabel(blok);
     renderScoreGrades();
     $("scoreOverlay").hidden = false;
   }
   function closeScoreSheet(){ $("scoreOverlay").hidden = true; state.scoringPlayerId = null; }
-  $("closeScoreSheet").addEventListener("click", closeScoreSheet);
-  $("scoreOverlay").addEventListener("click", function(e){ if (e.target === $("scoreOverlay")) closeScoreSheet(); });
 
   function renderScoreGrades(){
     var wrap = $("scoreGrades");
@@ -1962,7 +2181,11 @@
       return;
     }
     var data = Object.assign({}, state.scoreDraft, { notitie: $("fNotitie").value.trim() });
-    Store.upsertScore(state.scoringPlayerId, state.beoordelenBlok, data).then(function(){
+    if (state.scoreMode === "scout"){ data.rank = $("fScoutRank").value; data.advies = $("fScoutAdvies").value; }
+    var save = state.scoreMode === "scout"
+      ? Store.saveScoutGrade(state.scoringPlayerId, state.scoringBlok, data, state.scoringExistingId)
+      : Store.upsertScore(state.scoringPlayerId, state.scoringBlok, data);
+    save.then(function(){
       showToast("Beoordeling opgeslagen"); closeScoreSheet();
     }).catch(function(err){ console.error(err); showToast("Opslaan mislukt, probeer opnieuw"); });
   });
@@ -2008,7 +2231,7 @@
         wed: summarize(p.id, "wedstrijdbeoordeling", scoresThisBlok),
         pot: summarize(p.id, "potentieel", scoresThisBlok),
         att: attendanceStats(p, passed),
-        scout: latestScoutForPlayer(p.id, state.overzichtBlok),
+        sig: scoutSignal(p.id),
         wedTimeline: BLOKKEN.map(function(b){ return summarize(p.id, "wedstrijdbeoordeling", scores.filter(function(s){ return s.blok === b.blok; })).letter || "–"; }).join(" · "),
         potTimeline: BLOKKEN.map(function(b){ return summarize(p.id, "potentieel", scores.filter(function(s){ return s.blok === b.blok; })).letter || "–"; }).join(" · ")
       };
@@ -2038,7 +2261,7 @@
       '<th data-sort="afw">Afwezig' + arrow("afw") + '</th>' +
       '<th data-sort="wed">Wedstrijd' + arrow("wed") + '</th>' +
       '<th data-sort="pot">Potentieel' + arrow("pot") + '</th>' +
-      '<th>Rank</th><th>Advies</th><th>Scout</th></tr></thead>';
+      '<th>Rank</th><th>Advies</th><th title="Scoutbeoordelingen met een A of B (alle blokken)">Scout A/B</th></tr></thead>';
     var body = rows.map(function(r){
       var wedBand = r.att.flagged && r.wed.letter ? "low" : r.wed.band;
       var potBand = r.att.flagged && r.pot.letter ? "low" : r.pot.band;
@@ -2054,8 +2277,9 @@
       var adviesSel = '<select class="table-select" data-advies="' + r.player.id + '">' + ADVIES_OPTIONS.map(function(o){
         return '<option value="' + o.value + '"' + (String(r.player.advies||"") === o.value ? " selected" : "") + '>' + o.label + '</option>';
       }).join("") + '</select>';
-      var eo = r.scout ? EINDOORDEEL_OPTIONS.find(function(o){ return o.value === r.scout.eindoordeel; }) : null;
-      var scoutPill = (eo && eo.value) ? '<span class="pill ' + EINDOORDEEL_BAND[eo.value] + '">' + esc(eo.label) + '</span>' : '<span class="pill none">–</span>';
+      var scoutPill = r.sig.total
+        ? '<span class="pill ' + (r.sig.flagged ? "good" : "none") + '" title="' + r.sig.ab + ' van ' + r.sig.total + ' scoutbeoordelingen met een A of B">' + (r.sig.flagged ? "&#9733; " : "") + r.sig.ab + '/' + r.sig.total + '</span>'
+        : '<span class="pill none">&ndash;</span>';
       var allScores = scores.filter(function(s){ return s.playerId === r.player.id; });
       var breakdown = allScores.length ? BLOKKEN.map(function(b){
         var list = allScores.filter(function(s){ return s.blok === b.blok; });
@@ -2068,13 +2292,20 @@
       }).join("") : '<div class="bd-row"><span>Nog geen beoordelingen</span></div>';
       var allScoutReports = Store.getScoutReports().filter(function(x){ return x.playerId === r.player.id; }).sort(function(a,b){ return (a.blok||1) - (b.blok||1); });
       var scoutBreakdown = allScoutReports.length ? allScoutReports.map(function(sr){
+        var isGrade = sr.wedstrijdbeoordeling || sr.potentieel;
         var eo2 = EINDOORDEEL_OPTIONS.find(function(o){ return o.value === sr.eindoordeel; });
-        return '<div class="bd-blok-group"><div class="bd-blok-label">' + esc(blokLabel(sr.blok || 1)) + ' · scouting</div>' +
+        var scoresHtml = isGrade
+          ? '<span>Wedstrijd: ' + (sr.wedstrijdbeoordeling || "–") + '</span><span>Potentieel: ' + (sr.potentieel || "–") + '</span>' +
+            (sr.rank ? '<span>Rank #' + esc(sr.rank) + '</span>' : '') +
+            (sr.advies ? '<span>' + esc((ADVIES_OPTIONS.find(function(o){ return o.value === sr.advies; }) || {}).label || ("Advies " + sr.advies)) + '</span>' : '')
+          : (eo2 && eo2.value ? '<span>' + esc(eo2.label) + '</span>' : '');
+        return '<div class="bd-blok-group"><div class="bd-blok-label">' + esc(blokLabel(sr.blok || 1)) + ' · scout</div>' +
           '<div class="bd-row"><span>' + esc(sr.scoutNaam || "onbekend") + '</span>' +
-          '<span class="bd-scores">' + (eo2 && eo2.value ? '<span>' + esc(eo2.label) + '</span>' : '') + '</span></div>' +
+          '<span class="bd-scores">' + scoresHtml + '</span></div>' +
           (sr.bijzonder ? '<div class="bd-note">“' + esc(sr.bijzonder) + '”</div>' : '') +
-          (sr.notitie ? '<div class="bd-note">' + esc(sr.notitie) + '</div>' : '') +
-          '<div class="btn-row" style="margin-top:6px;"><button type="button" class="btn ghost small" data-open-scout="' + sr.id + '">Scoutrapport bekijken</button></div>' +
+          (sr.notitie ? '<div class="bd-note">“' + esc(sr.notitie) + '” – ' + esc(sr.scoutNaam || "scout") + '</div>' : '') +
+          // Oude, uitgebreide scoutrapporten (van vóór A/B/C/D) blijven te openen.
+          (isGrade ? '' : '<div class="btn-row" style="margin-top:6px;"><button type="button" class="btn ghost small" data-open-scout="' + sr.id + '">Oud scoutrapport bekijken</button></div>') +
           '</div>';
       }).join("") : "";
       return '<tr class="ov-row" data-id="' + r.player.id + '">' +
@@ -2088,7 +2319,18 @@
         '<td>' + scoutPill + '</td></tr>' +
         '<tr class="breakdown-row" data-for="' + r.player.id + '" hidden><td colspan="8" class="breakdown">' + breakdown + scoutBreakdown + '</td></tr>';
     }).join("");
-    wrap.innerHTML = '<div class="table-wrap"><table>' + head + '<tbody>' + body + '</tbody></table></div>' + footerHtml;
+    var signalen = rows.filter(function(r){ return r.sig.flagged; });
+    var signalHtml = signalen.length
+      ? '<div class="card" style="padding:12px 14px; margin-bottom:12px; border-color:var(--good);">' +
+        '<div style="font-weight:700; margin-bottom:4px;">Scout-signalen</div>' +
+        '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:0 0 8px;">Deze spelers kregen ' + Branding.getScoutDrempel() + ' of meer keer een A of B van scouts. Overweeg contact met de jeugdcoördinator of jeugdscout.</div>' +
+        signalen.map(function(r){
+          return '<div>' + (r.player.hesje ? '<b>' + esc(r.player.hesje) + '</b> ' : '') + esc(r.player.naam) +
+            ' &middot; ' + r.sig.ab + '&times; A/B van ' + r.sig.total + ' scoutbeoordelingen</div>';
+        }).join("") +
+        '</div>'
+      : '';
+    wrap.innerHTML = signalHtml + '<div class="table-wrap"><table>' + head + '<tbody>' + body + '</tbody></table></div>' + footerHtml;
     bindFooter();
     Array.prototype.forEach.call(wrap.querySelectorAll("th[data-sort]"), function(th){
       th.addEventListener("click", function(){ setSort(th.getAttribute("data-sort")); });
@@ -2162,14 +2404,13 @@
     var scores = Store.getScores().filter(function(s){ return s.blok === state.overzichtBlok; });
     var cancelled = Store.getCancelled();
     var passed = passedDates(cancelled);
-    var rows = [["Blok","Hesje","Naam","Lichting","Q","Afwezig","Afwezig %","Wedstrijdbeoordeling","Potentieel","Rank","Advies","Scout eindoordeel"]];
+    var rows = [["Blok","Hesje","Naam","Lichting","Q","Afwezig","Afwezig %","Wedstrijdbeoordeling","Potentieel","Rank","Advies","Scout A/B","Scout beoordelingen"]];
     players.forEach(function(p){
       var wed = summarize(p.id, "wedstrijdbeoordeling", scores);
       var pot = summarize(p.id, "potentieel", scores);
       var att = attendanceStats(p, passed);
-      var scout = latestScoutForPlayer(p.id, state.overzichtBlok);
-      var eo = scout ? EINDOORDEEL_OPTIONS.find(function(o){ return o.value === scout.eindoordeel; }) : null;
-      rows.push([state.overzichtBlok, p.hesje||"", p.naam, lichtingLabel(p.lichting), p.q||"", att.absentCount + "/" + att.total, att.pct!=null?att.pct+"%":"", wed.letter||"", pot.letter||"", p.rank||"", p.advies||"", (eo && eo.value) ? eo.label : ""]);
+      var sig = scoutSignal(p.id);
+      rows.push([state.overzichtBlok, p.hesje||"", p.naam, lichtingLabel(p.lichting), p.q||"", att.absentCount + "/" + att.total, att.pct!=null?att.pct+"%":"", wed.letter||"", pot.letter||"", p.rank||"", p.advies||"", sig.ab, sig.total]);
     });
     return rows;
   }
@@ -2245,7 +2486,7 @@
       var reden = a && a.reden ? a.reden : "";
       return '<div class="player-row" style="flex-direction:column; align-items:stretch;">' +
         '<div style="display:flex; align-items:center; gap:12px;">' +
-        '<div class="bib num">' + (p.hesje ? esc(p.hesje) : "–") + '</div>' +
+        playerIdentHtml(p) +
         '<div class="player-meta" style="flex:1;"><div class="name">' + esc(p.naam) + '</div>' +
         '<div class="sub">Lichting ' + esc(lichtingLabel(p.lichting)) + '</div></div>' +
         '<button type="button" class="pill attendance-btn ' + (afwezig ? "low" : "good") + '" data-toggle="' + p.id + '">' + (afwezig ? "Afwezig" : "Aanwezig") + '</button>' +
@@ -2255,6 +2496,7 @@
         }).join("") + '</div>' : '') +
         '</div>';
     }).join("");
+    fillPlayerPhotos(list);
     Array.prototype.forEach.call(list.querySelectorAll("[data-toggle]"), function(btn2){
       btn2.addEventListener("click", function(){
         var id = btn2.getAttribute("data-toggle");
@@ -2279,7 +2521,16 @@
 
   $("trainingDateSelect").addEventListener("change", function(){ state.absDate = this.value; renderAbsenties(); });
   $("toggleCancelledBtn").addEventListener("click", function(){
-    Store.toggleCancelled(state.absDate).then(function(){ showToast("Bijgewerkt"); });
+    var date = state.absDate;
+    var isCancelled = Store.getCancelled().indexOf(date) !== -1;
+    var toggle = function(){ Store.toggleCancelled(date).then(function(){ showToast(isCancelled ? "Training staat weer gepland" : "Training afgelast"); }); };
+    if (isCancelled){ toggle(); return; }
+    confirmDialog({
+      title: "Training afgelasten?",
+      messageHtml: "De training van <b>" + esc(formatDateShort(date)) + "</b> telt dan niet mee voor de aanwezigheid. Je kunt dit later terugdraaien.",
+      confirmLabel: "Afgelasten",
+      danger: false
+    }).then(function(ok){ if (ok) toggle(); });
   });
   function isoDateLocal(d){
     var local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
@@ -2476,20 +2727,20 @@
       el.addEventListener("click", function(){ openEvalSheet(el.getAttribute("data-edit-eval")); });
     });
     Array.prototype.forEach.call(list.querySelectorAll("[data-del-eval]"), function(el){
-      var confirmTimer = null;
-      el.addEventListener("click", function(){
-        var id = el.getAttribute("data-del-eval");
-        if (!el.classList.contains("confirming")){
-          el.classList.add("confirming");
-          el.title = "Zeker weten? Klik nogmaals om te verwijderen";
-          confirmTimer = setTimeout(function(){ el.classList.remove("confirming"); el.title = "Verwijderen"; }, 4000);
-          return;
-        }
-        clearTimeout(confirmTimer);
-        el.classList.remove("confirming");
-        Store.deleteEvaluation(id).then(function(){ showToast("Evaluatie verwijderd"); })
-          .catch(function(err){ console.error(err); showToast("Verwijderen is niet gelukt, probeer het nog eens."); });
-      });
+      el.addEventListener("click", function(){ askDeleteEvaluation(el.getAttribute("data-del-eval")); });
+    });
+  }
+
+  function askDeleteEvaluation(id, onDeleted){
+    var ev = Store.getEvaluations().find(function(x){ return x.id === id; });
+    confirmDialog({
+      title: "Evaluatie verwijderen?",
+      messageHtml: 'De evaluatie' + (ev ? ' van <b>' + esc(formatDateShort(ev.date)) + '</b> door ' + esc(ev.trainerName) : '') + ' wordt verwijderd.' + NOT_UNDO,
+      confirmLabel: "Evaluatie verwijderen"
+    }).then(function(ok){
+      if (!ok) return;
+      Store.deleteEvaluation(id).then(function(){ showToast("Evaluatie verwijderd"); if (onDeleted) onDeleted(); })
+        .catch(function(err){ console.error(err); showToast("Verwijderen is niet gelukt, probeer het nog eens."); });
     });
   }
 
@@ -2515,8 +2766,6 @@
     $("evalOverlay").hidden = false;
   }
   function closeEvalSheet(){ $("evalOverlay").hidden = true; state.evalEditingId = null; }
-  $("closeEvalSheet").addEventListener("click", closeEvalSheet);
-  $("evalOverlay").addEventListener("click", function(e){ if (e.target === $("evalOverlay")) closeEvalSheet(); });
 
   $("addEvalBtn").addEventListener("click", function(){ openEvalSheet(null); });
 
@@ -2549,16 +2798,7 @@
 
   $("deleteEvalBtn").addEventListener("click", function(){
     if (!state.evalEditingId) return;
-    var delBtn = $("deleteEvalBtn");
-    if (!delBtn.classList.contains("confirming")){
-      delBtn.classList.add("confirming");
-      delBtn.textContent = "Zeker weten? Klik nogmaals";
-      setTimeout(function(){ delBtn.classList.remove("confirming"); delBtn.textContent = "Verwijderen"; }, 4000);
-      return;
-    }
-    var id = state.evalEditingId;
-    Store.deleteEvaluation(id).then(function(){ showToast("Evaluatie verwijderd"); closeEvalSheet(); })
-      .catch(function(err){ console.error(err); showToast("Verwijderen is niet gelukt, probeer het nog eens."); });
+    askDeleteEvaluation(state.evalEditingId, closeEvalSheet);
   });
 
   $("evalDateSelect").addEventListener("change", function(){ state.evalDate = this.value; renderEvaluatie(); });
@@ -2623,6 +2863,26 @@
 
   function scoutBand(letter){ return letter === "++" || letter === "+" ? "good" : (letter === "0" ? "mid" : (letter ? "low" : "none")); }
 
+  // Eigen A/B/C/D-beoordeling van de ingelogde scout voor een speler in een blok.
+  function myScoutGrade(playerId, blok){
+    var me = myUserId();
+    return Store.getScoutReports().filter(function(r){
+      return r.playerId === playerId && r.scoutId === me && r.blok === blok && (r.wedstrijdbeoordeling || r.potentieel);
+    })[0] || null;
+  }
+  function isAB(letter){ return letter === "A" || letter === "B"; }
+  // Scout-signaal (alleen zinvol voor de hoofdtrainer, die alle rapporten ziet): aantal scoutbeoordelingen
+  // met minstens één A of B, over alle blokken. Vanaf de drempel wordt de speler gemarkeerd.
+  function scoutSignal(playerId){
+    var graded = Store.getScoutReports().filter(function(r){ return r.playerId === playerId && (r.wedstrijdbeoordeling || r.potentieel); });
+    var ab = graded.filter(function(r){ return isAB(r.wedstrijdbeoordeling) || isAB(r.potentieel); });
+    return { total: graded.length, ab: ab.length, flagged: ab.length >= Branding.getScoutDrempel() };
+  }
+  function gradePair(r){
+    return "W: " + (r.wedstrijdbeoordeling || "–") + " · P: " + (r.potentieel || "–") +
+      (r.rank ? " · #" + r.rank : "") + (r.advies ? " · Adv " + r.advies : "");
+  }
+
   function renderScoutPlayerList(){
     var blokSel = $("scoutBlokSelect");
     if (blokSel && blokSel.value !== String(state.scoutBlok)) blokSel.value = String(state.scoutBlok);
@@ -2635,93 +2895,27 @@
         '<div class="d">Voeg eerst spelers toe via het tabblad Spelers.</div></div>';
       return;
     }
-    var withScout = players.map(function(p){ return { player:p, scout: latestScoutForPlayer(p.id, state.scoutBlok) }; });
-    var gescout = withScout.filter(function(x){ return !!x.scout; }).length;
-    $("scoutCount").textContent = gescout + " / " + players.length + " gescout · " + blokLabel(state.scoutBlok);
-    wrap.innerHTML = withScout.map(function(x){
-      var p = x.player, scout = x.scout;
-      var eo = scout ? EINDOORDEEL_OPTIONS.find(function(o){ return o.value === scout.eindoordeel; }) : null;
-      var pill = (eo && eo.value) ? '<span class="pill ' + EINDOORDEEL_BAND[eo.value] + '">' + esc(eo.label) + '</span>' :
-        (scout ? '<span class="pill none">Nog geen oordeel</span>' : '<span class="pill none">Nog niet gescout</span>');
+    var withGrade = players.map(function(p){ return { player:p, grade: myScoutGrade(p.id, state.scoutBlok) }; });
+    var done = withGrade.filter(function(x){ return !!x.grade; }).length;
+    $("scoutCount").textContent = done + " / " + players.length + " door jou · " + blokLabel(state.scoutBlok);
+    wrap.innerHTML = withGrade.map(function(x){
+      var p = x.player, g = x.grade;
       return '<div class="player-row"><div class="clickable" data-open-player="' + p.id + '">' +
-        '<div class="bib num">' + (p.hesje ? esc(p.hesje) : "–") + '</div>' +
+        playerIdentHtml(p) +
         '<div class="player-meta"><div class="name">' + esc(p.naam) + '</div>' +
         '<div class="sub">Lichting ' + esc(lichtingLabel(p.lichting)) + '</div></div>' +
-        '</div>' + pill + '</div>';
+        '</div>' +
+        (g ? '<span class="pill done">' + esc(gradePair(g)) + '</span>' : '<span class="pill todo">Nog niet</span>') +
+        '</div>';
     }).join("");
+    fillPlayerPhotos(wrap);
     Array.prototype.forEach.call(wrap.querySelectorAll("[data-open-player]"), function(el){
-      el.addEventListener("click", function(){
-        var pid = el.getAttribute("data-open-player");
-        var existing = latestScoutForPlayer(pid, state.scoutBlok);
-        if (existing) openScoutSheet(existing.id);
-        else openScoutSheet(null, pid, state.scoutBlok);
-      });
+      el.addEventListener("click", function(){ openScoutGradeSheet(el.getAttribute("data-open-player")); });
     });
   }
 
   function renderScouting(){
     renderScoutPlayerList();
-    var reports = Store.getScoutReports().filter(function(r){ return !r.playerId; }).sort(function(a,b){ return (b.updatedAt||"").localeCompare(a.updatedAt||""); });
-    $("scoutExtCount").textContent = reports.length ? (reports.length + (reports.length === 1 ? " rapport" : " rapporten")) : "";
-    var list = $("scoutList");
-    if (!reports.length){
-      list.innerHTML = '<div class="empty card">' + emptySvg +
-        '<div class="t">Nog geen externe scoutrapporten</div>' +
-        '<div class="d">Voeg het eerste rapport toe met de knop hierboven.</div></div>';
-      return;
-    }
-    list.innerHTML = reports.map(function(r){
-      var sub = [r.club, r.positie ? "positie " + r.positie : "", r.gebjaar].filter(Boolean).join(" · ");
-      var eo = EINDOORDEEL_OPTIONS.find(function(o){ return o.value === r.eindoordeel; });
-      var groupsHtml = SCOUT_GROUPS.map(function(g){
-        var vals = r[g.key] || {};
-        var filled = g.items.filter(function(it){ return vals[it.key]; });
-        if (!filled.length) return "";
-        return '<div class="eval-field"><span class="k">' + esc(g.title) + '</span>' +
-          filled.map(function(it){ return '<span class="pill ' + scoutBand(vals[it.key]) + '" style="margin:0 4px 4px 0; display:inline-block;">' + esc(it.label) + ' ' + vals[it.key] + '</span>'; }).join("") +
-          '</div>';
-      }).join("");
-      return '<div class="card scout-card" data-id="' + r.id + '">' +
-        '<div class="eval-head">' +
-        '<div><div class="name">' + esc(r.naam || "Naamloos") + '</div>' + (sub ? '<div class="sub">' + esc(sub) + '</div>' : '') + '</div>' +
-        '<div style="display:flex; gap:6px; align-items:center;">' +
-        '<span class="pill none">Blok ' + (r.blok || 1) + '</span>' +
-        (eo && eo.value ? '<span class="pill ' + EINDOORDEEL_BAND[eo.value] + '">' + esc(eo.label) + '</span>' : '') +
-        '</div>' +
-        '</div>' +
-        (r.wedstrijd ? '<div class="eval-field"><span class="k">Wedstrijd</span>' + esc(r.wedstrijd) + (r.observatie ? " · " + esc(r.observatie) : "") + '</div>' : '') +
-        (r.bijzonder ? '<div class="eval-field"><span class="k">Bijzondere kwaliteit</span>' + esc(r.bijzonder) + '</div>' : '') +
-        groupsHtml +
-        (r.positiespecifiek ? '<div class="eval-field"><span class="k">Positiespecifiek</span>' + esc(r.positiespecifiek) + '</div>' : '') +
-        (r.potentie ? '<div class="eval-field"><span class="k">Potentie</span>' + esc(r.potentie) + '</div>' : '') +
-        (r.notitie ? '<div class="eval-field"><span class="k">Scoutnotitie</span>' + esc(r.notitie) + '</div>' : '') +
-        (r.ontwikkelpunt ? '<div class="eval-field"><span class="k">Ontwikkelpunt</span>' + esc(r.ontwikkelpunt) + '</div>' : '') +
-        (r.projectie ? '<div class="eval-field"><span class="k">Projectie</span>' + esc(r.projectie) + '</div>' : '') +
-        '<div class="eval-field"><span class="k">Scout</span>' + esc(r.scoutNaam || "Onbekend") + '</div>' +
-        '<div class="btn-row">' +
-        '<button class="btn ghost small" data-edit-scout="' + r.id + '">Bewerken</button>' +
-        '<button type="button" class="icon-btn danger" data-del-scout="' + r.id + '" title="Verwijderen">' + trashSvg + '</button>' +
-        '</div></div>';
-    }).join("");
-    Array.prototype.forEach.call(list.querySelectorAll("[data-edit-scout]"), function(el){
-      el.addEventListener("click", function(){ openScoutSheet(el.getAttribute("data-edit-scout")); });
-    });
-    Array.prototype.forEach.call(list.querySelectorAll("[data-del-scout]"), function(el){
-      var confirmTimer = null;
-      el.addEventListener("click", function(){
-        var id = el.getAttribute("data-del-scout");
-        if (!el.classList.contains("confirming")){
-          el.classList.add("confirming");
-          el.title = "Zeker weten? Klik nogmaals om te verwijderen";
-          confirmTimer = setTimeout(function(){ el.classList.remove("confirming"); el.title = "Verwijderen"; }, 4000);
-          return;
-        }
-        clearTimeout(confirmTimer);
-        el.classList.remove("confirming");
-        Store.deleteScoutReport(id).then(function(){ showToast("Scoutrapport verwijderd"); })
-          .catch(function(err){ console.error(err); showToast("Verwijderen is niet gelukt, probeer het nog eens."); });
-      });
-    });
   }
 
   function openScoutSheet(id, prefillPlayerId, blok){
@@ -2760,9 +2954,6 @@
     $("scoutOverlay").hidden = false;
   }
   function closeScoutSheet(){ $("scoutOverlay").hidden = true; state.scoutEditingId = null; }
-  $("closeScoutSheet").addEventListener("click", closeScoutSheet);
-  $("scoutOverlay").addEventListener("click", function(e){ if (e.target === $("scoutOverlay")) closeScoutSheet(); });
-  $("addScoutBtn").addEventListener("click", function(){ openScoutSheet(null); });
 
   $("saveScoutBtn").addEventListener("click", function(){
     var naam = $("fScoutNaam").value.trim();
@@ -2795,16 +2986,17 @@
 
   $("deleteScoutBtn").addEventListener("click", function(){
     if (!state.scoutEditingId) return;
-    var delBtn = $("deleteScoutBtn");
-    if (!delBtn.classList.contains("confirming")){
-      delBtn.classList.add("confirming");
-      delBtn.textContent = "Zeker weten? Klik nogmaals";
-      setTimeout(function(){ delBtn.classList.remove("confirming"); delBtn.textContent = "Verwijderen"; }, 4000);
-      return;
-    }
     var id = state.scoutEditingId;
-    Store.deleteScoutReport(id).then(function(){ showToast("Scoutrapport verwijderd"); closeScoutSheet(); })
-      .catch(function(err){ console.error(err); showToast("Verwijderen is niet gelukt, probeer het nog eens."); });
+    var r = Store.getScoutReports().find(function(x){ return x.id === id; });
+    confirmDialog({
+      title: "Scoutrapport verwijderen?",
+      messageHtml: 'Het scoutrapport' + (r && r.naam ? ' over <b>' + esc(r.naam) + '</b>' : '') + (r && r.scoutNaam ? ' van ' + esc(r.scoutNaam) : '') + ' wordt verwijderd.' + NOT_UNDO,
+      confirmLabel: "Rapport verwijderen"
+    }).then(function(ok){
+      if (!ok) return;
+      Store.deleteScoutReport(id).then(function(){ showToast("Scoutrapport verwijderd"); closeScoutSheet(); })
+        .catch(function(err){ console.error(err); showToast("Verwijderen is niet gelukt, probeer het nog eens."); });
+    });
   });
 
   /* ---------- INSTELLINGEN tab (alleen hoofdtrainer) ---------- */
@@ -2873,6 +3065,21 @@
             '</div>';
         }).join("");
 
+    var trash = Store.getTrash().sort(function(a, b){ return (b.deletedAt || "").localeCompare(a.deletedAt || ""); });
+    var trashHtml = !trash.length
+      ? '<div class="card" style="padding:14px; font-size:13px; color:var(--ink-muted);">De prullenbak is leeg.</div>'
+      : trash.map(function(p){
+          var dagenOver = Math.max(0, 30 - Math.floor((Date.now() - new Date(p.deletedAt).getTime()) / 86400000));
+          return '<div class="player-row">' +
+            '<div class="player-info">' + playerIdentHtml(p) +
+            '<div class="player-meta"><div class="name">' + esc(p.naam) + '</div>' +
+            '<div class="sub">Lichting ' + esc(lichtingLabel(p.lichting)) + ' &middot; nog ' + dagenOver + ' ' + (dagenOver === 1 ? 'dag' : 'dagen') + '</div></div></div>' +
+            '<div class="row-actions">' +
+            '<button class="btn primary small" data-restore="' + p.id + '">Terugzetten</button>' +
+            '<button class="btn ghost small" data-purge="' + p.id + '" style="color:var(--low); border-color:var(--low-soft);">Definitief</button>' +
+            '</div></div>';
+        }).join("");
+
     body.innerHTML =
       '<div class="section-title" style="margin-top:4px;"><h2 style="font-size:15px;">Nieuw account</h2></div>' +
       '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Maak een account voor een trainer of scout. De app bedenkt een wachtwoord dat je direct via WhatsApp kunt doorsturen.</div>' +
@@ -2889,6 +3096,22 @@
       '<div id="credResult"></div>' +
       '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Accounts en rollen</h2></div>' +
       '<div id="profilesList" style="display:flex; flex-direction:column; gap:10px;">' + rows + '</div>' +
+      '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Prullenbak</h2></div>' +
+      '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Verwijderde spelers blijven hier 30 dagen staan, met al hun gegevens. Daarna worden ze automatisch definitief verwijderd.</div>' +
+      '<div id="trashList" style="display:flex; flex-direction:column; gap:10px;">' + trashHtml + '</div>' +
+      '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Back-ups</h2></div>' +
+      '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Elke maandagnacht wordt automatisch een back-up gemaakt van alle spelers, beoordelingen, aanwezigheid en scoutrapporten (de laatste 26 blijven bewaard). Daarnaast maakt Supabase dagelijks een volledige back-up.</div>' +
+      '<div class="card" style="padding:14px; display:flex; flex-direction:column; gap:10px;">' +
+      '<div id="backupList" style="display:flex; flex-direction:column; gap:6px; font-size:13.5px;">Laden&hellip;</div>' +
+      '<button class="btn ghost" id="makeBackupBtn">Nu een back-up maken</button>' +
+      '</div>' +
+      '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Scout-signaal</h2></div>' +
+      '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Een speler wordt in het Overzicht gemarkeerd zodra hij dit aantal keer een A of B van scouts heeft gekregen (alle blokken samen).</div>' +
+      '<div class="card" style="padding:14px; display:flex; align-items:flex-end; gap:10px;">' +
+      '<div class="field" style="margin-bottom:0; flex:1;"><label for="fScoutDrempel">Aantal keer A of B</label>' +
+      '<input type="number" id="fScoutDrempel" min="1" max="20" value="' + Branding.getScoutDrempel() + '"></div>' +
+      '<button class="btn primary" id="saveScoutDrempelBtn">Opslaan</button>' +
+      '</div>' +
       '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Spelersfoto\'s in één keer uploaden</h2></div>' +
       '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Kies meerdere foto\'s tegelijk. De bestandsnaam moet met het hesjenummer beginnen (bijv. <b>97.jpg</b>); de foto komt dan bij de speler met dat hesje. Een bestaande foto wordt vervangen.</div>' +
       '<div class="card" style="padding:14px; display:flex; flex-direction:column; gap:10px;">' +
@@ -2930,6 +3153,77 @@
         }).catch(function(err){ console.error(err); showToast("Bijwerken mislukt"); });
       });
     });
+    fillPlayerPhotos($("trashList"));
+    Array.prototype.forEach.call(body.querySelectorAll("[data-restore]"), function(b){
+      b.addEventListener("click", function(){
+        var p = trash.filter(function(x){ return x.id === b.getAttribute("data-restore"); })[0];
+        b.disabled = true;
+        Store.restorePlayer(p.id).then(function(){ showToast(p.naam + " is teruggezet"); renderInstellingen(); })
+          .catch(function(err){ console.error(err); showToast("Terugzetten mislukt"); b.disabled = false; });
+      });
+    });
+    Array.prototype.forEach.call(body.querySelectorAll("[data-purge]"), function(b){
+      b.addEventListener("click", function(){
+        var p = trash.filter(function(x){ return x.id === b.getAttribute("data-purge"); })[0];
+        confirmDialog({
+          title: "Definitief verwijderen?",
+          messageHtml: '<b>' + esc(p.naam) + '</b> wordt nu definitief verwijderd, inclusief beoordelingen van trainers, aanwezigheid en favorieten. Scoutrapporten blijven bewaard zonder koppeling.' + NOT_UNDO,
+          confirmLabel: "Definitief verwijderen"
+        }).then(function(ok){
+          if (!ok) return;
+          Store.deletePlayerForever(p.id).then(function(){ showToast(p.naam + " is definitief verwijderd"); renderInstellingen(); })
+            .catch(function(err){ console.error(err); showToast("Verwijderen mislukt"); });
+        });
+      });
+    });
+
+    function renderBackupList(){
+      Store.listBackups().then(function(list){
+        var el = $("backupList");
+        if (!el) return;
+        el.innerHTML = !list.length ? '<div style="color:var(--ink-muted);">Nog geen back-ups.</div>' : list.slice(0, 8).map(function(b){
+          var d = new Date(b.created_at);
+          return '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">' +
+            '<span>' + esc(d.toLocaleDateString("nl-NL", { weekday:"short", day:"numeric", month:"short", year:"numeric" })) + ' ' +
+            esc(d.toLocaleTimeString("nl-NL", { hour:"2-digit", minute:"2-digit" })) +
+            ' <span style="color:var(--ink-muted);">&middot; ' + (b.soort === "handmatig" ? "zelf gemaakt" : "automatisch") + '</span></span>' +
+            '<button class="btn ghost small" data-backup="' + b.id + '">Downloaden</button></div>';
+        }).join("");
+        Array.prototype.forEach.call(el.querySelectorAll("[data-backup]"), function(btn){
+          btn.addEventListener("click", function(){
+            btn.disabled = true;
+            Store.getBackupData(btn.getAttribute("data-backup")).then(function(row){
+              var blob = new Blob([JSON.stringify(row.data, null, 2)], { type: "application/json" });
+              var a = document.createElement("a");
+              a.href = URL.createObjectURL(blob);
+              a.download = "art-backup-" + row.created_at.slice(0, 10) + ".json";
+              document.body.appendChild(a); a.click(); a.remove();
+              setTimeout(function(){ URL.revokeObjectURL(a.href); }, 5000);
+            }).catch(function(err){ console.error(err); showToast("Downloaden mislukt"); })
+              .then(function(){ btn.disabled = false; });
+          });
+        });
+      }).catch(function(err){ console.error(err); var el = $("backupList"); if (el) el.textContent = "Back-ups laden mislukt."; });
+    }
+    renderBackupList();
+    $("makeBackupBtn").addEventListener("click", function(){
+      var b = $("makeBackupBtn");
+      b.disabled = true;
+      Store.makeBackup().then(function(){ showToast("Back-up gemaakt"); renderBackupList(); })
+        .catch(function(err){ console.error(err); showToast("Back-up maken mislukt"); })
+        .then(function(){ b.disabled = false; });
+    });
+
+    $("saveScoutDrempelBtn").addEventListener("click", function(){
+      var n = parseInt($("fScoutDrempel").value, 10);
+      if (!(n >= 1 && n <= 20)){ showToast("Kies een aantal tussen 1 en 20"); return; }
+      sb.from("app_settings").update({ scout_signaal_drempel: n }).eq("id", 1).then(function(res){
+        if (res.error) throw res.error;
+        Branding.setScoutDrempel(n);
+        showToast("Scout-signaal: vanaf " + n + "× A of B");
+      }).catch(function(err){ console.error(err); showToast("Opslaan mislukt"); });
+    });
+
     var bulkMatches = [];
     $("fBulkFotos").addEventListener("change", function(){
       var files = Array.prototype.slice.call(this.files || []);
@@ -2952,6 +3246,17 @@
     $("bulkFotoBtn").addEventListener("click", function(){
       var todo = bulkMatches.filter(function(x){ return x.player; });
       if (!todo.length) return;
+      var replacing = todo.filter(function(x){ return x.player.fotoPath; });
+      if (!replacing.length){ runBulkUpload(todo); return; }
+      confirmDialog({
+        title: "Bestaande foto's vervangen?",
+        messageHtml: replacing.length + " van de " + todo.length + " spelers hebben al een foto. Die wordt vervangen door de nieuwe." +
+          '<div style="margin-top:6px; font-size:13px; color:var(--ink-muted);">' + replacing.map(function(x){ return esc(x.player.naam); }).join(", ") + '</div>',
+        confirmLabel: "Vervangen en uploaden",
+        danger: false
+      }).then(function(ok){ if (ok) runBulkUpload(todo); });
+    });
+    function runBulkUpload(todo){
       $("bulkFotoBtn").disabled = true;
       var done = 0, failed = [];
       function setStatus(t){ bulkFotoStatus = t; var h = $("bulkFotoHint"); if (h) h.textContent = t; }
@@ -2970,7 +3275,7 @@
         renderInstellingen();
         bulkFotoStatus = "";
       });
-    });
+    }
 
     // Gebruikersnaam voorstellen op basis van de voornaam, zolang je hem niet zelf hebt aangepast.
     var userEdited = false;
@@ -3005,12 +3310,19 @@
       b.addEventListener("click", function(){
         var id = b.getAttribute("data-reset-pw");
         var p = profiles.filter(function(x){ return x.id === id; })[0] || {};
-        if (!confirm("Nieuw wachtwoord maken voor " + p.naam + "? Het oude wachtwoord werkt dan niet meer.")) return;
-        b.disabled = true;
-        Store.manageUsers("reset_password", { id: id }).then(function(res){
-          showCredentials(p.naam, res.username, res.password, false);
-        }).catch(function(err){ console.error(err); showToast(err.message || "Mislukt"); })
-          .then(function(){ b.disabled = false; });
+        confirmDialog({
+          title: "Nieuw wachtwoord maken?",
+          messageHtml: "<b>" + esc(p.naam) + "</b> krijgt een nieuw wachtwoord. Het oude werkt daarna niet meer, dus stuur het nieuwe meteen door.",
+          confirmLabel: "Nieuw wachtwoord",
+          danger: false
+        }).then(function(ok){
+          if (!ok) return;
+          b.disabled = true;
+          Store.manageUsers("reset_password", { id: id }).then(function(res){
+            showCredentials(p.naam, res.username, res.password, false);
+          }).catch(function(err){ console.error(err); showToast(err.message || "Mislukt"); })
+            .then(function(){ b.disabled = false; });
+        });
       });
     });
 
@@ -3033,12 +3345,19 @@
         if (!u.disabled){ t.style.color = "var(--low)"; t.style.borderColor = "var(--low-soft)"; }
         t.addEventListener("click", function(){
           var turnOff = !u.disabled;
-          if (turnOff && !confirm(p.naam + " kan daarna niet meer inloggen. Doorgaan?")) return;
-          t.disabled = true;
-          Store.manageUsers("set_disabled", { id: p.id, disabled: turnOff }).then(function(){
-            showToast(turnOff ? "Account uitgezet" : "Account aangezet");
-            renderInstellingen();
-          }).catch(function(err){ console.error(err); showToast(err.message || "Mislukt"); t.disabled = false; });
+          var go = function(){
+            t.disabled = true;
+            Store.manageUsers("set_disabled", { id: p.id, disabled: turnOff }).then(function(){
+              showToast(turnOff ? "Account uitgezet" : "Account aangezet");
+              renderInstellingen();
+            }).catch(function(err){ console.error(err); showToast(err.message || "Mislukt"); t.disabled = false; });
+          };
+          if (!turnOff){ go(); return; }
+          confirmDialog({
+            title: "Account uitzetten?",
+            messageHtml: "<b>" + esc(p.naam) + "</b> kan daarna niet meer inloggen. Zijn beoordelingen blijven bewaard, en je kunt het account later weer aanzetten.",
+            confirmLabel: "Account uitzetten"
+          }).then(function(ok){ if (ok) go(); });
         });
       });
     }).catch(function(err){ console.error("Accounts laden mislukt", err); });
@@ -3071,13 +3390,17 @@
     });
     var removeLogoBtn = $("removeLogoBtn");
     if (removeLogoBtn) removeLogoBtn.addEventListener("click", function(){
+      confirmDialog({ title: "Logo verwijderen?", messageHtml: "Het logo verdwijnt van het inlogscherm en bovenin de app. Je kunt later een nieuw logo uploaden.", confirmLabel: "Logo verwijderen" })
+        .then(function(ok){ if (ok) removeLogo(); });
+    });
+    function removeLogo(){
       sb.from("app_settings").update({ logo_url: null }).eq("id", 1).then(function(res){
         if (res.error) throw res.error;
         Branding.setUrl(null);
         showToast("Logo verwijderd");
         renderInstellingen();
       }).catch(function(err){ console.error(err); showToast("Verwijderen mislukt"); });
-    });
+    }
 
     $("importPasteBtn").addEventListener("click", function(){
       var hint = $("rosterPasteHint");
@@ -3209,9 +3532,7 @@
     $("pwOverlay").hidden = false;
   }
   function closePwSheet(){ $("pwOverlay").hidden = true; }
-  $("closePwSheet").addEventListener("click", closePwSheet);
   $("menuPwBtn").addEventListener("click", function(){ closeAccountMenu(); openPwSheet(); });
-  $("pwOverlay").addEventListener("click", function(e){ if (e.target === $("pwOverlay")) closePwSheet(); });
   $("savePwBtn").addEventListener("click", function(){
     var pw1 = $("fNewPw1").value;
     var pw2 = $("fNewPw2").value;
@@ -3253,6 +3574,94 @@
   });
   Auth.boot();
   Branding.load();
+
+  /* ---------- Niet-opgeslagen wijzigingen ----------
+     Bij het openen van een invulvenster onthouden we de inhoud. Wie het venster sluit (kruisje, naast
+     het venster tikken, Esc) terwijl er iets veranderd is, krijgt eerst de vraag of het weg mag. */
+  var SHEET_DRAFTS = {
+    scoreOverlay: function(){ return state.scoreDraft; },
+    evalOverlay: function(){ return state.evalDraft; },
+    scoutOverlay: function(){ return state.scoutDraft; }
+  };
+  function sheetSnapshot(overlayId){
+    var overlay = $(overlayId);
+    var vals = Array.prototype.map.call(overlay.querySelectorAll("input, textarea, select"), function(el){
+      if (el.type === "file") return "";
+      return (el.type === "checkbox" || el.type === "radio") ? String(el.checked) : el.value;
+    });
+    var draft = SHEET_DRAFTS[overlayId] ? SHEET_DRAFTS[overlayId]() : null;
+    return JSON.stringify([vals, draft || null]);
+  }
+  var sheetBaseline = {};
+  function guardSheet(overlayId, closeBtnId, closeFn){
+    var overlay = $(overlayId);
+    // Momentopname zodra het venster opengaat (na het invullen van bestaande gegevens).
+    new MutationObserver(function(){
+      if (!overlay.hidden) setTimeout(function(){ sheetBaseline[overlayId] = sheetSnapshot(overlayId); }, 0);
+    }).observe(overlay, { attributes: true, attributeFilter: ["hidden"] });
+    function tryClose(){
+      if (sheetBaseline[overlayId] === undefined || sheetSnapshot(overlayId) === sheetBaseline[overlayId]){ closeFn(); return; }
+      confirmDialog({
+        title: "Niet opgeslagen",
+        messageHtml: "Je hebt wijzigingen die nog niet zijn opgeslagen. Als je sluit, ben je ze kwijt.",
+        confirmLabel: "Toch sluiten"
+      }).then(function(ok){ if (ok) closeFn(); });
+    }
+    $(closeBtnId).addEventListener("click", tryClose);
+    overlay.addEventListener("click", function(e){ if (e.target === overlay) tryClose(); });
+    document.addEventListener("keydown", function(e){
+      if (e.key === "Escape" && !overlay.hidden && $("confirmOverlay").hidden) tryClose();
+    });
+  }
+  guardSheet("playerOverlay", "closePlayerSheet", closePlayerSheet);
+  guardSheet("scoreOverlay", "closeScoreSheet", closeScoreSheet);
+  guardSheet("evalOverlay", "closeEvalSheet", closeEvalSheet);
+  guardSheet("scoutOverlay", "closeScoutSheet", closeScoutSheet);
+  guardSheet("pwOverlay", "closePwSheet", closePwSheet);
+
+  /* ---------- Updates binnenhalen zonder de app af te sluiten ----------
+     Een geïnstalleerde app (beginscherm) blijft vaak dagen open staan. We vergelijken daarom af en toe
+     de pagina op de server met de versie die bij het openen binnenkwam. Is er een nieuwe versie:
+     - staat de app op de achtergrond en komt hij terug zonder open venster → meteen stil vernieuwen;
+     - anders een balk "Nieuwe versie beschikbaar" met een knop, zodat niemand halverwege iets kwijtraakt. */
+  var Updater = (function(){
+    var baseHash = null, pending = false;
+    function hash(s){ var h = 5381; for (var i = 0; i < s.length; i++){ h = ((h << 5) + h + s.charCodeAt(i)) | 0; } return h; }
+    function fetchHash(){
+      return fetch(location.pathname + "?versiecheck=" + Date.now(), { cache: "no-store" })
+        .then(function(r){ return r.ok ? r.text() : null; })
+        .then(function(t){ return t ? hash(t) : null; })
+        .catch(function(){ return null; });
+    }
+    function anyOverlayOpen(){
+      return Array.prototype.some.call(document.querySelectorAll(".overlay"), function(o){ return !o.hidden; });
+    }
+    function showBanner(){
+      if ($("updateBanner")) return;
+      var b = document.createElement("div");
+      b.id = "updateBanner";
+      b.className = "update-banner";
+      b.innerHTML = '<span>Er is een nieuwe versie van de app.</span><button type="button" class="btn primary small" id="updateNowBtn">Vernieuwen</button>';
+      document.body.appendChild(b);
+      $("updateNowBtn").addEventListener("click", function(){ location.reload(); });
+    }
+    function check(fromResume){
+      if (baseHash === null) return;
+      fetchHash().then(function(h){
+        if (h === null || h === baseHash) return;
+        pending = true;
+        if (fromResume && !anyOverlayOpen()) location.reload();
+        else showBanner();
+      });
+    }
+    function start(){
+      fetchHash().then(function(h){ baseHash = h; });
+      document.addEventListener("visibilitychange", function(){ if (document.visibilityState === "visible") check(true); });
+      setInterval(function(){ if (!pending) check(false); }, 5 * 60 * 1000);
+    }
+    return { start: start };
+  })();
+  Updater.start();
 
   if ("serviceWorker" in navigator){
     window.addEventListener("load", function(){
