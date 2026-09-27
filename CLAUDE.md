@@ -105,6 +105,9 @@ Bij verlopen token: nieuwe maken met dezelfde rechten en opslaan met
 Zodra `git` beschikbaar is: overstappen op een gewone clone.
 
 ## Openstaand werk
+- [x] 2026-09-27: testdata opgeschoond (alle beoordelingen, scoutrapporten, favorieten) en alle accounts behalve Sofian
+      (hoofdtrainer) verwijderd, o.a. Tommy (trainer, tommyverhulst1@gmail.com) en Peter Muster (scout). Back-up nr. 2 ervoor.
+      Trainers en scouts opnieuw aanmaken via Instellingen → Accounts wanneer het testen/gebruik begint.
 - [ ] Spelersfoto's: 23 foto's voorbereid in ~/Downloads/ART-fotos/klaar-om-te-uploaden (naam = hesjenummer);
       Sofian uploadt ze via Instellingen → "Spelersfoto's in één keer uploaden". Speler zonder hesje (lichting 2017) heeft nog geen foto.
 - [ ] Opruimen: mislukte `vercel deploy`-deployments 5Pt3wQ9YF en 77GpcfXHQ laten verwijderen door Sofian.
