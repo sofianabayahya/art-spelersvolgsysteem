@@ -168,36 +168,37 @@
     .grade-btn{ padding:14px 0; font-size:20px; }
     .chip{ padding:9px 16px; }
   }
-  /* Spelers: smoelenboek in 3 kolommen. Hesjenummer (rood/geel) linksboven, geboortekwartaal rechtsboven. */
-  .player-grid{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:8px; }
-  @media (min-width:600px){ .player-grid{ grid-template-columns:repeat(4, minmax(0, 1fr)); gap:12px; } }
+  /* Spelers: smoelenboek in 2 kolommen (3 op tablet). De foto blijft schoon (het hesje op de foto toont het nummer al);
+     nummer, geboortekwartaal en ster/! staan altijd op dezelfde plek in een balk onder de foto. */
+  .player-grid{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; }
+  @media (min-width:600px){ .player-grid{ grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; } }
   .pcard{
     display:flex; flex-direction:column; padding:0; margin:0; text-align:left; cursor:pointer; font:inherit; color:var(--ink);
-    background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden;
+    background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden;
   }
   .pcard:active{ transform:scale(.98); }
   .pc-photo{ position:relative; height:0; padding-top:100%; background:var(--surface-alt); } /* vierkant, ook op oudere iPhones */
   .pc-photo .pc-img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; }
   .pc-photo .pc-empty{ display:flex; align-items:center; justify-content:center; color:var(--ink-muted); }
+  .pc-info{ display:flex; align-items:center; gap:6px; padding:8px 8px 0; }
   .pc-hesje{
-    position:absolute; left:5px; top:5px; min-width:40px; height:36px; padding:0 5px; border-radius:8px;
+    min-width:40px; height:34px; padding:0 6px; border-radius:8px;
     background:#C62828; color:#FFE66D; border:2px solid #E53935; display:flex; align-items:center; justify-content:center;
-    font-family:"Barlow Condensed",sans-serif; font-weight:700; font-size:24px; line-height:1; font-variant-numeric:tabular-nums;
+    font-family:"Barlow Condensed",sans-serif; font-weight:700; font-size:23px; line-height:1; font-variant-numeric:tabular-nums;
   }
-  .pc-hesje.none{ background:var(--surface); color:var(--ink-muted); border-color:var(--border); font-size:18px; }
+  .pc-hesje.none{ background:var(--surface-alt); color:var(--ink-muted); border-color:var(--border); font-size:18px; }
   .pc-q{
-    position:absolute; right:5px; bottom:5px; height:30px; padding:0 7px; border-radius:8px;
-    background:#0E1930; color:#fff; border:2px solid #A8BEE0; display:flex; align-items:center;
-    font-family:"Barlow Condensed",sans-serif; font-weight:700; font-size:19px; line-height:1;
+    height:34px; padding:0 8px; border-radius:8px; background:#0E1930; color:#fff; border:2px solid #A8BEE0;
+    display:flex; align-items:center; font-family:"Barlow Condensed",sans-serif; font-weight:700; font-size:21px; line-height:1;
   }
-  .pc-marks{ position:absolute; left:5px; bottom:5px; display:flex; gap:4px; }
+  .pc-marks{ margin-left:auto; display:flex; gap:4px; }
   .pc-mark{
-    min-width:26px; height:26px; border-radius:999px; display:flex; align-items:center; justify-content:center;
-    font-weight:800; font-size:15px; border:2px solid rgba(0,0,0,.25);
+    min-width:28px; height:28px; border-radius:999px; display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:16px;
   }
   .pc-mark.star{ background:#DDB456; color:#1a1405; }
   .pc-mark.warn{ background:#E28A8A; color:#2a0c0c; }
-  .pc-name{ padding:6px 7px 8px; font-weight:600; font-size:13px; line-height:1.2; overflow-wrap:break-word; hyphens:auto; }
+  .pc-name{ padding:6px 9px 10px; font-weight:600; font-size:14.5px; line-height:1.25; overflow-wrap:break-word; }
 
   .q-inline{
     display:inline-block; margin-left:4px; padding:1px 7px; border-radius:6px; background:#0E1930; color:#fff; border:1.5px solid #A8BEE0;
@@ -1751,9 +1752,10 @@
         ? '<img class="pc-img" data-ident-photo="' + p.id + '" data-foto-path="' + esc(p.fotoPath) + '" alt="">'
         : '<div class="pc-img pc-empty">' + personSvg + '</div>';
       return '<button type="button" class="pcard" data-card="' + p.id + '" aria-label="' + esc(p.naam) + '">' +
-        '<div class="pc-photo">' + photo +
+        '<div class="pc-photo">' + photo + '</div>' +
+        '<div class="pc-info">' +
         '<span class="pc-hesje' + (p.hesje ? '' : ' none') + '">' + (p.hesje ? esc(p.hesje) : "–") + '</span>' +
-        (p.q ? '<span class="pc-q">' + esc(p.q) + '</span>' : '') +
+        (p.q ? '<span class="pc-q" title="Geboortekwartaal">' + esc(p.q) + '</span>' : '') +
         (marks ? '<span class="pc-marks">' + marks + '</span>' : '') +
         '</div>' +
         '<div class="pc-name">' + esc(p.naam) + '</div></button>';

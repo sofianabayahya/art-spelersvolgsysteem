@@ -62,8 +62,8 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   Terugkeren zonder open venster = stil vernieuwen; anders een balk "Nieuwe versie" met knop.
 - Foto-links (signed URLs) 24 uur geldig en bewaard in localStorage; gewist bij uitloggen. Nieuwe upload = nieuwe bestandsnaam.
 - Hesjenummer overal groot in rood/geel naast de foto (`playerIdentHtml`, `fillPlayerPhotos`).
-- Tabblad Spelers = smoelenboek (3 kolommen, 4 op tablet): foto, hesje linksboven, kwartaal rechtsonder (scouts wegen het
-  kwartaal mee), ster/! linksonder. Geen knoppen in de lijst: tikken opent de spelerskaart (`openPlayerCard`) met per rol
+- Tabblad Spelers = smoelenboek (2 kolommen, 3 op tablet). Foto blijft schoon (hesje op de foto toont het nummer); balk
+  onder de foto: hesjenummer · geboortekwartaal (scouts wegen het mee) · ster/! rechts, daaronder de naam. Geen knoppen in de lijst: tikken opent de spelerskaart (`openPlayerCard`) met per rol
   de info en acties (Beoordelen; hoofdtrainer ook Bewerken). Beheer (nieuwe speler, importeren, foto's, prullenbak) staat
   in Instellingen → Spelers beheren. Instellingen is ingedeeld in uitklapbare groepen.
 - Favorieten (eigen top 3) zijn geschrapt (besluit Sofian): de ster ★ komt vanzelf uit de beoordelingen. Ster = aantal
