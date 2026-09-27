@@ -53,6 +53,8 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   via `make_backup()`; pg_cron-job `art-wekelijkse-backup` (maandag 03:00 UTC), laatste 26 bewaard, downloadbaar in Instellingen.
 - Invulvensters vragen bevestiging bij sluiten met niet-opgeslagen wijzigingen (`guardSheet`).
 - supabase-js staat vast op 2.117.2 met SRI-integrity; bij updaten ook de hash vernieuwen.
+- iOS-beginscherm-app: strook onder de tabbalk valt buiten de pagina; `html` heeft daarom de tabbalkkleur.
+- Als Vercel een push niet oppakt (geen deployment voor de commit): nieuwe push geeft een nieuw seintje.
 - Mobiel: invoervelden 16px (anders zoomt iOS in), grotere tikvlakken bij `pointer:coarse`.
 - Supabase heeft twee projecten in dezelfde Pro-organisatie: ARTsvs Project (deze app) en ClubComm (ander project, niet aanraken).
 - Alles wat niet ongedaan kan (speler/foto/evaluatie/scoutrapport/logo verwijderen, account uitzetten, nieuw wachtwoord,
@@ -69,6 +71,7 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
 - Beoordelen gebeurt vanuit Spelers (tabbladen Beoordelen en Scouting zijn opgeheven): balk "Beoordelen in [blok]" met
   "x van y door jou beoordeeld", groen ✓ rechtsboven op de foto = door jou beoordeeld in dat blok, tik → spelerskaart → Beoordelen
   (trainer/hoofdtrainer: trainerlijst; scout: Ajax-scoutlijst). Eén blokkeuze voor iedereen (`state.beoordelenBlok`).
+  Blokkeuze en voortgang staan compact op één regel naast de titel "Spelers" ("Blok 1 ▾ · 3/7 ✓").
   Geen "opslaan & volgende" (besluit Sofian). Heeft iemand maar één tabblad (scout), dan is de tabbalk onderin verborgen.
 - Favorieten (eigen top 3) zijn geschrapt (besluit Sofian): de ster ★ komt vanzelf uit de beoordelingen. Ster = aantal
   trainer- + scoutbeoordelingen met een A of B >= `app_settings.scout_signaal_drempel`. Alleen zichtbaar voor de hoofdtrainer.
