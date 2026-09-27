@@ -50,6 +50,7 @@ Bij verlopen token: nieuwe maken met dezelfde rechten en opslaan met
 Zodra `git` beschikbaar is: overstappen op een gewone clone.
 
 ## Openstaand werk
-- [ ] Spelersfoto's van Sofian verwerken (hesjenummer koppelen aan speler).
+- [ ] Spelersfoto's: 23 foto's voorbereid in ~/Downloads/ART-fotos/klaar-om-te-uploaden (naam = hesjenummer);
+      Sofian uploadt ze via Instellingen → "Spelersfoto's in één keer uploaden". Speler zonder hesje (lichting 2017) heeft nog geen foto.
 - [ ] Opruimen: mislukte `vercel deploy`-deployments 5Pt3wQ9YF en 77GpcfXHQ laten verwijderen door Sofian.
 - [ ] Later: Command Line Developer Tools installeren en overstappen op gewone git.

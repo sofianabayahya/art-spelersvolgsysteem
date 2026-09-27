@@ -2838,6 +2838,8 @@
     box.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
+  var bulkFotoStatus = "";
+
   function renderInstellingen(){
     var body = $("instellingenBody");
     if (!Auth.isHoofdtrainer()){
@@ -2887,6 +2889,14 @@
       '<div id="credResult"></div>' +
       '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Accounts en rollen</h2></div>' +
       '<div id="profilesList" style="display:flex; flex-direction:column; gap:10px;">' + rows + '</div>' +
+      '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Spelersfoto\'s in één keer uploaden</h2></div>' +
+      '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Kies meerdere foto\'s tegelijk. De bestandsnaam moet met het hesjenummer beginnen (bijv. <b>97.jpg</b>); de foto komt dan bij de speler met dat hesje. Een bestaande foto wordt vervangen.</div>' +
+      '<div class="card" style="padding:14px; display:flex; flex-direction:column; gap:10px;">' +
+      '<input type="file" id="fBulkFotos" accept="image/jpeg,image/png,image/webp" multiple style="width:100%; font-size:13px;">' +
+      '<div id="bulkFotoPreview" style="font-size:13px;"></div>' +
+      '<div class="hint" id="bulkFotoHint">' + esc(bulkFotoStatus) + '</div>' +
+      '<button class="btn primary" id="bulkFotoBtn" disabled>Foto\'s uploaden</button>' +
+      '</div>' +
       '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Spelerslijst importeren</h2></div>' +
       '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Plak hier een nieuwe lijst spelers (bijvoorbeeld gekopieerd uit een Excel- of Word-bestand van Ajax) om ze in één keer toe te voegen. Spelers die al in de lijst staan (zelfde naam + lichting) worden automatisch overgeslagen, dus dit kan veilig meerdere keren.</div>' +
       '<div class="card" style="padding:14px; display:flex; flex-direction:column; gap:10px;">' +
@@ -2920,6 +2930,48 @@
         }).catch(function(err){ console.error(err); showToast("Bijwerken mislukt"); });
       });
     });
+    var bulkMatches = [];
+    $("fBulkFotos").addEventListener("change", function(){
+      var files = Array.prototype.slice.call(this.files || []);
+      var players = Store.getPlayers();
+      bulkMatches = files.map(function(f){
+        var m = /^(\d+)/.exec(f.name);
+        var nr = m ? m[1] : "";
+        var player = nr ? players.filter(function(p){ return String(p.hesje) === nr; })[0] : null;
+        return { file: f, nr: nr, player: player || null };
+      }).sort(function(a, b){ return (parseInt(a.nr, 10) || 9999) - (parseInt(b.nr, 10) || 9999); });
+      var ok = bulkMatches.filter(function(x){ return x.player; });
+      $("bulkFotoPreview").innerHTML = bulkMatches.map(function(x){
+        return '<div>' + esc(x.file.name) + ' &rarr; ' + (x.player
+          ? '<b>' + esc(x.player.naam) + '</b>'
+          : '<span style="color:var(--low);">geen speler met hesje ' + esc(x.nr || "?") + ', wordt overgeslagen</span>') + '</div>';
+      }).join("");
+      $("bulkFotoHint").textContent = ok.length + " van " + bulkMatches.length + " foto's gekoppeld aan een speler.";
+      $("bulkFotoBtn").disabled = !ok.length;
+    });
+    $("bulkFotoBtn").addEventListener("click", function(){
+      var todo = bulkMatches.filter(function(x){ return x.player; });
+      if (!todo.length) return;
+      $("bulkFotoBtn").disabled = true;
+      var done = 0, failed = [];
+      function setStatus(t){ bulkFotoStatus = t; var h = $("bulkFotoHint"); if (h) h.textContent = t; }
+      // Eén voor één, zodat de voortgang zichtbaar blijft en we Supabase niet overspoelen.
+      todo.reduce(function(chain, x){
+        return chain.then(function(){
+          setStatus("Bezig: " + (done + failed.length + 1) + " van " + todo.length + " (" + x.player.naam + ")…");
+          return processPlayerFotoFile(x.file).then(function(blob){
+            return Store.uploadPlayerFoto(x.player.id, blob);
+          }).then(function(){ done++; }, function(err){ console.error(err); failed.push(x.player.naam); });
+        });
+      }, Promise.resolve()).then(function(){
+        setStatus(done + " foto's opgeslagen" + (failed.length ? "; mislukt: " + failed.join(", ") : "") + ".");
+        showToast(done + " foto's opgeslagen");
+        bulkMatches = [];
+        renderInstellingen();
+        bulkFotoStatus = "";
+      });
+    });
+
     // Gebruikersnaam voorstellen op basis van de voornaam, zolang je hem niet zelf hebt aangepast.
     var userEdited = false;
     $("fNewAccUser").addEventListener("input", function(){ userEdited = true; });
