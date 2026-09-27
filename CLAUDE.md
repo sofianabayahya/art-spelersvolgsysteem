@@ -18,8 +18,9 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
 1. GitHub `main` is de enige bron. Nooit deployen met `vercel deploy`, nooit bestanden uploaden via de GitHub-website.
    (Op 2026-09-27 ging de site offline door twee losse `vercel deploy`-uploads; hersteld door 7cfd654 te promoten.)
 2. Eén werkplek: Claude Code in deze map. Geen wijzigingen meer vanuit Claude Chat/Cowork.
-3. Werkwijze per wijziging: Sofian beschrijft → Claude past lokaal aan → Claude toont de wijziging → Sofian zegt akkoord
-   → push → Vercel deployt → Claude controleert www.artsvs.nl.
+3. Werkwijze per wijziging: Sofian beschrijft → Claude past lokaal aan en controleert → push naar main → Vercel deployt
+   → Claude controleert www.artsvs.nl → Sofian test live. Geen tussenstap via de test-branch zolang de app nog niet
+   in gebruik is (besluit Sofian 2026-09-27). Zodra trainers/scouts de app echt gebruiken: weer eerst via `push-test`.
 4. Sofian doet inloggen en klikken in dashboards (Vercel, Supabase, GitHub); Claude doet code, testen, pushen, controleren.
 5. Supabase-schema niet wijzigen zonder eerst te vragen (backend is live en in gebruik).
 6. Sofian is geen developer: leg stap voor stap uit, één stap tegelijk, en controleer zelf na elke stap.
@@ -34,6 +35,33 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   het eigen account of een hoofdtrainer. Uitzetten = Supabase ban.
 - E-mail: domein artsvs.nl is geverifieerd in Brevo (DKIM via Hostnet-DNS, DMARC p=reject blijft). Nog niet gekoppeld
   als SMTP in Supabase; alleen nodig als we later mail willen versturen.
+
+## Scouting
+- ART is een scoutingsprogramma: scouts vullen de Ajax-lijst in voor ART-spelers: Wedstrijdbeoordeling + Potentieel
+  (A/B/C/D, zelfde als trainers), Rank (#1 bovenste 3 / #3 onderste 3 per lichting, leeg = middenmoot), Advies 1-4,
+  plus een notitie "waarom". Eén beoordeling per scout per speler per blok (tabel `scout_reports`,
+  kolommen `wedstrijdbeoordeling`, `potentieel`, `notitie`). Oude uitgebreide rapportvelden blijven bestaan voor oude data.
+- Scouts zien alleen hun eigen beoordelingen (RLS); de hoofdtrainer ziet alles.
+- Scout-signaal: speler met >= `app_settings.scout_signaal_drempel` (standaard 3, instelbaar) scoutbeoordelingen met een A of B
+  wordt gemarkeerd in Overzicht en Spelers. Alleen een melding; contact met jeugdcoördinator/jeugdscout doet Sofian zelf.
+- Migraties staan in `supabase/migrations/`.
+
+## Praktische afspraken in de app
+- Prullenbak: spelers verwijderen = `players.deleted_at` zetten; RLS verbergt ze voor niet-hoofdtrainers; pg_cron-job
+  `art-prullenbak-legen` (dagelijks 03:30 UTC) verwijdert na 30 dagen definitief. Terugzetten/definitief in Instellingen.
+- Back-ups: Supabase Pro maakt dagelijks een volledige back-up (7 dagen). Daarnaast tabel `backups` met JSON-momentopname
+  via `make_backup()`; pg_cron-job `art-wekelijkse-backup` (maandag 03:00 UTC), laatste 26 bewaard, downloadbaar in Instellingen.
+- Invulvensters vragen bevestiging bij sluiten met niet-opgeslagen wijzigingen (`guardSheet`).
+- supabase-js staat vast op 2.117.2 met SRI-integrity; bij updaten ook de hash vernieuwen.
+- Mobiel: invoervelden 16px (anders zoomt iOS in), grotere tikvlakken bij `pointer:coarse`.
+- Supabase heeft twee projecten in dezelfde Pro-organisatie: ARTsvs Project (deze app) en ClubComm (ander project, niet aanraken).
+- Alles wat niet ongedaan kan (speler/foto/evaluatie/scoutrapport/logo verwijderen, account uitzetten, nieuw wachtwoord,
+  training afgelasten, foto's vervangen) gaat via `confirmDialog()`: een venster met naam en gevolgen. Nooit meer
+  "twee keer tikken"; daardoor werd op 2026-09-27 per ongeluk speler 108 (Jaël Martina) verwijderd (teruggezet, aanwezigheid kwijt).
+- Updates: `Updater` vergelijkt de pagina op de server met de geladen versie (bij terugkeren naar de app en elke 5 min).
+  Terugkeren zonder open venster = stil vernieuwen; anders een balk "Nieuwe versie" met knop.
+- Foto-links (signed URLs) 24 uur geldig en bewaard in localStorage; gewist bij uitloggen. Nieuwe upload = nieuwe bestandsnaam.
+- Hesjenummer overal groot in rood/geel naast de foto (`playerIdentHtml`, `fillPlayerPhotos`).
 
 ## Git zonder git
 De Command Line Developer Tools (en dus `git`) zijn nog niet geïnstalleerd. Tot die tijd:
