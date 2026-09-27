@@ -248,7 +248,7 @@
   /* Lettervakjes: A donkergroen, B lichtgroen, C neutraal, D rood. */
   .gpair{ display:inline-flex; gap:4px; }
   .g{ width:26px; height:26px; border-radius:7px; display:inline-flex; align-items:center; justify-content:center; font:700 16px "Barlow Condensed",sans-serif; }
-  .gA{ background:#2E8B57; color:#fff; }
+  .gA{ background:#1F6F45; color:#fff; }
   .gB{ background:#7CC896; color:#0d2414; }
   .gC{ background:#3A4A6E; color:#EEF1F8; }
   .gD{ background:#E28A8A; color:#2a0c0c; }
@@ -2224,12 +2224,19 @@
     }
     var data = Object.assign({}, state.scoreDraft, { notitie: $("fNotitie").value.trim() });
     if (state.scoreMode === "scout"){ data.advies = $("fScoutAdvies").value; }
+    // Knop blokkeren tijdens opslaan: twee keer tikken mag geen dubbele beoordeling opleveren.
+    var btn = $("saveScoreBtn");
+    if (btn.disabled) return;
+    btn.disabled = true;
     var save = state.scoreMode === "scout"
       ? Store.saveScoutGrade(state.scoringPlayerId, state.scoringBlok, data, state.scoringExistingId)
       : Store.upsertScore(state.scoringPlayerId, state.scoringBlok, data);
     save.then(function(){
       showToast("Beoordeling opgeslagen"); closeScoreSheet();
-    }).catch(function(err){ console.error(err); showToast("Opslaan mislukt, probeer opnieuw"); });
+    }).catch(function(err){
+      console.error(err);
+      showToast(navigator.onLine === false ? "Geen internet: niet opgeslagen. Je invoer staat er nog, probeer zo opnieuw." : "Opslaan mislukt, probeer opnieuw");
+    }).then(function(){ btn.disabled = false; });
   });
 
   /* ---------- RAPPORT tab (alleen hoofdtrainer) ----------
