@@ -129,6 +129,26 @@
     display:flex; align-items:center; justify-content:center;
     font-family:"Barlow Condensed",sans-serif; font-weight:700; font-size:17px; color:var(--ink);
   }
+  .bib-photo-wrap{ position:relative; flex:0 0 auto; width:46px; height:46px; cursor:pointer; }
+  .bib-photo-wrap .bib-photo{
+    width:46px; height:46px; border-radius:50%; object-fit:cover; display:block;
+    background:var(--surface-alt); border:2px solid var(--border);
+  }
+  .bib-badge{
+    position:absolute; right:-4px; bottom:-4px; min-width:20px; height:20px; padding:0 4px; box-sizing:border-box;
+    border-radius:999px; background:var(--ink); color:#fff; font-family:"Barlow Condensed",sans-serif;
+    font-weight:700; font-size:11px; display:flex; align-items:center; justify-content:center;
+    border:2px solid var(--surface);
+  }
+  .foto-edit-wrap{ display:flex; align-items:center; gap:16px; }
+  .foto-edit-preview{ position:relative; flex:0 0 auto; width:88px; height:88px; }
+  .foto-edit-preview img, .foto-edit-preview .bib{ width:88px; height:88px; font-size:26px; }
+  .foto-edit-preview img{ border-radius:50%; object-fit:cover; display:block; background:var(--surface-alt); border:2px solid var(--border); }
+  .foto-edit-preview .bib-badge{ right:-2px; bottom:-2px; }
+  .foto-edit-actions{ display:flex; flex-direction:column; gap:8px; flex:1; min-width:0; }
+  .photo-lightbox-sheet{ max-width:340px; }
+  .photo-lightbox-sheet img{ width:100%; aspect-ratio:1/1; object-fit:cover; border-radius:20px; display:block; background:var(--surface-alt); }
+  .photo-lightbox-sheet .name{ text-align:center; font-weight:700; font-size:16px; margin-top:12px; }
   .player-meta{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
   .player-meta .name{ font-weight:600; font-size:15.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .player-meta .sub{ font-size:12.5px; color:var(--ink-muted); }
@@ -345,17 +365,17 @@
     </div>
     <div class="auth-fields">
       <div class="field" style="margin-bottom:0;">
-        <label for="authEmail">E-mailadres</label>
-        <input type="text" id="authEmail" autocomplete="username" placeholder="naam@voorbeeld.nl">
+        <label for="authUsername">Gebruikersnaam</label>
+        <input type="text" id="authUsername" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="bv. jan">
       </div>
       <div class="field" style="margin-bottom:0;">
         <label for="authPassword">Wachtwoord</label>
         <input type="password" id="authPassword" autocomplete="current-password" placeholder="Wachtwoord">
       </div>
-      <button type="button" id="authForgotBtn" style="align-self:flex-end; margin-top:-8px; background:none; border:none; cursor:pointer; color:var(--accent); font-size:12.5px; font-weight:600; font-family:'Barlow',sans-serif; padding:0;">Wachtwoord vergeten?</button>
+      <div class="auth-error" id="authError"></div>
+      <button class="btn primary block" id="authLoginBtn">Inloggen</button>
+      <div class="sub" style="margin:2px 0 0; font-size:12px;">Wachtwoord kwijt? Vraag Sofian om een nieuw wachtwoord.</div>
     </div>
-    <div class="auth-error" id="authError"></div>
-    <button class="btn primary block" id="authLoginBtn">Inloggen</button>
   </div>
 </div>
 
@@ -551,6 +571,19 @@
       <h3 id="playerSheetTitle">Nieuwe speler</h3>
       <button class="icon-btn" id="closePlayerSheet">&times;</button>
     </div>
+    <div class="foto-edit-wrap" id="fotoEditWrap" hidden>
+      <div class="foto-edit-preview">
+        <img id="fFotoPreviewImg" alt="" hidden>
+        <div class="bib num" id="fFotoPreviewFallback">–</div>
+        <span class="bib-badge" id="fFotoPreviewBadge"></span>
+      </div>
+      <div class="foto-edit-actions">
+        <input type="file" id="fFotoInput" accept="image/*" capture="environment" hidden>
+        <button type="button" class="btn ghost" id="fFotoUploadBtn">Foto toevoegen</button>
+        <button type="button" class="btn ghost" id="fFotoRemoveBtn" style="display:none; color:var(--low); border-color:var(--low-soft);">Foto verwijderen</button>
+        <div class="hint" id="fFotoHint"></div>
+      </div>
+    </div>
     <div class="field-row">
       <div class="field">
         <label for="fHesje">Hesjenummer</label>
@@ -580,6 +613,36 @@
       <button class="btn ghost" id="deletePlayerBtn" style="display:none; color:var(--low); border-color:var(--low-soft);">Verwijderen</button>
       <button class="btn primary block" id="savePlayerBtn">Opslaan</button>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="pwOverlay" hidden>
+  <div class="sheet">
+    <div class="sheet-head">
+      <h3>Wachtwoord wijzigen</h3>
+      <button class="icon-btn" id="closePwSheet">&times;</button>
+    </div>
+    <div class="field">
+      <label for="fNewPw1">Nieuw wachtwoord</label>
+      <input type="password" id="fNewPw1" autocomplete="new-password" placeholder="Minimaal 6 tekens">
+    </div>
+    <div class="field">
+      <label for="fNewPw2">Herhaal nieuw wachtwoord</label>
+      <input type="password" id="fNewPw2" autocomplete="new-password" placeholder="Herhaal wachtwoord">
+    </div>
+    <div class="hint" id="pwHint"></div>
+    <button class="btn primary block" id="savePwBtn">Wachtwoord opslaan</button>
+  </div>
+</div>
+
+<div class="overlay" id="fotoLightbox" hidden>
+  <div class="sheet photo-lightbox-sheet">
+    <div class="sheet-head">
+      <h3>Foto</h3>
+      <button class="icon-btn" id="closeFotoLightbox">&times;</button>
+    </div>
+    <img id="fotoLightboxImg" alt="">
+    <div class="name" id="fotoLightboxName"></div>
   </div>
 </div>
 
@@ -770,24 +833,6 @@
   </div>
 </div>
 
-<div class="overlay" id="pwOverlay" hidden>
-  <div class="sheet">
-    <div class="sheet-head">
-      <h3>Wachtwoord wijzigen</h3>
-      <button class="icon-btn" id="closePwSheet">&times;</button>
-    </div>
-    <div class="field">
-      <label for="fNewPw1">Nieuw wachtwoord</label>
-      <input type="password" id="fNewPw1" autocomplete="new-password" placeholder="Minimaal 6 tekens">
-    </div>
-    <div class="field">
-      <label for="fNewPw2">Herhaal nieuw wachtwoord</label>
-      <input type="password" id="fNewPw2" autocomplete="new-password" placeholder="Herhaal wachtwoord">
-    </div>
-    <div class="hint" id="pwHint"></div>
-    <button class="btn primary block" id="savePwBtn">Wachtwoord opslaan</button>
-  </div>
-</div>
 
 <div class="toast" id="toast"></div>
 </div><!-- /appRoot -->
@@ -954,6 +999,7 @@
       $("authLoading").hidden = true;
       $("authScreen").hidden = false;
       $("appRoot").hidden = true;
+      $("authPassword").value = "";
       $("authError").textContent = msg || "";
     }
     function showApp(){
@@ -990,15 +1036,17 @@
 
       sb.auth.onAuthStateChange(function(event){
         if (event === "SIGNED_OUT"){ user = null; profile = null; showAuthScreen(); }
-        if (event === "PASSWORD_RECOVERY"){
-          openPwSheet();
-          $("pwHint").textContent = "Je bent ingelogd via je resetlink — kies hieronder je nieuwe wachtwoord.";
-        }
       });
     }
 
-    function login(email, password){
-      return sb.auth.signInWithPassword({ email: email, password: password }).then(function(res){
+    // Gebruikersnaam "jan" hoort bij het (interne) account jan@artsvs.nl; wie een volledig
+    // e-mailadres invult, logt daarmee in.
+    function usernameToEmail(name){
+      name = (name || "").trim().toLowerCase();
+      return name.indexOf("@") === -1 ? name + "@artsvs.nl" : name;
+    }
+    function login(username, password){
+      return sb.auth.signInWithPassword({ email: usernameToEmail(username), password: password }).then(function(res){
         if (res.error) throw res.error;
         user = res.data.user;
         return loadProfile();
@@ -1017,38 +1065,23 @@
 
   function myUserId(){ var u = Auth.currentUser(); return u ? u.id : null; }
 
-  $("authLoginBtn").addEventListener("click", function(){
-    var email = $("authEmail").value.trim();
+  function doLogin(){
+    var username = $("authUsername").value.trim();
     var pw = $("authPassword").value;
-    $("authError").textContent = "";
-    $("authError").classList.remove("success");
-    if (!email || !pw){ $("authError").textContent = "Vul e-mail en wachtwoord in."; return; }
-    $("authLoginBtn").disabled = true;
-    Auth.login(email, pw).catch(function(err){
-      console.error(err);
-      $("authError").textContent = "Inloggen mislukt. Controleer je e-mail en wachtwoord.";
-    }).then(function(){ $("authLoginBtn").disabled = false; });
-  });
-  $("authPassword").addEventListener("keydown", function(e){ if (e.key === "Enter") $("authLoginBtn").click(); });
-  $("authEmail").addEventListener("keydown", function(e){ if (e.key === "Enter") $("authPassword").focus(); });
-
-  $("authForgotBtn").addEventListener("click", function(){
-    var email = $("authEmail").value.trim();
     var err = $("authError");
-    err.classList.remove("success");
-    if (!email){ err.textContent = "Vul eerst je e-mailadres in, dan sturen we een resetlink."; return; }
-    $("authForgotBtn").disabled = true;
-    err.textContent = "Bezig met versturen…";
-    sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + window.location.pathname }).then(function(res){
-      if (res.error) throw res.error;
-      err.classList.add("success");
-      err.textContent = "Check je e-mail (" + email + ") voor een link om je wachtwoord opnieuw in te stellen.";
-    }).catch(function(e){
+    err.textContent = "";
+    if (!username || !pw){ err.textContent = "Vul je gebruikersnaam en wachtwoord in."; return; }
+    $("authLoginBtn").disabled = true;
+    Auth.login(username, pw).catch(function(e){
       console.error(e);
-      err.classList.remove("success");
-      err.textContent = "Versturen is niet gelukt. Controleer het e-mailadres en probeer het nog eens.";
-    }).then(function(){ var b = $("authForgotBtn"); if (b) b.disabled = false; });
-  });
+      err.textContent = /banned/i.test((e && e.message) || "")
+        ? "Dit account staat uit. Vraag Sofian om het weer aan te zetten."
+        : "Inloggen mislukt. Controleer je gebruikersnaam en wachtwoord.";
+    }).then(function(){ var b = $("authLoginBtn"); if (b) b.disabled = false; });
+  }
+  $("authLoginBtn").addEventListener("click", doLogin);
+  $("authPassword").addEventListener("keydown", function(e){ if (e.key === "Enter") doLogin(); });
+  $("authUsername").addEventListener("keydown", function(e){ if (e.key === "Enter") $("authPassword").focus(); });
 
   /* ---------- Store: Supabase-backed data laag ---------- */
   var Store = (function(){
@@ -1062,7 +1095,7 @@
 
     function mapPlayer(row){
       return { id: row.id, hesje: row.hesje, naam: row.naam, lichting: row.lichting, q: row.q,
-        rank: row.rank, advies: row.advies, attendance: row.attendance || {} };
+        rank: row.rank, advies: row.advies, attendance: row.attendance || {}, fotoPath: row.foto_path || null };
     }
     function mapScore(row){
       return { id: row.id, playerId: row.player_id, trainerId: row.trainer_id, trainerName: profileName(row.trainer_id),
@@ -1197,7 +1230,7 @@
     }
     function updatePlayer(id, data){
       var patch = {};
-      ["hesje","naam","lichting","q","rank","advies"].forEach(function(k){ if (k in data) patch[k] = data[k]; });
+      ["hesje","naam","lichting","q","rank","advies","foto_path"].forEach(function(k){ if (k in data) patch[k] = data[k]; });
       return sb.from("players").update(patch).eq("id", id).then(function(res){
         if (res.error) throw res.error;
         return loadPlayers();
@@ -1207,6 +1240,42 @@
       return sb.from("players").delete().eq("id", id).then(function(res){
         if (res.error) throw res.error;
         return loadPlayers();
+      });
+    }
+
+    var fotoUrlCache = {};
+    function getFotoUrls(paths){
+      var now = Date.now();
+      var uniq = [];
+      paths.forEach(function(p){ if (p && uniq.indexOf(p) === -1) uniq.push(p); });
+      var need = uniq.filter(function(p){ return !fotoUrlCache[p] || fotoUrlCache[p].expiresAt < now; });
+      var have = {};
+      uniq.forEach(function(p){ if (fotoUrlCache[p] && fotoUrlCache[p].expiresAt >= now) have[p] = fotoUrlCache[p].url; });
+      if (!need.length) return Promise.resolve(have);
+      return sb.storage.from("player-photos").createSignedUrls(need, 3600).then(function(res){
+        if (res.error) throw res.error;
+        (res.data || []).forEach(function(item){
+          if (item && item.path && item.signedUrl){
+            fotoUrlCache[item.path] = { url: item.signedUrl, expiresAt: now + 55 * 60 * 1000 };
+            have[item.path] = item.signedUrl;
+          }
+        });
+        return have;
+      }).catch(function(err){ console.error(err); return have; });
+    }
+    function uploadPlayerFoto(playerId, blob){
+      var path = "players/" + playerId + ".jpg";
+      return sb.storage.from("player-photos").upload(path, blob, { upsert: true, cacheControl: "3600", contentType: "image/jpeg" }).then(function(res){
+        if (res.error) throw res.error;
+        delete fotoUrlCache[path];
+        return updatePlayer(playerId, { foto_path: path });
+      });
+    }
+    function deletePlayerFoto(playerId, path){
+      return sb.storage.from("player-photos").remove([path]).then(function(res){
+        if (res.error) throw res.error;
+        delete fotoUrlCache[path];
+        return updatePlayer(playerId, { foto_path: null });
       });
     }
     function setAttendance(playerId, date, value){
@@ -1295,10 +1364,18 @@
         });
       });
     }
-    function addProfile(id, naam, role){
-      return sb.from("profiles").insert({ id: id, naam: naam, role: role }).then(function(res){
-        if (res.error) throw res.error;
-        return loadProfiles();
+    // Accountbeheer loopt via de Edge Function "manage-users" (alleen hoofdtrainer).
+    function manageUsers(action, payload){
+      var body = Object.assign({ action: action }, payload || {});
+      return sb.functions.invoke("manage-users", { body: body }).then(function(res){
+        if (!res.error) return res.data;
+        var ctx = res.error.context;
+        var readMsg = ctx && typeof ctx.json === "function"
+          ? ctx.json().then(function(j){ return (j && j.error) || res.error.message; }, function(){ return res.error.message; })
+          : Promise.resolve(res.error.message);
+        return readMsg.then(function(msg){ throw new Error(msg); });
+      }).then(function(data){
+        return action === "list" ? data : loadProfiles().then(function(){ return data; });
       });
     }
     function toggleFavorite(playerId){
@@ -1321,9 +1398,10 @@
     return {
       init: init, onPlayers: onPlayers, onScores: onScores, onSettings: onSettings, onEvals: onEvals, onScoutReports: onScoutReports, onFavorites: onFavorites, onModeReady: onModeReady,
       getPlayers: getPlayers, getScores: getScores, getCancelled: getCancelled, getEvaluations: getEvaluations, getScoutReports: getScoutReports, getMode: getMode,
-      getProfiles: getProfiles, updateProfileRole: updateProfileRole, addProfile: addProfile,
+      getProfiles: getProfiles, updateProfileRole: updateProfileRole, manageUsers: manageUsers,
       getFavorites: getFavorites, myFavoriteIds: myFavoriteIds, isMyFavorite: isMyFavorite, toggleFavorite: toggleFavorite,
       addPlayer: addPlayer, updatePlayer: updatePlayer, deletePlayer: deletePlayer,
+      getFotoUrls: getFotoUrls, uploadPlayerFoto: uploadPlayerFoto, deletePlayerFoto: deletePlayerFoto,
       upsertScore: upsertScore, setAttendance: setAttendance, toggleCancelled: toggleCancelled,
       upsertEvaluation: upsertEvaluation, deleteEvaluation: deleteEvaluation,
       addScoutReport: addScoutReport, updateScoutReport: updateScoutReport, deleteScoutReport: deleteScoutReport
@@ -1519,9 +1597,15 @@
       var canEditPlayer = Auth.isHoofdtrainer();
       var isFav = Store.isMyFavorite(p.id);
       var rowOpenAttrs = canEditPlayer ? 'class="clickable" data-open="' + p.id + '"' : 'class="player-info"';
+      var bibHtml = p.fotoPath
+        ? '<div class="bib-photo-wrap" data-foto-wrap="' + p.id + '" data-foto-path="' + esc(p.fotoPath) + '" title="Foto vergroten">' +
+          '<img class="bib-photo" data-foto-img="' + p.id + '" alt="">' +
+          '<span class="bib-badge">' + (p.hesje ? esc(p.hesje) : "–") + '</span>' +
+          '</div>'
+        : '<div class="bib num">' + (p.hesje ? esc(p.hesje) : "–") + '</div>';
       return '<div class="player-row" data-id="' + p.id + '">' +
         '<div ' + rowOpenAttrs + '>' +
-        '<div class="bib num">' + (p.hesje ? esc(p.hesje) : "–") + '</div>' +
+        bibHtml +
         '<div class="player-meta"><div class="name">' + flag + esc(p.naam) + scoutBadge + '</div>' +
         '<div class="sub">Lichting ' + esc(lichtingLabel(p.lichting)) + (p.q ? " · " + esc(p.q) : "") + '</div></div>' +
         '</div>' +
@@ -1534,6 +1618,28 @@
     }).join("");
     Array.prototype.forEach.call(list.querySelectorAll("[data-open]"), function(el){
       el.addEventListener("click", function(){ openPlayerSheet(el.getAttribute("data-open")); });
+    });
+    var fotoPaths = players.filter(function(p){ return p.fotoPath; }).map(function(p){ return p.fotoPath; });
+    if (fotoPaths.length){
+      Store.getFotoUrls(fotoPaths).then(function(map){
+        Array.prototype.forEach.call(list.querySelectorAll("[data-foto-img]"), function(img){
+          var wrap = img.closest("[data-foto-wrap]");
+          var path = wrap ? wrap.getAttribute("data-foto-path") : null;
+          if (path && map[path]) img.src = map[path];
+        });
+      });
+    }
+    Array.prototype.forEach.call(list.querySelectorAll("[data-foto-wrap]"), function(el){
+      el.addEventListener("click", function(e){
+        e.stopPropagation();
+        var pid = el.getAttribute("data-foto-wrap");
+        var path = el.getAttribute("data-foto-path");
+        var p = Store.getPlayers().find(function(pp){ return pp.id === pid; });
+        if (!p || !path) return;
+        Store.getFotoUrls([path]).then(function(map){
+          openFotoLightbox(map[path], p.naam);
+        });
+      });
     });
     Array.prototype.forEach.call(list.querySelectorAll("[data-fav]"), function(el){
       el.addEventListener("click", function(e){
@@ -1588,6 +1694,32 @@
     delBtn.textContent = "Verwijderen";
     delBtn.classList.remove("confirming");
   }
+  function updateFotoEditUI(p){
+    var wrap = $("fotoEditWrap");
+    if (!p){ wrap.hidden = true; return; }
+    wrap.hidden = false;
+    var img = $("fFotoPreviewImg"), fallback = $("fFotoPreviewFallback"), badge = $("fFotoPreviewBadge");
+    var removeBtn = $("fFotoRemoveBtn"), uploadBtn = $("fFotoUploadBtn"), hint = $("fFotoHint");
+    hint.textContent = "";
+    badge.textContent = p.hesje ? String(p.hesje) : "–";
+    if (p.fotoPath){
+      uploadBtn.textContent = "Andere foto kiezen";
+      removeBtn.style.display = "inline-flex";
+      fallback.hidden = true;
+      img.hidden = false;
+      img.src = "";
+      Store.getFotoUrls([p.fotoPath]).then(function(map){
+        if (map[p.fotoPath]) img.src = map[p.fotoPath];
+      });
+    } else {
+      uploadBtn.textContent = "Foto toevoegen";
+      removeBtn.style.display = "none";
+      img.hidden = true;
+      fallback.hidden = false;
+      fallback.textContent = p.hesje ? String(p.hesje) : "–";
+    }
+  }
+
   function openPlayerSheet(id){
     editingPlayerId = id;
     fillLichtingSelect($("fLichting"));
@@ -1601,6 +1733,7 @@
       $("fLichting").value = p ? p.lichting : LICHTINGEN[0].key;
       $("fQ").value = p && p.q ? p.q : "";
       delBtn.style.display = "inline-flex";
+      updateFotoEditUI(p || null);
     } else {
       $("playerSheetTitle").textContent = "Nieuwe speler";
       $("fHesje").value = "";
@@ -1608,6 +1741,7 @@
       $("fLichting").value = state.lichting !== "all" ? state.lichting : LICHTINGEN[0].key;
       $("fQ").value = "";
       delBtn.style.display = "none";
+      updateFotoEditUI(null);
     }
     $("playerHint").textContent = "";
     $("playerOverlay").hidden = false;
@@ -1618,6 +1752,85 @@
   $("addPlayerBtn").addEventListener("click", function(){ openPlayerSheet(null); });
   $("closePlayerSheet").addEventListener("click", closePlayerSheet);
   $("playerOverlay").addEventListener("click", function(e){ if (e.target === $("playerOverlay")) closePlayerSheet(); });
+
+  function processPlayerFotoFile(file){
+    return new Promise(function(resolve, reject){
+      var reader = new FileReader();
+      reader.onerror = function(){ reject(new Error("Lezen van bestand mislukt")); };
+      reader.onload = function(){
+        var img = new Image();
+        img.onerror = function(){ reject(new Error("Afbeelding laden mislukt")); };
+        img.onload = function(){
+          var size = Math.min(img.naturalWidth, img.naturalHeight);
+          var sx = (img.naturalWidth - size) / 2;
+          var sy = (img.naturalHeight - size) / 2;
+          var target = 480;
+          var canvas = document.createElement("canvas");
+          canvas.width = target; canvas.height = target;
+          var ctx = canvas.getContext("2d");
+          ctx.drawImage(img, sx, sy, size, size, 0, 0, target, target);
+          canvas.toBlob(function(blob){
+            if (!blob){ reject(new Error("Verwerken mislukt")); return; }
+            resolve(blob);
+          }, "image/jpeg", 0.85);
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  $("fFotoUploadBtn").addEventListener("click", function(){ $("fFotoInput").click(); });
+  $("fFotoInput").addEventListener("change", function(){
+    var file = this.files && this.files[0];
+    this.value = "";
+    if (!file || !editingPlayerId) return;
+    var hint = $("fFotoHint");
+    hint.textContent = "Bezig met verwerken en uploaden…";
+    $("fFotoUploadBtn").disabled = true;
+    $("fFotoRemoveBtn").disabled = true;
+    processPlayerFotoFile(file).then(function(blob){
+      return Store.uploadPlayerFoto(editingPlayerId, blob);
+    }).then(function(){
+      hint.textContent = "Foto opgeslagen.";
+      updateFotoEditUI(Store.getPlayers().find(function(pp){ return pp.id === editingPlayerId; }) || null);
+    }).catch(function(err){
+      console.error(err);
+      hint.textContent = "Uploaden is niet gelukt. Probeer het nog eens.";
+    }).then(function(){
+      $("fFotoUploadBtn").disabled = false;
+      $("fFotoRemoveBtn").disabled = false;
+    });
+  });
+  $("fFotoRemoveBtn").addEventListener("click", function(){
+    if (!editingPlayerId) return;
+    var p = Store.getPlayers().find(function(pp){ return pp.id === editingPlayerId; });
+    if (!p || !p.fotoPath) return;
+    var hint = $("fFotoHint");
+    hint.textContent = "Bezig met verwijderen…";
+    $("fFotoUploadBtn").disabled = true;
+    $("fFotoRemoveBtn").disabled = true;
+    Store.deletePlayerFoto(editingPlayerId, p.fotoPath).then(function(){
+      hint.textContent = "";
+      updateFotoEditUI(Store.getPlayers().find(function(pp){ return pp.id === editingPlayerId; }) || null);
+    }).catch(function(err){
+      console.error(err);
+      hint.textContent = "Verwijderen is niet gelukt. Probeer het nog eens.";
+    }).then(function(){
+      $("fFotoUploadBtn").disabled = false;
+      $("fFotoRemoveBtn").disabled = false;
+    });
+  });
+
+  function openFotoLightbox(url, naam){
+    if (!url) return;
+    $("fotoLightboxImg").src = url;
+    $("fotoLightboxImg").alt = naam || "";
+    $("fotoLightboxName").textContent = naam || "";
+    $("fotoLightbox").hidden = false;
+  }
+  function closeFotoLightbox(){ $("fotoLightbox").hidden = true; $("fotoLightboxImg").src = ""; }
+  $("closeFotoLightbox").addEventListener("click", closeFotoLightbox);
+  $("fotoLightbox").addEventListener("click", function(e){ if (e.target === $("fotoLightbox")) closeFotoLightbox(); });
 
   $("savePlayerBtn").addEventListener("click", function(){
     var hesje = $("fHesje").value.trim();
@@ -2597,41 +2810,83 @@
   /* ---------- INSTELLINGEN tab (alleen hoofdtrainer) ---------- */
   function roleLabel(r){ return r === "hoofdtrainer" ? "Hoofdtrainer" : (r === "scout" ? "Scout" : "Trainer"); }
 
+  // Toont de inloggegevens eenmalig, met knoppen om ze via WhatsApp te sturen of te kopiëren.
+  function showCredentials(naam, username, password, isNew){
+    var voornaam = (naam || "").split(/\s+/)[0];
+    var msg = "Hoi " + voornaam + ", " + (isNew ? "hier is je account" : "hier is je nieuwe wachtwoord") +
+      " voor het ART Spelersvolgsysteem:\n\n" +
+      "Website: https://www.artsvs.nl\n" +
+      "Gebruikersnaam: " + username + "\n" +
+      "Wachtwoord: " + password + "\n\n" +
+      "Je kunt je wachtwoord zelf wijzigen via het poppetje rechtsboven.";
+    var box = $("credResult");
+    if (!box) return;
+    box.innerHTML =
+      '<div class="card" style="padding:14px; margin-top:12px; display:flex; flex-direction:column; gap:8px; border:2px solid var(--accent);">' +
+      '<div style="font-weight:700;">' + (isNew ? "Account aangemaakt voor " : "Nieuw wachtwoord voor ") + esc(naam) + '</div>' +
+      '<div>Gebruikersnaam: <b>' + esc(username) + '</b></div>' +
+      '<div>Wachtwoord: <b style="font-family:monospace; font-size:15px;">' + esc(password) + '</b></div>' +
+      '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:0;">Stuur dit nu door: het wachtwoord is hierna niet meer terug te zien.</div>' +
+      '<div class="btn-row" style="margin:0;">' +
+      '<a class="btn primary small" target="_blank" rel="noopener" href="https://wa.me/?text=' + encodeURIComponent(msg) + '">Stuur via WhatsApp</a>' +
+      '<button class="btn ghost small" id="copyCredBtn">Kopieer bericht</button>' +
+      '</div></div>';
+    $("copyCredBtn").addEventListener("click", function(){
+      (navigator.clipboard ? navigator.clipboard.writeText(msg) : Promise.reject())
+        .then(function(){ showToast("Gekopieerd"); }, function(){ showToast("Kopiëren lukte niet, neem het over van het scherm."); });
+    });
+    box.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
   function renderInstellingen(){
     var body = $("instellingenBody");
     if (!Auth.isHoofdtrainer()){
       body.innerHTML = '<div class="empty card">' + emptySvg + '<div class="t">Alleen voor de hoofdtrainer</div></div>';
       return;
     }
-    var profiles = Store.getProfiles().slice().sort(function(a,b){ return (a.naam||"").localeCompare(b.naam||""); });
+    var profiles = Store.getProfiles().slice().sort(function(a,b){
+      if ((a.role === "scout") !== (b.role === "scout")) return a.role === "scout" ? 1 : -1;
+      return (a.naam||"").localeCompare(b.naam||"");
+    });
     var rows = !profiles.length
-      ? '<div class="empty card">' + emptySvg + '<div class="t">Nog geen accounts gekoppeld</div></div>'
+      ? '<div class="empty card">' + emptySvg + '<div class="t">Nog geen accounts</div></div>'
       : profiles.map(function(p){
-          return '<div class="player-row"><div class="player-meta" style="flex:1;">' +
+          var isMe = p.id === myUserId();
+          var manageable = !isMe && p.role !== "hoofdtrainer";
+          return '<div class="player-row" data-account="' + p.id + '" style="flex-wrap:wrap; row-gap:8px;">' +
+            '<div class="player-meta" style="flex:1; min-width:140px;">' +
             '<div class="name">' + esc(p.naam) + '</div>' +
-            (p.id === myUserId() ? '<div class="sub">Dit ben jij</div>' : '') +
+            '<div class="sub" data-account-sub="' + p.id + '">' + (isMe ? 'Dit ben jij' : '&nbsp;') + '</div>' +
             '</div>' +
             '<select class="table-select" data-role="' + p.id + '">' +
             ["trainer","scout","hoofdtrainer"].map(function(r){
               return '<option value="' + r + '"' + (p.role === r ? " selected" : "") + '>' + roleLabel(r) + '</option>';
-            }).join("") + '</select></div>';
+            }).join("") + '</select>' +
+            (manageable
+              ? '<div class="btn-row" style="width:100%; margin:0;">' +
+                '<button class="btn ghost small" data-reset-pw="' + p.id + '">Nieuw wachtwoord</button>' +
+                '<button class="btn ghost small" data-toggle-account="' + p.id + '" disabled>&hellip;</button>' +
+                '</div>'
+              : '') +
+            '</div>';
         }).join("");
 
     body.innerHTML =
-      '<div class="section-title" style="margin-top:4px;"><h2 style="font-size:15px;">Accounts en rollen</h2></div>' +
-      '<div id="profilesList" style="display:flex; flex-direction:column; gap:10px;">' + rows + '</div>' +
-      '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Nieuw account koppelen</h2></div>' +
-      '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Maak het account eerst aan via Supabase &rarr; Authentication &rarr; Users. Plak hier daarna de User UID om er een rol aan te geven.</div>' +
+      '<div class="section-title" style="margin-top:4px;"><h2 style="font-size:15px;">Nieuw account</h2></div>' +
+      '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Maak een account voor een trainer of scout. De app bedenkt een wachtwoord dat je direct via WhatsApp kunt doorsturen.</div>' +
       '<div class="card" style="padding:14px; display:flex; flex-direction:column; gap:10px;">' +
-      '<div class="field" style="margin-bottom:0;"><label for="fNewProfileId">User UID</label><input type="text" id="fNewProfileId" placeholder="bv. 3f2a1c9e-..."></div>' +
       '<div class="field-row">' +
-      '<div class="field"><label for="fNewProfileNaam">Naam</label><input type="text" id="fNewProfileNaam" placeholder="bv. Tommy"></div>' +
-      '<div class="field"><label for="fNewProfileRole">Rol</label><select id="fNewProfileRole">' +
-      '<option value="trainer">Trainer</option><option value="scout">Scout</option><option value="hoofdtrainer">Hoofdtrainer</option>' +
+      '<div class="field"><label for="fNewAccNaam">Naam</label><input type="text" id="fNewAccNaam" placeholder="bv. Tommy de Vries"></div>' +
+      '<div class="field"><label for="fNewAccRole">Rol</label><select id="fNewAccRole">' +
+      '<option value="trainer">Trainer</option><option value="scout">Scout</option>' +
       '</select></div></div>' +
-      '<div class="hint" id="newProfileHint"></div>' +
-      '<button class="btn primary" id="addProfileBtn">Toevoegen</button>' +
+      '<div class="field" style="margin-bottom:0;"><label for="fNewAccUser">Gebruikersnaam</label><input type="text" id="fNewAccUser" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="bv. tommy"></div>' +
+      '<div class="hint" id="newAccHint"></div>' +
+      '<button class="btn primary" id="createAccBtn">Account aanmaken</button>' +
       '</div>' +
+      '<div id="credResult"></div>' +
+      '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Accounts en rollen</h2></div>' +
+      '<div id="profilesList" style="display:flex; flex-direction:column; gap:10px;">' + rows + '</div>' +
       '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Spelerslijst importeren</h2></div>' +
       '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Plak hier een nieuwe lijst spelers (bijvoorbeeld gekopieerd uit een Excel- of Word-bestand van Ajax) om ze in één keer toe te voegen. Spelers die al in de lijst staan (zelfde naam + lichting) worden automatisch overgeslagen, dus dit kan veilig meerdere keren.</div>' +
       '<div class="card" style="padding:14px; display:flex; flex-direction:column; gap:10px;">' +
@@ -2665,17 +2920,76 @@
         }).catch(function(err){ console.error(err); showToast("Bijwerken mislukt"); });
       });
     });
-    $("addProfileBtn").addEventListener("click", function(){
-      var id = $("fNewProfileId").value.trim();
-      var naam = $("fNewProfileNaam").value.trim();
-      var role = $("fNewProfileRole").value;
-      var hint = $("newProfileHint");
-      hint.textContent = "";
-      if (!id || !naam){ hint.textContent = "Vul de User UID en een naam in."; return; }
-      Store.addProfile(id, naam, role).then(function(){
-        showToast("Account gekoppeld"); renderInstellingen();
-      }).catch(function(err){ console.error(err); hint.textContent = "Toevoegen mislukt. Klopt de User UID, en bestaat dit account al?"; });
+    // Gebruikersnaam voorstellen op basis van de voornaam, zolang je hem niet zelf hebt aangepast.
+    var userEdited = false;
+    $("fNewAccUser").addEventListener("input", function(){ userEdited = true; });
+    $("fNewAccNaam").addEventListener("input", function(){
+      if (userEdited) return;
+      var first = ($("fNewAccNaam").value.trim().split(/\s+/)[0] || "").toLowerCase();
+      $("fNewAccUser").value = first.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9._-]/g, "");
     });
+
+    $("createAccBtn").addEventListener("click", function(){
+      var naam = $("fNewAccNaam").value.trim();
+      var username = $("fNewAccUser").value.trim().toLowerCase();
+      var role = $("fNewAccRole").value;
+      var hint = $("newAccHint");
+      hint.textContent = "";
+      if (!naam || !username){ hint.textContent = "Vul een naam en gebruikersnaam in."; return; }
+      var btn = $("createAccBtn");
+      btn.disabled = true;
+      Store.manageUsers("create", { naam: naam, username: username, role: role }).then(function(res){
+        showToast("Account aangemaakt");
+        renderInstellingen();
+        showCredentials(naam, res.username, res.password, true);
+      }).catch(function(err){
+        console.error(err);
+        hint.textContent = err.message || "Aanmaken mislukt, probeer het nog eens.";
+        btn.disabled = false;
+      });
+    });
+
+    Array.prototype.forEach.call(body.querySelectorAll("[data-reset-pw]"), function(b){
+      b.addEventListener("click", function(){
+        var id = b.getAttribute("data-reset-pw");
+        var p = profiles.filter(function(x){ return x.id === id; })[0] || {};
+        if (!confirm("Nieuw wachtwoord maken voor " + p.naam + "? Het oude wachtwoord werkt dan niet meer.")) return;
+        b.disabled = true;
+        Store.manageUsers("reset_password", { id: id }).then(function(res){
+          showCredentials(p.naam, res.username, res.password, false);
+        }).catch(function(err){ console.error(err); showToast(err.message || "Mislukt"); })
+          .then(function(){ b.disabled = false; });
+      });
+    });
+
+    // Gebruikersnaam en aan/uit-status komen uit de Edge Function (niet uit de profiles-tabel).
+    Store.manageUsers("list").then(function(res){
+      var byId = {};
+      (res.users || []).forEach(function(u){ byId[u.id] = u; });
+      profiles.forEach(function(p){
+        var u = byId[p.id];
+        if (!u) return;
+        var sub = body.querySelector('[data-account-sub="' + p.id + '"]');
+        if (sub){
+          sub.innerHTML = (p.id === myUserId() ? 'Dit ben jij &middot; ' : '') + 'Gebruikersnaam: <b>' + esc(u.username) + '</b>' +
+            (u.disabled ? ' &middot; <span style="color:var(--low); font-weight:600;">staat uit</span>' : '');
+        }
+        var t = body.querySelector('[data-toggle-account="' + p.id + '"]');
+        if (!t) return;
+        t.disabled = false;
+        t.textContent = u.disabled ? "Account aanzetten" : "Account uitzetten";
+        if (!u.disabled){ t.style.color = "var(--low)"; t.style.borderColor = "var(--low-soft)"; }
+        t.addEventListener("click", function(){
+          var turnOff = !u.disabled;
+          if (turnOff && !confirm(p.naam + " kan daarna niet meer inloggen. Doorgaan?")) return;
+          t.disabled = true;
+          Store.manageUsers("set_disabled", { id: p.id, disabled: turnOff }).then(function(){
+            showToast(turnOff ? "Account uitgezet" : "Account aangezet");
+            renderInstellingen();
+          }).catch(function(err){ console.error(err); showToast(err.message || "Mislukt"); t.disabled = false; });
+        });
+      });
+    }).catch(function(err){ console.error("Accounts laden mislukt", err); });
 
     $("uploadLogoBtn").addEventListener("click", function(){
       var fileInput = $("fLogoFile");
@@ -2819,13 +3133,6 @@
     text.textContent = "Live";
   });
 
-  function openPwSheet(){
-    $("fNewPw1").value = ""; $("fNewPw2").value = ""; $("pwHint").textContent = "";
-    $("pwOverlay").hidden = false;
-  }
-  function closePwSheet(){ $("pwOverlay").hidden = true; }
-  $("closePwSheet").addEventListener("click", closePwSheet);
-
   /* ---------- account-menu (rechtsboven, uitklapbaar) ---------- */
   function closeAccountMenu(){
     $("accountMenu").hidden = true;
@@ -2843,8 +3150,15 @@
   });
   document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeAccountMenu(); });
   $("menuInstellingenBtn").addEventListener("click", function(){ closeAccountMenu(); switchTab("instellingen"); });
-  $("menuPwBtn").addEventListener("click", function(){ closeAccountMenu(); openPwSheet(); });
   $("menuLogoutBtn").addEventListener("click", function(){ closeAccountMenu(); Auth.logout(); });
+
+  function openPwSheet(){
+    $("fNewPw1").value = ""; $("fNewPw2").value = ""; $("pwHint").textContent = "";
+    $("pwOverlay").hidden = false;
+  }
+  function closePwSheet(){ $("pwOverlay").hidden = true; }
+  $("closePwSheet").addEventListener("click", closePwSheet);
+  $("menuPwBtn").addEventListener("click", function(){ closeAccountMenu(); openPwSheet(); });
   $("pwOverlay").addEventListener("click", function(e){ if (e.target === $("pwOverlay")) closePwSheet(); });
   $("savePwBtn").addEventListener("click", function(){
     var pw1 = $("fNewPw1").value;

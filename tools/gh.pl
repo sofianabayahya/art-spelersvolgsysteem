@@ -159,7 +159,26 @@ elsif ($cmd eq 'push') {
   write_sync($commit->{sha});
   print "Gepusht: ", substr($commit->{sha}, 0, 7), " op $BRANCH\n";
 }
+elsif ($cmd eq 'push-test') {
+  # Zet main + de genoemde bestanden op branch "test" (overschrijft die branch). Vercel maakt daar
+  # een Preview-deployment van; www.artsvs.nl blijft ongemoeid.
+  my $msg = shift @ARGV;
+  die "Gebruik: perl tools/gh.pl push-test \"bericht\" bestand1 [bestand2 ...]\n" unless $msg && @ARGV;
+  my $head = head_sha();
+  my @tree;
+  for my $p (@ARGV) {
+    my $blob = api('POST', '/git/blobs', { content => encode_base64(read_file($p), ''), encoding => 'base64' });
+    push @tree, { path => $p, mode => '100644', type => 'blob', sha => $blob->{sha} };
+  }
+  my $base_tree = api('GET', "/git/commits/$head")->{tree}{sha};
+  my $tree = api('POST', '/git/trees', { base_tree => $base_tree, tree => \@tree });
+  my $commit = api('POST', '/git/commits', { message => $msg, tree => $tree->{sha}, parents => [$head] });
+  my $exists = eval { api('GET', '/git/ref/heads/test'); 1 };
+  if ($exists) { api('PATCH', '/git/refs/heads/test', { sha => $commit->{sha}, force => JSON::PP::true }) }
+  else { api('POST', '/git/refs', { ref => 'refs/heads/test', sha => $commit->{sha} }) }
+  print "Op branch test gezet: ", substr($commit->{sha}, 0, 7), "\n";
+}
 else {
-  print "Gebruik: perl tools/gh.pl status | pull | push \"bericht\" bestand...\n";
+  print "Gebruik: perl tools/gh.pl status | pull | push \"bericht\" bestand... | push-test \"bericht\" bestand...\n";
   exit 1;
 }

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "art-lokaal",
+      "runtimeExecutable": "perl",
+      "runtimeArgs": ["tools/serve.pl", "5060"],
+      "port": 5060
+    }
+  ]
+}
