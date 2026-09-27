@@ -42,6 +42,13 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   plus een notitie "waarom". Eén beoordeling per scout per speler per blok (tabel `scout_reports`,
   kolommen `wedstrijdbeoordeling`, `potentieel`, `notitie`). Oude uitgebreide rapportvelden blijven bestaan voor oude data.
 - Scouts zien alleen hun eigen beoordelingen (RLS); de hoofdtrainer ziet alles.
+- Tabvolgorde: Spelers · Aanwezigheid · Evaluatie · Rapport (Rapport = voormalig Overzicht, alleen hoofdtrainer, data-tab
+  heet intern nog "overzicht"). Rank is overal geschrapt (besluit Sofian); kolommen `rank` bestaan nog in de database.
+- Rapport: lijst (geen tabel) per blok met per speler gemiddelde letters Trainers en Scouts (Wedstrijd · Potentieel),
+  ster, afwezig-waarschuwing alleen bij >20%, advies-keuze; tik = volledige lijst van alle beoordelingen per blok.
+  "Ajax-lijst maken" drukt het Ajax-formulier af (per lichting; letters = gemiddelde trainers + scouts). CSV-download blijft.
+- Letterkleuren: A donkergroen, B lichtgroen, C neutraal, D rood (`letterChip`).
+- Tabbalk zoals ClubComm: knoppen ± 12pt boven de onderrand (veilige zone min 22px).
 - Overzicht toont per speler "Scout A/B" (aantal scoutbeoordelingen met A of B) en bovenaan de Sterspelers. Alleen een
   melding; contact met jeugdcoördinator/jeugdscout doet Sofian zelf.
 - Migraties staan in `supabase/migrations/`.

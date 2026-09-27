@@ -245,6 +245,81 @@
   .card-actions{ display:flex; gap:8px; margin-top:14px; }
   .card-actions .btn{ flex:1; justify-content:center; padding:13px 10px; font-size:15px; }
 
+  /* Lettervakjes: A donkergroen, B lichtgroen, C neutraal, D rood. */
+  .gpair{ display:inline-flex; gap:4px; }
+  .g{ width:26px; height:26px; border-radius:7px; display:inline-flex; align-items:center; justify-content:center; font:700 16px "Barlow Condensed",sans-serif; }
+  .gA{ background:#2E8B57; color:#fff; }
+  .gB{ background:#7CC896; color:#0d2414; }
+  .gC{ background:#3A4A6E; color:#EEF1F8; }
+  .gD{ background:#E28A8A; color:#2a0c0c; }
+  .gnone{ background:transparent; color:var(--ink-muted); border:1px dashed var(--border); }
+
+  /* Rapport */
+  .rp-head{ align-items:center; flex-wrap:nowrap; }
+  .rp-tools{ display:flex; gap:6px; margin-left:auto; }
+  .rp-tools select{ font:600 16px "Barlow",sans-serif; padding:6px 10px; border-radius:999px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); }
+  .rp-list{ display:flex; flex-direction:column; gap:8px; }
+  .rp-stars{ padding:10px 12px; border-color:#DDB456; font-size:14px; }
+  .rp-stars b{ color:#DDB456; }
+  .rp-stars-note{ font-size:12px; color:var(--ink-muted); margin-top:3px; }
+  .rp-legend{ font-size:12.5px; color:var(--ink-muted); margin:2px 2px 0; }
+  .rp-row{
+    display:grid; grid-template-columns:48px minmax(0,1fr) auto; grid-template-areas:"img main grades" "foot foot foot" "detail detail detail";
+    gap:6px 10px; align-items:center; padding:10px 12px; background:var(--surface); border:1px solid var(--border); border-radius:14px; cursor:pointer;
+  }
+  .rp-row.open{ border-color:var(--accent); }
+  .rp-img{ grid-area:img; width:48px; height:48px; border-radius:10px; object-fit:cover; background:var(--surface-alt); }
+  .rp-img-empty{ display:flex; align-items:center; justify-content:center; color:var(--ink-muted); }
+  .rp-img-empty svg{ width:34px; height:34px; }
+  .rp-main{ grid-area:main; min-width:0; }
+  .rp-name{ font-weight:700; font-size:15px; line-height:1.2; }
+  .rp-star{ color:#DDB456; }
+  .rp-sub{ display:flex; gap:5px; align-items:center; margin-top:4px; flex-wrap:wrap; }
+  .pc-hesje.sm{ height:24px; min-width:30px; font-size:17px; border-width:1.5px; border-radius:6px; padding:0 4px; }
+  .pc-q.sm{ height:24px; font-size:16px; padding:0 5px; border-width:1.5px; border-radius:6px; }
+  .rp-warn{ font-size:12px; font-weight:700; color:#2a0c0c; background:#E28A8A; border-radius:6px; padding:2px 6px; }
+  .rp-grades{ grid-area:grades; display:flex; flex-direction:column; gap:4px; }
+  .rp-g{ display:flex; gap:6px; align-items:center; justify-content:flex-end; }
+  .rp-g .lbl{ font-size:11.5px; color:var(--ink-muted); }
+  .rp-foot{ grid-area:foot; display:flex; justify-content:space-between; align-items:center; gap:8px; border-top:1px solid var(--border); padding-top:8px; }
+  .rp-adv{
+    font:700 14px "Barlow",sans-serif; border-radius:999px; padding:6px 10px; max-width:62%;
+    background:var(--accent); color:var(--accent-ink); border:1px solid var(--accent);
+  }
+  .rp-adv.none{ background:transparent; color:var(--ink-muted); border:1px dashed var(--border); }
+  .rp-count{ font-size:12.5px; color:var(--ink-muted); white-space:nowrap; }
+  .rp-row.open .rp-chev{ display:inline-block; transform:rotate(180deg); }
+  .rp-detail{ grid-area:detail; border-top:1px solid var(--border); padding-top:8px; cursor:default; }
+  .rp-dblok{ font-size:12px; font-weight:700; color:var(--ink-muted); text-transform:uppercase; letter-spacing:.4px; margin:6px 0 4px; }
+  .rp-item{ padding:7px 0; border-bottom:1px solid var(--border); }
+  .rp-item:last-of-type{ border-bottom:none; }
+  .rp-item-head{ display:flex; align-items:center; gap:8px; }
+  .rp-role{ font-size:11px; font-weight:700; padding:2px 7px; border-radius:6px; background:var(--surface-alt); color:var(--ink-muted); }
+  .rp-role.scout{ background:#2A3A5E; color:#C3D3EC; }
+  .rp-who{ font-weight:600; font-size:14px; flex:1; min-width:0; }
+  .rp-legacy{ font-size:12px; color:var(--ink-muted); }
+  .rp-item-adv{ font-size:13px; margin-top:4px; }
+  .rp-item-note{ font-size:13px; color:var(--ink-muted); margin-top:4px; font-style:italic; }
+  .rp-empty{ font-size:13px; color:var(--ink-muted); }
+  .rp-bottom{ display:flex; flex-direction:column; align-items:center; gap:8px; margin-top:6px; }
+
+  /* Ajax-lijst: alleen zichtbaar bij afdrukken / PDF */
+  #printArea{ display:none; }
+  @media print{
+    @page{ size:A4 landscape; margin:12mm; }
+    html, body{ height:auto !important; overflow:visible !important; background:#fff !important; color:#000 !important; display:block !important; }
+    body > *:not(#printArea){ display:none !important; }
+    #printArea{ display:block !important; font-family:"Barlow",Arial,sans-serif; color:#000; }
+    .pa-legend{ display:flex; justify-content:space-between; font-size:10pt; margin-bottom:6mm; }
+    .pa-title{ text-align:center; font-family:"Barlow Condensed",Arial,sans-serif; font-size:22pt; margin:0 0 1mm; color:#000; }
+    .pa-sub{ text-align:center; font-size:9pt; color:#444; margin-bottom:5mm; }
+    .pa-table{ width:100%; border-collapse:collapse; margin-bottom:7mm; page-break-inside:avoid; font-size:10.5pt; }
+    .pa-table th{ background:#000; color:#fff; padding:2mm; border:1px solid #000; }
+    .pa-table td{ padding:1.6mm 2mm; border:1px solid #999; text-align:center; }
+    .pa-table td:first-child{ text-align:left; }
+    .pa-table td.c{ font-weight:700; font-size:12pt; }
+  }
+
   /* Instellingen: uitklapbare groepen */
   .set-group{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:10px; }
   .set-group > summary{
@@ -392,7 +467,9 @@
   body.no-tabbar main{ padding-bottom:calc(24px + env(safe-area-inset-bottom,0px)); }
   nav.tabbar{
     position:relative; flex:0 0 auto; z-index:30; display:flex; background:var(--surface);
-    border-top:1px solid var(--border); padding:0 4px env(safe-area-inset-bottom,0px); max-width:100vw;
+    border-top:1px solid var(--border); max-width:100vw;
+    /* Zoals ClubComm: knoppen tot vlak boven het thuis-streepje (± 12pt marge i.p.v. de volle veilige zone van 34pt). */
+    padding:0 4px max(4px, calc(env(safe-area-inset-bottom,0px) - 22px));
   }
   nav.tabbar button{
     flex:1; min-width:0; background:none; border:none; border-radius:0; display:flex; flex-direction:column; align-items:center; gap:3px;
@@ -561,26 +638,22 @@
 
   <!-- OVERZICHT -->
   <section class="panel" id="panel-overzicht" hidden>
-    <div class="section-title">
-      <h2>Overzicht</h2>
-      <div class="btn-row">
-        <button class="btn small ghost" id="copyOverviewBtn">Kopieer tabel</button>
-        <button class="btn small ghost" id="downloadOverviewBtn">Download CSV</button>
+    <div class="section-title rp-head">
+      <h2>Rapport</h2>
+      <div class="rp-tools" id="rapportTools">
+        <select id="overzichtBlokSelect" aria-label="Blok"></select>
+        <select id="overzichtSort" aria-label="Sorteren">
+          <option value="sterk">Sterkste eerst</option>
+          <option value="hesje">Hesje</option>
+          <option value="naam">Naam</option>
+        </select>
       </div>
     </div>
-    <div class="field" style="max-width:280px;">
-      <label for="overzichtBlokSelect">Blok (voor Wedstrijd/Potentieel/Scout)</label>
-      <select id="overzichtBlokSelect"></select>
+    <div id="overzichtWrap" class="rp-list"></div>
+    <div class="rp-bottom" id="rapportBottom">
+      <button class="btn primary block" id="ajaxListBtn">Ajax-lijst maken (afdrukken of PDF)</button>
+      <button class="btn ghost small" id="downloadOverviewBtn">Download als Excel (CSV)</button>
     </div>
-    <div class="legend" id="overzichtLegend">
-      <div class="row">
-        <span><i style="background:var(--good)"></i>A/B &mdash; benchmark / bovengemiddeld</span>
-        <span><i style="background:var(--mid)"></i>C &mdash; gemiddeld</span>
-        <span><i style="background:var(--low)"></i>D &mdash; ondergemiddeld</span>
-      </div>
-      <div class="note">Rank: alleen voor de 3 beste en 3 onderste spelers per lichting, de rest is middenmoot. Advies: 1 uitstroom &middot; 2 doorstroom &middot; 3 vervolg AVS &middot; 4 direct aannemen. Bij meer dan 20% afwezig (van de trainingen tot nu toe) kleurt de naam en de cijfers rood.</div>
-    </div>
-    <div id="overzichtWrap"></div>
   </section>
 
   <!-- EVALUATIE -->
@@ -643,10 +716,6 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 4l2 2h4l2-2 3 3-2 3v10a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V10L5 7z" stroke-linejoin="round"/></svg>
     <span class="tab-label">Spelers</span>
   </button>
-  <button class="tab-btn" data-tab="overzicht">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V10M12 19V5M20 19v-7" stroke-linecap="round"/></svg>
-    <span class="tab-label">Overzicht</span>
-  </button>
   <button class="tab-btn" data-tab="absenties">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9h16M8 3v4M16 3v4M9 14l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <span class="tab-label">Aanwezigheid</span>
@@ -654,6 +723,10 @@
   <button class="tab-btn" data-tab="evaluatie">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 4h9l4 4v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" stroke-linejoin="round"/><path d="M9 12h6M9 16h6M9 8h3" stroke-linecap="round"/></svg>
     <span class="tab-label">Evaluatie</span>
+  </button>
+  <button class="tab-btn" data-tab="overzicht">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V10M12 19V5M20 19v-7" stroke-linecap="round"/></svg>
+    <span class="tab-label">Rapport</span>
   </button>
 </nav>
 
@@ -767,27 +840,16 @@
     </div>
     <div id="scoreGrades"></div>
     <div id="scoutExtraFields" hidden>
-      <div class="field-row">
-        <div class="field">
-          <label for="fScoutRank">Rank</label>
-          <select id="fScoutRank">
-            <option value="">Middenmoot</option>
-            <option value="1">#1 &ndash; bij de bovenste 3</option>
-            <option value="3">#3 &ndash; bij de onderste 3</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="fScoutAdvies">Advies</label>
+      <div class="field">
+        <label for="fScoutAdvies">Advies</label>
           <select id="fScoutAdvies">
             <option value="">Nog geen advies</option>
             <option value="1">1 &ndash; Uitstroom ART</option>
             <option value="2">2 &ndash; Doorstroom ART</option>
             <option value="3">3 &ndash; Vervolg AVS</option>
             <option value="4">4 &ndash; Direct aannemen</option>
-          </select>
-        </div>
+        </select>
       </div>
-      <div class="hint" id="scoutRankHint" style="margin:-4px 0 10px;"></div>
     </div>
     <div class="field">
       <label for="fNotitie" id="fNotitieLabel">Notitie (optioneel)</label>
@@ -972,6 +1034,7 @@
 
 <div class="toast" id="toast"></div>
 </div><!-- /appRoot -->
+<div id="printArea"></div>
 
 <script>
 (function(){
@@ -990,9 +1053,6 @@
   var GRADES = ["A","B","C","D"];
   var GRADE_VALUE = { A:4, B:3, C:2, D:1 };
   var GRADE_LEGEND = "A absolute benchmark en excelleert &middot; B bovengemiddeld &middot; C gemiddeld &middot; D ondergemiddeld voor de leeftijdsgroep";
-  var RANK_OPTIONS = [
-    { value:"", label:"Geen rank" }, { value:"1", label:"Rank 1" }, { value:"2", label:"Rank 2" }, { value:"3", label:"Rank 3" }
-  ];
   var ADVIES_OPTIONS = [
     { value:"", label:"Nog geen advies" },
     { value:"1", label:"1 – Uitstroom ART" },
@@ -1484,7 +1544,6 @@
       var fields = {
         wedstrijdbeoordeling: data.wedstrijdbeoordeling || null,
         potentieel: data.potentieel || null,
-        rank: data.rank || null,
         advies: data.advies || null,
         notitie: data.notitie || null,
         updated_at: new Date().toISOString()
@@ -1616,8 +1675,7 @@
     return current;
   }
   function populateBlokSelects(){
-    var opts = BLOKKEN.map(function(b){ return '<option value="' + b.blok + '">' + esc(blokLabel(b.blok)) + '</option>'; }).join("");
-    $("overzichtBlokSelect").innerHTML = opts;
+    $("overzichtBlokSelect").innerHTML = BLOKKEN.map(function(b){ return '<option value="' + b.blok + '">Blok ' + b.blok + '</option>'; }).join("");
     // Spelers: kort ("Blok 1"), zodat het op één regel naast de titel past.
     $("spelersBlokSelect").innerHTML = BLOKKEN.map(function(b){ return '<option value="' + b.blok + '">Blok ' + b.blok + '</option>'; }).join("");
   }
@@ -1666,8 +1724,7 @@
     lichting: (function(){ try { return localStorage.getItem(LS_LICHTING); } catch(e){ return null; } })() || "all",
     scoringPlayerId: null,
     scoreDraft: {},
-    sortKey: "hesje",
-    sortDir: "asc",
+    rapportSort: "sterk",
     absDate: null,
     evalDate: null,
     evalEditingId: null,
@@ -1790,16 +1847,13 @@
         (att.flagged ? ' <span style="color:var(--low);">!</span>' : '') : "nog geen trainingen");
     }
     if (isHoofd){
-      var scoresBlok = Store.getScores().filter(function(s){ return s.blok === blok; });
-      var wed = summarize(p.id, "wedstrijdbeoordeling", scoresBlok), pot = summarize(p.id, "potentieel", scoresBlok);
-      row("Trainers &middot; " + esc(blokLabel(blok)), (wed.letter || pot.letter)
-        ? "Wedstrijd " + (wed.letter || "–") + " &middot; Potentieel " + (pot.letter || "–") : "nog niet beoordeeld");
-      var st = starInfo(p.id), sig = scoutSignal(p.id);
-      row("Scouts", sig.total ? sig.ab + "&times; A/B van " + sig.total : "nog niet gescout");
+      var gs = gradeSummary(p.id, blok);
+      row("Trainers &middot; " + esc(blokLabel(blok)), gs.tW || gs.tP ? letterPair(gs.tW, gs.tP) : "nog niet beoordeeld");
+      row("Scouts &middot; " + esc(blokLabel(blok)), gs.sW || gs.sP ? letterPair(gs.sW, gs.sP) : "nog niet gescout");
+      var st = starInfo(p.id);
       row("Ster", st.star ? '<span style="color:var(--mid);">&#9733; ' + st.total + '&times; A/B</span>' : st.total + "&times; A/B (ster vanaf " + Branding.getScoutDrempel() + ")");
-      var rk = RANK_OPTIONS.find(function(o){ return o.value === String(p.rank || ""); });
       var ad = ADVIES_OPTIONS.find(function(o){ return o.value === String(p.advies || ""); });
-      row("Rank &middot; advies", (p.rank ? esc(rk ? rk.label : "Rank " + p.rank) : "–") + " &middot; " + (p.advies ? esc(ad ? ad.label : p.advies) : "–"));
+      row("Advies", p.advies ? esc(ad ? ad.label : p.advies) : "nog geen advies");
     } else if (role === "trainer"){
       var mine = Store.getScores().find(function(s){ return s.playerId === p.id && s.trainerId === myUserId() && s.blok === state.beoordelenBlok; });
       row("Jouw beoordeling &middot; " + esc(blokLabel(state.beoordelenBlok)), mine
@@ -2114,24 +2168,6 @@
     var existing = Store.getScores().find(function(s){ return s.playerId === playerId && s.trainerId === myUserId() && s.blok === state.beoordelenBlok; });
     showGradeSheet("trainer", playerId, state.beoordelenBlok, existing);
   }
-  // Ajax-lijst: per lichting maximaal 3 spelers op #1 en 3 op #3. Alleen een hint, geen blokkade.
-  function updateScoutRankHint(){
-    var rank = $("fScoutRank").value;
-    var hint = $("scoutRankHint");
-    if (!rank){ hint.textContent = ""; return; }
-    var p = Store.getPlayers().find(function(x){ return x.id === state.scoringPlayerId; });
-    if (!p) return;
-    var sameLichting = {};
-    Store.getPlayers().forEach(function(x){ if (x.lichting === p.lichting) sameLichting[x.id] = true; });
-    var others = Store.getScoutReports().filter(function(r){
-      return r.scoutId === myUserId() && r.blok === state.scoringBlok && r.rank === rank && sameLichting[r.playerId] && r.playerId !== p.id;
-    }).length;
-    var n = others + 1;
-    hint.textContent = "Rank #" + rank + " in lichting " + lichtingLabel(p.lichting) + ": " + n + " van max. 3" +
-      (n > 3 ? " — dat zijn er meer dan 3." : ".");
-  }
-  $("fScoutRank").addEventListener("change", updateScoutRankHint);
-
   // Scouts gebruiken hetzelfde venster; opslaan gaat dan naar scout_reports.
   function openScoutGradeSheet(playerId){
     showGradeSheet("scout", playerId, state.beoordelenBlok, myScoutGrade(playerId, state.beoordelenBlok));
@@ -2150,9 +2186,7 @@
     $("fNotitie").value = existing ? (existing.notitie || "") : "";
     $("scoutExtraFields").hidden = mode !== "scout";
     if (mode === "scout"){
-      $("fScoutRank").value = existing ? (existing.rank || "") : "";
       $("fScoutAdvies").value = existing ? (existing.advies || "") : "";
-      updateScoutRankHint();
     }
     $("fNotitieLabel").textContent = mode === "scout" ? "Waarom deze beoordeling?" : "Notitie (optioneel)";
     $("fNotitie").placeholder = mode === "scout" ? "Wat zag je waardoor je voor deze letters kiest?" : "Korte observatie voor dit scoutingsmoment…";
@@ -2189,7 +2223,7 @@
       return;
     }
     var data = Object.assign({}, state.scoreDraft, { notitie: $("fNotitie").value.trim() });
-    if (state.scoreMode === "scout"){ data.rank = $("fScoutRank").value; data.advies = $("fScoutAdvies").value; }
+    if (state.scoreMode === "scout"){ data.advies = $("fScoutAdvies").value; }
     var save = state.scoreMode === "scout"
       ? Store.saveScoutGrade(state.scoringPlayerId, state.scoringBlok, data, state.scoringExistingId)
       : Store.upsertScore(state.scoringPlayerId, state.scoringBlok, data);
@@ -2198,207 +2232,185 @@
     }).catch(function(err){ console.error(err); showToast("Opslaan mislukt, probeer opnieuw"); });
   });
 
-  /* ---------- OVERZICHT tab ---------- */
-  function setSort(key){
-    if (state.sortKey === key){ state.sortDir = state.sortDir === "asc" ? "desc" : "asc"; }
-    else { state.sortKey = key; state.sortDir = key === "naam" ? "asc" : "desc"; }
-    renderOverzicht();
+  /* ---------- RAPPORT tab (alleen hoofdtrainer) ----------
+     Per blok: per speler de gemiddelde letters van trainers en van scouts (Wedstrijd · Potentieel), het advies,
+     en uitklapbaar de volledige lijst beoordelingen. Geen tabel met zijwaarts schuiven. */
+  function renderOverzichtLock(){
+    $("overzichtWrap").innerHTML = '<div class="card" style="padding:20px;">' +
+      '<div style="font-family:\'Barlow Condensed\',sans-serif; font-weight:700; font-size:18px;">Alleen voor de hoofdtrainer</div>' +
+      '<div style="font-size:13.5px; color:var(--ink-muted); margin-top:4px;">Het rapport toont de beoordelingen van alle trainers en scouts naast elkaar.</div></div>';
   }
 
-  function renderOverzichtLock(){
-    var wrap = $("overzichtWrap");
-    wrap.innerHTML = '<div class="card" style="padding:20px; display:flex; flex-direction:column; gap:12px;">' +
-      '<div><div class="t" style="font-family:\'Barlow Condensed\',sans-serif; font-weight:700; font-size:18px;">Alleen voor de hoofdtrainer</div>' +
-      '<div style="font-size:13.5px; color:var(--ink-muted); margin-top:4px;">Dit overzicht toont de beoordelingen van alle trainers naast elkaar en is daarom alleen zichtbaar voor de hoofdtrainer.</div></div></div>';
+  function rapportRows(){
+    var blok = state.overzichtBlok;
+    var passed = passedDates(Store.getCancelled());
+    return filteredPlayers().map(function(p){
+      var gs = gradeSummary(p.id, blok);
+      var vals = [gs.tW, gs.tP, gs.sW, gs.sP].filter(Boolean).map(function(l){ return GRADE_VALUE[l]; });
+      return { player: p, gs: gs, att: attendanceStats(p, passed), star: starInfo(p.id),
+               strength: vals.length ? vals.reduce(function(a, b){ return a + b; }, 0) / vals.length : 0 };
+    });
+  }
+
+  // Volledige lijst: alle beoordelingen van trainers en scouts voor deze speler, per blok (nieuwste blok eerst).
+  function rapportDetailHtml(p){
+    var items = [];
+    Store.getScores().filter(function(s){ return s.playerId === p.id && (s.wedstrijdbeoordeling || s.potentieel || s.notitie); })
+      .forEach(function(s){ items.push({ blok: s.blok, rol: "Trainer", naam: s.trainerName, w: s.wedstrijdbeoordeling, p: s.potentieel, notitie: s.notitie }); });
+    Store.getScoutReports().filter(function(r){ return r.playerId === p.id; }).forEach(function(r){
+      var legacy = !(r.wedstrijdbeoordeling || r.potentieel);
+      var eo = legacy ? EINDOORDEEL_OPTIONS.find(function(o){ return o.value === r.eindoordeel; }) : null;
+      items.push({ blok: r.blok || 1, rol: "Scout", naam: r.scoutNaam, w: r.wedstrijdbeoordeling, p: r.potentieel,
+        advies: r.advies, notitie: r.notitie || r.bijzonder, legacyId: legacy ? r.id : null, legacyLabel: eo && eo.value ? eo.label : "" });
+    });
+    if (!items.length) return '<div class="rp-empty">Nog geen beoordelingen.</div>';
+    var bloks = items.map(function(i){ return i.blok; }).filter(function(b, i, a){ return a.indexOf(b) === i; }).sort(function(a, b){ return b - a; });
+    return bloks.map(function(b){
+      var list = items.filter(function(i){ return i.blok === b; })
+        .sort(function(x, y){ return x.rol === y.rol ? (x.naam || "").localeCompare(y.naam || "") : (x.rol === "Trainer" ? -1 : 1); });
+      return '<div class="rp-dblok">' + esc(blokLabel(b)) + '</div>' + list.map(function(i){
+        var ad = i.advies ? ADVIES_OPTIONS.find(function(o){ return o.value === i.advies; }) : null;
+        return '<div class="rp-item">' +
+          '<div class="rp-item-head"><span class="rp-role ' + (i.rol === "Scout" ? "scout" : "") + '">' + i.rol + '</span>' +
+          '<span class="rp-who">' + esc(i.naam || "onbekend") + '</span>' +
+          (i.legacyId ? '<span class="rp-legacy">' + esc(i.legacyLabel || "oud rapport") + '</span>' : letterPair(i.w, i.p)) + '</div>' +
+          (ad ? '<div class="rp-item-adv">Advies: ' + esc(ad.label) + '</div>' : '') +
+          (i.notitie ? '<div class="rp-item-note">“' + esc(i.notitie) + '”</div>' : '') +
+          (i.legacyId ? '<button type="button" class="btn ghost small" data-open-scout="' + i.legacyId + '" style="margin-top:6px;">Oud scoutrapport bekijken</button>' : '') +
+          '</div>';
+      }).join("");
+    }).join("") + '<button type="button" class="btn ghost small" data-open-card="' + p.id + '" style="margin-top:10px;">Spelerskaart openen</button>';
   }
 
   function renderOverzicht(){
-    var legendEl = $("overzichtLegend");
-    var copyBtn = $("copyOverviewBtn");
-    var dlBtn = $("downloadOverviewBtn");
-    if (!Auth.isHoofdtrainer()){
-      if (legendEl) legendEl.hidden = true;
-      if (copyBtn) copyBtn.hidden = true;
-      if (dlBtn) dlBtn.hidden = true;
-      renderOverzichtLock();
-      return;
-    }
-    if (dlBtn) dlBtn.hidden = false;
-    if (legendEl) legendEl.hidden = false;
-    if (copyBtn) copyBtn.hidden = false;
+    var isHoofd = Auth.isHoofdtrainer();
+    $("rapportTools").hidden = !isHoofd;
+    $("rapportBottom").hidden = !isHoofd;
+    if (!isHoofd){ renderOverzichtLock(); return; }
     var blokSel = $("overzichtBlokSelect");
-    if (blokSel && blokSel.value !== String(state.overzichtBlok)) blokSel.value = String(state.overzichtBlok);
-    var players = filteredPlayers();
-    var scores = Store.getScores();
-    var scoresThisBlok = scores.filter(function(s){ return s.blok === state.overzichtBlok; });
-    var cancelled = Store.getCancelled();
-    var passed = passedDates(cancelled);
-    var rows = players.map(function(p){
-      return {
-        player: p,
-        wed: summarize(p.id, "wedstrijdbeoordeling", scoresThisBlok),
-        pot: summarize(p.id, "potentieel", scoresThisBlok),
-        att: attendanceStats(p, passed),
-        sig: scoutSignal(p.id),
-        wedTimeline: BLOKKEN.map(function(b){ return summarize(p.id, "wedstrijdbeoordeling", scores.filter(function(s){ return s.blok === b.blok; })).letter || "–"; }).join(" · "),
-        potTimeline: BLOKKEN.map(function(b){ return summarize(p.id, "potentieel", scores.filter(function(s){ return s.blok === b.blok; })).letter || "–"; }).join(" · ")
-      };
-    });
-    rows.sort(function(a,b){
-      var dir = state.sortDir === "asc" ? 1 : -1;
-      if (state.sortKey === "naam") return a.player.naam.localeCompare(b.player.naam) * dir;
-      if (state.sortKey === "wed") return ((GRADE_VALUE[a.wed.letter]||0) - (GRADE_VALUE[b.wed.letter]||0)) * dir;
-      if (state.sortKey === "pot") return ((GRADE_VALUE[a.pot.letter]||0) - (GRADE_VALUE[b.pot.letter]||0)) * dir;
-      if (state.sortKey === "afw") return ((a.att.pct||0) - (b.att.pct||0)) * dir;
-      return (Number(a.player.hesje||9999) - Number(b.player.hesje||9999)) * dir;
-    });
+    if (blokSel.value !== String(state.overzichtBlok)) blokSel.value = String(state.overzichtBlok);
+    $("overzichtSort").value = state.rapportSort;
     var wrap = $("overzichtWrap");
-    var footerHtml = "";
-    function bindFooter(){}
+    var rows = rapportRows();
     if (!rows.length){
-      wrap.innerHTML = '<div class="empty card">' + emptySvg +
-        '<div class="t">Nog niets te tonen</div>' +
-        '<div class="d">Zodra spelers zijn toegevoegd en beoordeeld, verschijnt hier het overzicht.</div></div>' + footerHtml;
-      bindFooter();
+      wrap.innerHTML = '<div class="empty card">' + emptySvg + '<div class="t">Nog niets te tonen</div>' +
+        '<div class="d">Zodra spelers zijn beoordeeld, verschijnt hier het rapport.</div></div>';
       return;
     }
-    function arrow(key){ return state.sortKey === key ? '<span class="sort-arrow">' + (state.sortDir === "asc" ? "▲" : "▼") + '</span>' : ""; }
-    var head = '<thead><tr>' +
-      '<th data-sort="hesje">Hesje' + arrow("hesje") + '</th>' +
-      '<th data-sort="naam">Naam' + arrow("naam") + '</th>' +
-      '<th data-sort="afw">Afwezig' + arrow("afw") + '</th>' +
-      '<th data-sort="wed">Wedstrijd' + arrow("wed") + '</th>' +
-      '<th data-sort="pot">Potentieel' + arrow("pot") + '</th>' +
-      '<th>Rank</th><th>Advies</th><th title="Scoutbeoordelingen met een A of B (alle blokken)">Scout A/B</th></tr></thead>';
-    var body = rows.map(function(r){
-      var wedBand = r.att.flagged && r.wed.letter ? "low" : r.wed.band;
-      var potBand = r.att.flagged && r.pot.letter ? "low" : r.pot.band;
-      var wedPill = (r.wed.letter ? '<span class="pill ' + wedBand + '">' + r.wed.letter + ' (' + r.wed.count + ')</span>' : '<span class="pill none">–</span>') +
-        '<div class="blok-timeline" title="Per blok: ' + esc(r.wedTimeline) + '">' + esc(r.wedTimeline) + '</div>';
-      var potPill = (r.pot.letter ? '<span class="pill ' + potBand + '">' + r.pot.letter + ' (' + r.pot.count + ')</span>' : '<span class="pill none">–</span>') +
-        '<div class="blok-timeline" title="Per blok: ' + esc(r.potTimeline) + '">' + esc(r.potTimeline) + '</div>';
-      var afwPill = r.att.total ? '<span class="pill ' + (r.att.flagged ? "low" : "good") + '">' + r.att.absentCount + '/' + r.att.total + ' (' + r.att.pct + '%)</span>' : '<span class="pill none">nog geen trainingen</span>';
-      var flag = r.att.flagged ? '<span class="flag-warn" title="Meer dan 20% afwezig">!</span>' : "";
-      var rankSel = '<select class="table-select" data-rank="' + r.player.id + '">' + RANK_OPTIONS.map(function(o){
-        return '<option value="' + o.value + '"' + (String(r.player.rank||"") === o.value ? " selected" : "") + '>' + o.label + '</option>';
-      }).join("") + '</select>';
-      var adviesSel = '<select class="table-select" data-advies="' + r.player.id + '">' + ADVIES_OPTIONS.map(function(o){
-        return '<option value="' + o.value + '"' + (String(r.player.advies||"") === o.value ? " selected" : "") + '>' + o.label + '</option>';
-      }).join("") + '</select>';
-      var scoutPill = r.sig.total
-        ? '<span class="pill ' + (r.sig.flagged ? "good" : "none") + '" title="' + r.sig.ab + ' van ' + r.sig.total + ' scoutbeoordelingen met een A of B">' + (r.sig.flagged ? "&#9733; " : "") + r.sig.ab + '/' + r.sig.total + '</span>'
-        : '<span class="pill none">&ndash;</span>';
-      var allScores = scores.filter(function(s){ return s.playerId === r.player.id; });
-      var breakdown = allScores.length ? BLOKKEN.map(function(b){
-        var list = allScores.filter(function(s){ return s.blok === b.blok; });
-        if (!list.length) return "";
-        return '<div class="bd-blok-group"><div class="bd-blok-label">' + esc(blokLabel(b.blok)) + '</div>' + list.map(function(s){
-          return '<div class="bd-row"><span>' + esc(s.trainerName) + '</span>' +
-            '<span class="bd-scores"><span>Wedstrijd: ' + (s.wedstrijdbeoordeling || "–") + '</span><span>Potentieel: ' + (s.potentieel || "–") + '</span></span></div>' +
-            (s.notitie ? '<div class="bd-note">“' + esc(s.notitie) + '” – ' + esc(s.trainerName) + '</div>' : '');
-        }).join("") + '</div>';
-      }).join("") : '<div class="bd-row"><span>Nog geen beoordelingen</span></div>';
-      var allScoutReports = Store.getScoutReports().filter(function(x){ return x.playerId === r.player.id; }).sort(function(a,b){ return (a.blok||1) - (b.blok||1); });
-      var scoutBreakdown = allScoutReports.length ? allScoutReports.map(function(sr){
-        var isGrade = sr.wedstrijdbeoordeling || sr.potentieel;
-        var eo2 = EINDOORDEEL_OPTIONS.find(function(o){ return o.value === sr.eindoordeel; });
-        var scoresHtml = isGrade
-          ? '<span>Wedstrijd: ' + (sr.wedstrijdbeoordeling || "–") + '</span><span>Potentieel: ' + (sr.potentieel || "–") + '</span>' +
-            (sr.rank ? '<span>Rank #' + esc(sr.rank) + '</span>' : '') +
-            (sr.advies ? '<span>' + esc((ADVIES_OPTIONS.find(function(o){ return o.value === sr.advies; }) || {}).label || ("Advies " + sr.advies)) + '</span>' : '')
-          : (eo2 && eo2.value ? '<span>' + esc(eo2.label) + '</span>' : '');
-        return '<div class="bd-blok-group"><div class="bd-blok-label">' + esc(blokLabel(sr.blok || 1)) + ' · scout</div>' +
-          '<div class="bd-row"><span>' + esc(sr.scoutNaam || "onbekend") + '</span>' +
-          '<span class="bd-scores">' + scoresHtml + '</span></div>' +
-          (sr.bijzonder ? '<div class="bd-note">“' + esc(sr.bijzonder) + '”</div>' : '') +
-          (sr.notitie ? '<div class="bd-note">“' + esc(sr.notitie) + '” – ' + esc(sr.scoutNaam || "scout") + '</div>' : '') +
-          // Oude, uitgebreide scoutrapporten (van vóór A/B/C/D) blijven te openen.
-          (isGrade ? '' : '<div class="btn-row" style="margin-top:6px;"><button type="button" class="btn ghost small" data-open-scout="' + sr.id + '">Oud scoutrapport bekijken</button></div>') +
-          '</div>';
-      }).join("") : "";
-      return '<tr class="ov-row" data-id="' + r.player.id + '">' +
-        '<td class="num">' + (r.player.hesje ? esc(r.player.hesje) : "–") + '</td>' +
-        '<td>' + flag + esc(r.player.naam) + (starInfo(r.player.id).star ? ' <span style="color:var(--mid);" title="Ster">&#9733;</span>' : '') + '</td>' +
-        '<td>' + afwPill + '</td>' +
-        '<td>' + wedPill + '</td>' +
-        '<td>' + potPill + '</td>' +
-        '<td>' + rankSel + '</td>' +
-        '<td>' + adviesSel + '</td>' +
-        '<td>' + scoutPill + '</td></tr>' +
-        '<tr class="breakdown-row" data-for="' + r.player.id + '" hidden><td colspan="8" class="breakdown">' + breakdown + scoutBreakdown + '</td></tr>';
-    }).join("");
-    var sterren = rows.map(function(r){ return { r: r, s: starInfo(r.player.id) }; }).filter(function(x){ return x.s.star; })
-      .sort(function(a, b){ return b.s.total - a.s.total; });
-    var signalHtml = sterren.length
-      ? '<div class="card" style="padding:12px 14px; margin-bottom:12px; border-color:var(--mid);">' +
-        '<div style="font-weight:700; margin-bottom:4px;">&#9733; Sterspelers</div>' +
-        '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:0 0 8px;">Kregen ' + Branding.getScoutDrempel() + ' of meer keer een A of B van trainers en scouts samen. Overweeg contact met de jeugdcoördinator of jeugdscout.</div>' +
-        sterren.map(function(x){
-          return '<div>' + (x.r.player.hesje ? '<b>' + esc(x.r.player.hesje) + '</b> ' : '') + esc(x.r.player.naam) +
-            ' &middot; ' + x.s.total + '&times; A/B (trainers ' + x.s.trainerAB + ', scouts ' + x.s.scoutAB + ')</div>';
-        }).join("") +
-        '</div>'
-      : '';
-    wrap.innerHTML = signalHtml + '<div class="table-wrap"><table>' + head + '<tbody>' + body + '</tbody></table></div>' + footerHtml;
-    bindFooter();
-    Array.prototype.forEach.call(wrap.querySelectorAll("th[data-sort]"), function(th){
-      th.addEventListener("click", function(){ setSort(th.getAttribute("data-sort")); });
+    rows.sort(function(a, b){
+      if (state.rapportSort === "naam") return a.player.naam.localeCompare(b.player.naam);
+      if (state.rapportSort === "hesje") return Number(a.player.hesje || 9999) - Number(b.player.hesje || 9999);
+      return (b.strength - a.strength) || (b.star.total - a.star.total) || a.player.naam.localeCompare(b.player.naam);
     });
-    Array.prototype.forEach.call(wrap.querySelectorAll(".ov-row"), function(tr){
-      tr.addEventListener("click", function(e){
-        if (e.target.tagName === "SELECT" || e.target.tagName === "OPTION") return;
-        var id = tr.getAttribute("data-id");
-        var target = wrap.querySelector('.breakdown-row[data-for="' + id + '"]');
-        if (target) target.hidden = !target.hidden;
+    var sterren = rows.filter(function(r){ return r.star.star; });
+    var starHtml = sterren.length
+      ? '<div class="card rp-stars"><b>&#9733; ' + sterren.length + (sterren.length === 1 ? ' sterspeler' : ' sterspelers') + '</b> &middot; ' +
+        sterren.map(function(r){ return esc(r.player.naam.split(" ")[0]) + (r.player.hesje ? ' (' + esc(r.player.hesje) + ')' : ''); }).join(", ") +
+        '<div class="rp-stars-note">Vaak A of B van trainers en scouts samen. Overweeg contact met de jeugdcoördinator of jeugdscout.</div></div>'
+      : '';
+    wrap.innerHTML = starHtml +
+      '<div class="rp-legend">Letters: <b>Wedstrijd</b> &middot; <b>Potentieel</b>, gemiddeld over ' + esc(blokLabel(state.overzichtBlok)) + '. Tik op een speler voor alle beoordelingen.</div>' +
+      rows.map(function(r){
+        var p = r.player, gs = r.gs;
+        var photo = p.fotoPath
+          ? '<img class="rp-img" data-ident-photo="' + p.id + '" data-foto-path="' + esc(p.fotoPath) + '" alt="">'
+          : '<div class="rp-img rp-img-empty">' + personSvg + '</div>';
+        var n = Store.getScores().filter(function(s){ return s.playerId === p.id; }).length +
+                Store.getScoutReports().filter(function(x){ return x.playerId === p.id; }).length;
+        return '<div class="rp-row" data-id="' + p.id + '">' + photo +
+          '<div class="rp-main"><div class="rp-name">' + esc(p.naam) + (r.star.star ? ' <span class="rp-star" title="Ster">&#9733;</span>' : '') + '</div>' +
+          '<div class="rp-sub"><span class="pc-hesje sm' + (p.hesje ? '' : ' none') + '">' + (p.hesje ? esc(p.hesje) : "–") + '</span>' +
+          (p.q ? '<span class="pc-q sm">' + esc(p.q) + '</span>' : '') +
+          (r.att.flagged ? '<span class="rp-warn" title="Meer dan 20% afwezig">afwezig ' + r.att.absentCount + '/' + r.att.total + '</span>' : '') +
+          '</div></div>' +
+          '<div class="rp-grades"><div class="rp-g"><span class="lbl">Trainers</span>' + letterPair(gs.tW, gs.tP) + '</div>' +
+          '<div class="rp-g"><span class="lbl">Scouts</span>' + letterPair(gs.sW, gs.sP) + '</div></div>' +
+          '<div class="rp-foot">' +
+          '<select class="rp-adv' + (p.advies ? '' : ' none') + '" data-advies="' + p.id + '" aria-label="Advies voor ' + esc(p.naam) + '">' +
+          ADVIES_OPTIONS.map(function(o){ return '<option value="' + o.value + '"' + (String(p.advies || "") === o.value ? " selected" : "") + '>' + (o.value ? esc(o.label) : "Advies kiezen") + '</option>'; }).join("") +
+          '</select>' +
+          '<span class="rp-count">' + n + (n === 1 ? ' beoordeling' : ' beoordelingen') + ' <span class="rp-chev">&#9662;</span></span>' +
+          '</div>' +
+          '<div class="rp-detail" hidden></div>' +
+          '</div>';
+      }).join("");
+    fillPlayerPhotos(wrap, { zoom: false });
+    Array.prototype.forEach.call(wrap.querySelectorAll(".rp-row"), function(row){
+      row.addEventListener("click", function(e){
+        if (e.target.closest("select, button")) return;
+        var det = row.querySelector(".rp-detail");
+        var p = Store.getPlayers().find(function(x){ return x.id === row.getAttribute("data-id"); });
+        if (det.hidden){
+          det.innerHTML = rapportDetailHtml(p);
+          Array.prototype.forEach.call(det.querySelectorAll("[data-open-scout]"), function(b){
+            b.addEventListener("click", function(){ openScoutSheet(b.getAttribute("data-open-scout")); });
+          });
+          Array.prototype.forEach.call(det.querySelectorAll("[data-open-card]"), function(b){
+            b.addEventListener("click", function(){ openPlayerCard(b.getAttribute("data-open-card")); });
+          });
+        }
+        det.hidden = !det.hidden;
+        row.classList.toggle("open", !det.hidden);
       });
     });
-    Array.prototype.forEach.call(wrap.querySelectorAll("select[data-rank]"), function(sel){
-      sel.addEventListener("click", function(e){ e.stopPropagation(); });
-      sel.addEventListener("change", function(){ Store.updatePlayer(sel.getAttribute("data-rank"), { rank: sel.value }); });
-    });
     Array.prototype.forEach.call(wrap.querySelectorAll("select[data-advies]"), function(sel){
-      sel.addEventListener("click", function(e){ e.stopPropagation(); });
-      sel.addEventListener("change", function(){ Store.updatePlayer(sel.getAttribute("data-advies"), { advies: sel.value }); });
-    });
-    Array.prototype.forEach.call(wrap.querySelectorAll("[data-open-scout]"), function(btn){
-      btn.addEventListener("click", function(e){
-        e.stopPropagation();
-        openScoutSheet(btn.getAttribute("data-open-scout"));
+      sel.addEventListener("change", function(){
+        sel.classList.toggle("none", !sel.value);
+        Store.updatePlayer(sel.getAttribute("data-advies"), { advies: sel.value || null })
+          .then(function(){ showToast("Advies opgeslagen"); })
+          .catch(function(err){ console.error(err); showToast("Opslaan mislukt"); });
       });
     });
   }
 
   function buildOverzichtRows(){
-    var players = filteredPlayers();
-    var scores = Store.getScores().filter(function(s){ return s.blok === state.overzichtBlok; });
-    var cancelled = Store.getCancelled();
-    var passed = passedDates(cancelled);
-    var rows = [["Blok","Hesje","Naam","Lichting","Q","Afwezig","Afwezig %","Wedstrijdbeoordeling","Potentieel","Rank","Advies","Scout A/B","Scout beoordelingen"]];
-    players.forEach(function(p){
-      var wed = summarize(p.id, "wedstrijdbeoordeling", scores);
-      var pot = summarize(p.id, "potentieel", scores);
-      var att = attendanceStats(p, passed);
-      var sig = scoutSignal(p.id);
-      rows.push([state.overzichtBlok, p.hesje||"", p.naam, lichtingLabel(p.lichting), p.q||"", att.absentCount + "/" + att.total, att.pct!=null?att.pct+"%":"", wed.letter||"", pot.letter||"", p.rank||"", p.advies||"", sig.ab, sig.total]);
+    var rows = [["Blok","Hesje","Naam","Lichting","Q","Afwezig","Afwezig %","Trainers wedstrijd","Trainers potentieel","Scouts wedstrijd","Scouts potentieel","Scouts A/B","Advies"]];
+    rapportRows().forEach(function(r){
+      var p = r.player, ad = ADVIES_OPTIONS.find(function(o){ return o.value === String(p.advies || ""); });
+      rows.push([state.overzichtBlok, p.hesje || "", p.naam, lichtingLabel(p.lichting), p.q || "", r.att.absentCount + "/" + r.att.total,
+        r.att.pct != null ? r.att.pct + "%" : "", r.gs.tW || "", r.gs.tP || "", r.gs.sW || "", r.gs.sP || "", r.star.scoutAB, p.advies && ad ? ad.label : ""]);
     });
     return rows;
   }
 
-  $("copyOverviewBtn").addEventListener("click", function(){
-    if (!Auth.isHoofdtrainer()) { showToast("Alleen de hoofdtrainer kan dit overzicht kopiëren"); return; }
-    var text = buildOverzichtRows().map(function(r){ return r.join("\t"); }).join("\n");
-    if (navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(text).then(function(){ showToast("Tabel gekopieerd"); }).catch(function(){ showToast("Kopiëren niet gelukt"); });
-    } else {
-      showToast("Kopiëren wordt niet ondersteund");
-    }
-  });
+  $("overzichtSort").addEventListener("change", function(){ state.rapportSort = this.value; renderOverzicht(); });
 
   $("downloadOverviewBtn").addEventListener("click", function(){
-    if (!Auth.isHoofdtrainer()) { showToast("Alleen de hoofdtrainer kan dit overzicht downloaden"); return; }
-    var naam = "overzicht_blok" + state.overzichtBlok + "_" + lichtingLabel(state.lichting !== "all" ? state.lichting : "alle") + "_" + todayISO() + ".csv";
+    if (!Auth.isHoofdtrainer()) return;
+    var naam = "rapport_blok" + state.overzichtBlok + "_" + lichtingLabel(state.lichting !== "all" ? state.lichting : "alle") + "_" + todayISO() + ".csv";
     downloadCSV(naam, buildOverzichtRows());
-    showToast("Overzicht gedownload");
+    showToast("Rapport gedownload");
+  });
+
+  // Ajax-lijst in het formaat van het Ajax-formulier, per lichting; afdrukken of als PDF bewaren.
+  // Letters = gemiddelde van trainers én scouts samen in het gekozen blok.
+  $("ajaxListBtn").addEventListener("click", function(){
+    if (!Auth.isHoofdtrainer()) return;
+    var blok = state.overzichtBlok;
+    var lichtingen = LICHTINGEN.filter(function(l){ return state.lichting === "all" || state.lichting === l.key; });
+    function combined(p, key){
+      var vals = Store.getScores().filter(function(s){ return s.playerId === p.id && s.blok === blok && s[key]; }).map(function(s){ return GRADE_VALUE[s[key]]; })
+        .concat(Store.getScoutReports().filter(function(r){ return r.playerId === p.id && r.blok === blok && r[key]; }).map(function(r){ return GRADE_VALUE[r[key]]; }));
+      return vals.length ? letterFromAvg(vals.reduce(function(a, b){ return a + b; }, 0) / vals.length) : "";
+    }
+    var html = '<div class="pa-legend"><div>A &rarr; absolute benchmark en excelleert<br>B &rarr; bovengemiddeld voor de leeftijdsgroep<br>' +
+      'C &rarr; gemiddeld voor de leeftijdsgroep<br>D &rarr; onder gemiddeld voor de leeftijdsgroep</div>' +
+      '<div>Advies 1 &rarr; uitstroom in de ART<br>Advies 2 &rarr; doorstroom in de ART<br>Advies 3 &rarr; vervolg AVS<br>Advies 4 &rarr; direct aannemen</div></div>' +
+      '<h1 class="pa-title">Ajax Regionale Trainingen 1 (AS&rsquo;80)</h1>' +
+      '<div class="pa-sub">' + esc(blokLabel(blok)) + ' &middot; gemaakt op ' + esc(formatDateShort(todayISO())) + ' &middot; letters = gemiddelde van trainers en scouts</div>' +
+      lichtingen.map(function(l){
+        var ps = Store.getPlayers().filter(function(p){ return p.lichting === l.key; })
+          .sort(function(a, b){ return Number(a.hesje || 9999) - Number(b.hesje || 9999); });
+        if (!ps.length) return "";
+        return '<table class="pa-table"><thead><tr><th>Voor- en achternaam</th><th>Geboortejaar</th><th>Q</th><th>#</th>' +
+          '<th>Wedstrijdbeoordeling<br><small>(bijdrage)</small></th><th>Potentieel niveau<br><small>(potentie)</small></th><th>Advies<br><small>1, 2, 3 of 4</small></th></tr></thead><tbody>' +
+          ps.map(function(p){
+            return '<tr><td>' + esc(p.naam) + '</td><td>' + esc(l.label) + '</td><td>' + esc(p.q || "") + '</td><td>' + esc(p.hesje || "") + '</td>' +
+              '<td class="c">' + combined(p, "wedstrijdbeoordeling") + '</td><td class="c">' + combined(p, "potentieel") + '</td><td class="c">' + esc(p.advies || "") + '</td></tr>';
+          }).join("") + '</tbody></table>';
+      }).join("");
+    $("printArea").innerHTML = html;
+    window.print();
   });
 
   /* ---------- ABSENTIES tab ---------- */
@@ -2857,9 +2869,25 @@
     var total = trainerAB + scoutAB;
     return { trainerAB: trainerAB, scoutAB: scoutAB, total: total, star: total >= Branding.getScoutDrempel() };
   }
+  // Gemiddelde letters per blok van trainers (scores) en scouts (scout_reports), voor Rapport en spelerskaart.
+  function scoutLetter(playerId, key, blok){
+    var vals = Store.getScoutReports().filter(function(r){ return r.playerId === playerId && r.blok === blok && r[key]; })
+      .map(function(r){ return GRADE_VALUE[r[key]] || 0; });
+    return vals.length ? letterFromAvg(vals.reduce(function(a, b){ return a + b; }, 0) / vals.length) : null;
+  }
+  function gradeSummary(playerId, blok){
+    var sc = Store.getScores().filter(function(s){ return s.blok === blok; });
+    return {
+      tW: summarize(playerId, "wedstrijdbeoordeling", sc).letter, tP: summarize(playerId, "potentieel", sc).letter,
+      sW: scoutLetter(playerId, "wedstrijdbeoordeling", blok), sP: scoutLetter(playerId, "potentieel", blok)
+    };
+  }
+  // Letter als gekleurd vakje: A donkergroen, B lichtgroen, C neutraal, D rood.
+  function letterChip(l, title){ return '<span class="g g' + (l || "none") + '"' + (title ? ' title="' + esc(title) + '"' : "") + '>' + (l || "–") + '</span>'; }
+  function letterPair(w, p){ return '<span class="gpair">' + letterChip(w, "Wedstrijd") + letterChip(p, "Potentieel") + '</span>'; }
   function gradePair(r){
     return "W: " + (r.wedstrijdbeoordeling || "–") + " · P: " + (r.potentieel || "–") +
-      (r.rank ? " · #" + r.rank : "") + (r.advies ? " · Adv " + r.advies : "");
+      (r.advies ? " · Adv " + r.advies : "");
   }
 
   function openScoutSheet(id, prefillPlayerId, blok){
