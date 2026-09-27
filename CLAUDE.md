@@ -66,6 +66,10 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   onder de foto: hesjenummer · geboortekwartaal (scouts wegen het mee) · ster/! rechts, daaronder de naam. Geen knoppen in de lijst: tikken opent de spelerskaart (`openPlayerCard`) met per rol
   de info en acties (Beoordelen; hoofdtrainer ook Bewerken). Beheer (nieuwe speler, importeren, foto's, prullenbak) staat
   in Instellingen → Spelers beheren. Instellingen is ingedeeld in uitklapbare groepen.
+- Beoordelen gebeurt vanuit Spelers (tabbladen Beoordelen en Scouting zijn opgeheven): balk "Beoordelen in [blok]" met
+  "x van y door jou beoordeeld", groen ✓ rechtsboven op de foto = door jou beoordeeld in dat blok, tik → spelerskaart → Beoordelen
+  (trainer/hoofdtrainer: trainerlijst; scout: Ajax-scoutlijst). Eén blokkeuze voor iedereen (`state.beoordelenBlok`).
+  Geen "opslaan & volgende" (besluit Sofian). Heeft iemand maar één tabblad (scout), dan is de tabbalk onderin verborgen.
 - Favorieten (eigen top 3) zijn geschrapt (besluit Sofian): de ster ★ komt vanzelf uit de beoordelingen. Ster = aantal
   trainer- + scoutbeoordelingen met een A of B >= `app_settings.scout_signaal_drempel`. Alleen zichtbaar voor de hoofdtrainer.
   Tabel `player_favorites` bestaat nog in de database maar wordt niet meer gebruikt.
