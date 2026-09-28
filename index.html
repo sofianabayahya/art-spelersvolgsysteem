@@ -502,18 +502,41 @@
     box-shadow:0 2px 8px rgba(0,0,0,.3); display:flex; align-items:center; gap:8px; white-space:nowrap; }
   .demo-pill button{ font:700 12px "Barlow",sans-serif; border:none; background:#1b1b1b; color:#fff; border-radius:999px; padding:4px 10px; cursor:pointer; }
   .demo-login-note{ margin-top:10px; font-size:13px; font-weight:700; color:#8a6d00; background:#FFF4D6; border-radius:10px; padding:8px 10px; }
+  /* Rondleiding op de laptop: app links, uitlegpaneel rechts (vast, ±30%). Vensters van de app blijven links. */
+  :root{ --tp:clamp(340px, 30vw, 500px); }
+  body.tour-open #appRoot{ margin-right:var(--tp); }
+  body.tour-open .overlay{ right:var(--tp); }
+  body.tour-open .demo-pill{ left:calc((100% - var(--tp)) / 2); }
+  body.tour-open .toast{ left:calc((100% - var(--tp)) / 2); }
   .tour-layer{ position:fixed; inset:0; z-index:100; pointer-events:none; }
-  .tour-layer[hidden]{ display:none; }
-  .tour-layer.dim{ background:rgba(10,15,30,.6); }
-  .tour-spot{ position:fixed; border-radius:14px; box-shadow:0 0 0 9999px rgba(10,15,30,.6); outline:3px solid #FFD23F; transition:all .25s ease; }
-  .tour-box{ position:fixed; left:50%; transform:translateX(-50%); width:min(460px, calc(100vw - 24px)); pointer-events:auto;
-    background:var(--surface); color:var(--ink); border-radius:16px; padding:14px 16px; box-shadow:0 10px 30px rgba(0,0,0,.45); border:2px solid #FFD23F; }
-  .tour-count{ font-size:12px; font-weight:700; color:var(--ink-muted); }
-  .tour-title{ font:700 21px "Barlow Condensed",sans-serif; margin:2px 0 6px; }
-  .tour-text{ font-size:15px; line-height:1.45; }
-  .tour-text small{ color:var(--ink-muted); }
-  .tour-btns{ display:flex; gap:8px; margin-top:12px; align-items:center; }
-  .tour-btns span{ flex:1; }
+  body:not(.tour-open) .tour-layer{ display:none; }
+  .tour-spot{ position:fixed; display:none; border-radius:14px; outline:4px solid #FFD23F; outline-offset:0;
+    box-shadow:0 0 0 9999px rgba(10,15,30,.28), 0 0 24px rgba(255,210,63,.6); transition:all .25s ease; }
+  .tour-panel{ position:fixed; top:0; right:0; bottom:0; width:var(--tp); z-index:120; display:none; flex-direction:column; gap:12px;
+    background:var(--surface); color:var(--ink); border-left:3px solid #FFD23F; padding:18px 22px; overflow-y:auto; box-shadow:-8px 0 24px rgba(0,0,0,.25); }
+  body.tour-open .tour-panel{ display:flex; }
+  .tp-head{ display:flex; align-items:center; justify-content:space-between; font-size:13px; font-weight:700; color:var(--ink-muted); text-transform:uppercase; letter-spacing:.4px; }
+  .tp-bar{ height:5px; background:var(--surface-alt); border-radius:99px; overflow:hidden; }
+  .tp-bar span{ display:block; height:100%; background:#FFD23F; }
+  .tp-title{ font:700 30px/1.1 "Barlow Condensed",sans-serif; margin:6px 0 0; }
+  .tp-text{ font-size:17px; line-height:1.55; }
+  .tp-text small{ color:var(--ink-muted); font-size:14px; }
+  .tp-btns{ display:flex; justify-content:space-between; gap:10px; margin-top:6px; }
+  .tp-btns .btn{ padding:10px 18px; font-size:16px; }
+  .tp-keys{ font-size:12px; color:var(--ink-muted); }
+  .tp-list{ margin:10px 0 0; padding:12px 0 0 22px; border-top:1px solid var(--border); font-size:14px; }
+  .tp-list li{ margin:2px 0; color:var(--ink-muted); }
+  .tp-list button{ background:none; border:none; padding:4px 6px; font:inherit; color:var(--ink-muted); cursor:pointer; text-align:left; border-radius:6px; }
+  .tp-list button:hover{ background:var(--surface-alt); color:var(--ink); }
+  .tp-list button.on{ color:var(--ink); font-weight:700; background:var(--surface-alt); }
+  /* Smal scherm (niet het doel, wel bruikbaar): paneel onderin, app erboven. */
+  @media (max-width:899px){
+    :root{ --tp:0px; }
+    body.tour-open #appRoot{ margin-right:0; height:58%; }
+    body.tour-open .overlay{ right:0; bottom:42%; }
+    .tour-panel{ top:auto; left:0; width:auto; height:42%; border-left:none; border-top:3px solid #FFD23F; }
+    .tp-title{ font-size:24px; } .tp-text{ font-size:15px; } .tp-list{ display:none; }
+  }
   /* Tekentool */
   #drawOverlay{ z-index:60; align-items:stretch; padding:0; }
   .draw-app{ background:var(--surface); width:100%; max-width:1400px; margin:0 auto; display:flex; flex-direction:column; height:100%; }
@@ -5618,9 +5641,11 @@
     return { client: client, seed: seed };
   })();
 
-  /* Rondleiding: één onderdeel licht op, met uitleg in een ballon. Vorige/Volgende (ook pijltjestoetsen), Esc = stoppen. */
+  /* Rondleiding voor de laptop: links (±70%) blijft de app volledig zichtbaar, rechts (±30%) een vast uitlegpaneel met
+     tekst, knoppen en alle stappen (klik = direct naar die stap). Het besproken onderdeel krijgt een gele rand.
+     Pijltjestoetsen = vorige/volgende, Esc = paneel sluiten (knop "Rondleiding" bovenin opent het weer). */
   var Tour = (function(){
-    var i = 0, steps = [], layer = null, spot = null, box = null;
+    var i = 0, steps = [], layer = null, spot = null, panel = null;
     var DEMO_DATE = "2026-09-27";
     function firstPlayer(){ return filteredPlayers()[0]; }
     function closeAll(){
@@ -5628,74 +5653,78 @@
       ["playerCardOverlay", "scoreOverlay", "nameGameOverlay", "tvOverlay", "rolesOverlay", "rosterOverlay"].forEach(function(id){ $(id).hidden = true; });
       if (!$("oefOverlay").hidden) closeOef();
       $("accountMenu").hidden = true;
+      if (Auth.getViewAs()){ Auth.setViewAs(null); renderAll(); }
     }
     function training(sub){ state.trainingDate = DEMO_DATE; state.trainingSub = sub; switchTab("training"); }
     steps = [
-      { title: "ART Spelersvolgsysteem", text: "Alles rond de ART-training op één plek: spelers volgen, trainingen voorbereiden volgens de Ajax-opbouw, en scouting. Gemaakt voor ART 1 bij AS’80.<br><br><small>In deze demo zijn alle spelers en trainers verzonnen.</small>", go: function(){ switchTab("spelers"); } },
-      { sel: ".tabbar", title: "Vier tabbladen", text: "In de volgorde van de week: <b>Spelers</b>, <b>Aanwezig</b>, <b>Training</b> en <b>Rapport</b>. Ieder ziet alleen wat hij nodig heeft: trainers de eerste drie, scouts alleen Spelers, het rapport is voor de hoofdtrainer.", go: function(){ switchTab("spelers"); } },
-      { sel: "#spelersList", title: "Spelers: het smoelenboek", text: "Per lichting, met foto, <b>hesjenummer</b> en <b>geboortekwartaal</b>: scouts wegen de relatieve leeftijd direct mee. Een ster betekent: vaak A of B beoordeeld.", go: function(){ switchTab("spelers"); } },
-      { sel: "#rateBar", title: "Beoordelen per blok", text: "Iedere trainer en scout ziet hoeveel spelers hij in dit blok al heeft beoordeeld. Een groen vinkje op de foto = gedaan.", go: function(){ switchTab("spelers"); } },
-      { sel: "#playerCardOverlay .sheet", title: "De spelerskaart", text: "Aanwezigheid, het gemiddelde oordeel van de trainers en van de scouts, de ster en het advies, in één oogopslag.", go: function(){ switchTab("spelers"); openPlayerCard(firstPlayer().id); } },
-      { sel: "#scoreOverlay .sheet", title: "A, B, C of D", text: "Wedstrijdbeoordeling en potentieel op dezelfde schaal als de Ajax-scoutingslijst. <b>Scouts zien alleen hun eigen beoordelingen</b>, niet die van elkaar.", go: function(){ switchTab("spelers"); openScoreSheet(firstPlayer().id); } },
+      { title: "ART Spelersvolgsysteem", text: "Alles rond de ART-training op één plek: <b>spelers volgen</b>, <b>trainingen voorbereiden volgens de Ajax-opbouw</b> en <b>scouting</b>. Gemaakt voor ART 1 bij AS’80.<br><br>Links ziet u de app zoals trainers hem gebruiken. <small>Alle spelers en trainers in deze demo zijn verzonnen.</small>", go: function(){ switchTab("spelers"); } },
+      { sel: ".tabbar", title: "Vier tabbladen", text: "In de volgorde van de week: <b>Spelers</b>, <b>Aanwezig</b>, <b>Training</b> en <b>Rapport</b>.<br><br>Ieder ziet alleen wat hij nodig heeft: trainers de eerste drie, scouts alleen Spelers, het rapport is voor de hoofdtrainer.", go: function(){ switchTab("spelers"); } },
+      { sel: "#spelersList", title: "Spelers: het smoelenboek", text: "Per lichting, met foto, <b>hesjenummer</b> en <b>geboortekwartaal</b>: zo wegen trainers en scouts de relatieve leeftijd direct mee.<br><br>Een ster betekent: deze speler wordt vaak met A of B beoordeeld.", go: function(){ switchTab("spelers"); } },
+      { sel: "#rateBar", title: "Beoordelen per blok", text: "Iedere trainer en scout ziet hoeveel spelers hij in dit blok al heeft beoordeeld. Een groen vinkje op de foto betekent: gedaan.", go: function(){ switchTab("spelers"); } },
+      { sel: "#playerCardOverlay .sheet", title: "De spelerskaart", text: "Aanwezigheid, het gemiddelde oordeel van de <b>trainers</b> en van de <b>scouts</b>, de ster en het advies, in één oogopslag.", go: function(){ switchTab("spelers"); openPlayerCard(firstPlayer().id); } },
+      { sel: "#scoreOverlay .sheet", title: "A, B, C of D", text: "Wedstrijdbeoordeling en potentieel op dezelfde schaal als de Ajax-scoutingslijst.<br><br><b>Scouts zien alleen hun eigen beoordelingen</b>, niet die van elkaar of van de trainers.", go: function(){ switchTab("spelers"); openScoreSheet(firstPlayer().id); } },
       { sel: "#ngEntry", title: "Namen oefenen", text: "Nieuwe trainers leren de namen met een spelletje: foto koppelen aan naam, of ‘Wie is dit?’. Een naam is pas ‘gekend’ na drie keer goed, verspreid over twee dagen.", go: function(){ switchTab("spelers"); } },
       { sel: "#absentiesList", title: "Aanwezigheid", text: "Op het veld in één tik: afwezig, met reden. Wie vaker dan 20% mist, krijgt een waarschuwing in het rapport.", go: function(){ switchTab("aanwezig"); } },
-      { sel: "#planWrap", title: "Training: het weekplan", text: "De periodisering van Ajax per training, met rollen (trainer A, trainer B, assistent) die per week rouleren. Elke vorm staat als tegel met tekening; staan alle vormen op klaar, dan is de training <b>compleet</b>.", go: function(){ training("plan"); } },
-      { sel: "#oefOverlay .sheet", title: "Een oefenvorm", text: "Volgens de Ajax-planner: <b>droog</b> (x.1) → spacing → <b>contextvariatie</b> (x.2), daarna de <b>small-sided game</b>. Met tekening, organisatie, regels, wedstrijdelement, aanpassing per lichting en ‘als het niet loopt’. Collega’s geven tips en tops.", go: function(){ training("plan"); openOef(DEMO_DATE, "A", 2, "plan"); } },
-      { sel: ".draw-app", title: "De tekentool", text: "Spelers in vier kleuren, trainingshoedjes, pupillen- en minidoelen op schaal, pijlen voor loopactie, pass, dribbel en schot. Sneltoetsen en ‘vak met hoedjes’ maken tekenen snel; bij opslaan zoomt hij vanzelf in.", go: function(){ training("plan"); DrawTool.open(JSON.parse(JSON.stringify(Store.getOef(DEMO_DATE, "A", 2).tekening_json)), function(){}); } },
-      { sel: "#oefOverlay .sheet", title: "Evalueren en reflecteren", text: "Na de training: kwam de vaardigheid terug, groep 1 → wat pas je aan → groep 2. Plus een reflectie van de trainer op zichzelf. De hoofdtrainer reageert, <b>alleen die trainer ziet de reactie</b>. Zo is het ook een leeromgeving voor de trainers.", go: function(){ training("evaluatie"); openOef(DEMO_DATE, "A", 2, "evaluatie"); } },
-      { sel: "#tvOverlay .sheet", title: "De hele training", text: "Alle vormen samen in de opbouw van de Ajax-planner, op telefoon of laptop. Met één klik te downloaden als pdf.", go: function(){ training("plan"); openTrainingView(DEMO_DATE); } },
-      { sel: "#overzichtWrap", title: "Rapport", text: "Per blok per speler het gemiddelde van trainers en scouts, de ster en het advies. Tik op een speler voor alle beoordelingen.", go: function(){ switchTab("overzicht"); } },
+      { sel: "#planWrap", title: "Training: het weekplan", text: "Per training de <b>periodisering van Ajax</b>, met rollen (trainer A, trainer B, assistent) die per week rouleren.<br><br>Elke vorm staat als tegel met tekening. Staan alle vormen op klaar, dan is de training <b>compleet</b>; de deadline is vrijdagavond.", go: function(){ training("plan"); } },
+      { sel: "#oefOverlay .sheet", title: "Een oefenvorm", text: "Volgens de Ajax-planner: <b>droog</b> (x.1) → spacing → <b>contextvariatie</b> (x.2), daarna de <b>small-sided game</b>.<br><br>Met tekening, organisatie, regels, wedstrijdelement, aanpassing per lichting en ‘als het niet loopt’. Collega’s geven tips en tops.", go: function(){ training("plan"); openOef(DEMO_DATE, "A", 2, "plan"); } },
+      { sel: ".draw-app", title: "De tekentool", text: "Spelers in vier kleuren, trainingshoedjes, pupillen- en minidoelen op schaal, pijlen voor loopactie, pass, dribbel en schot.<br><br>Sneltoetsen en ‘vak met hoedjes’ maken tekenen snel; bij opslaan zoomt hij vanzelf in op het stuk waar getekend is.", go: function(){ training("plan"); DrawTool.open(JSON.parse(JSON.stringify(Store.getOef(DEMO_DATE, "A", 2).tekening_json)), function(){}); } },
+      { sel: "#oefOverlay .sheet", title: "Evalueren en reflecteren", text: "Na de training: kwam de vaardigheid terug? Groep 1 → wat pas je aan → groep 2. Plus een reflectie van de trainer op zichzelf.<br><br>De hoofdtrainer reageert; <b>alleen die trainer ziet de reactie</b>. Zo is de app ook een leeromgeving voor de trainers.", go: function(){ training("evaluatie"); openOef(DEMO_DATE, "A", 2, "evaluatie"); } },
+      { sel: "#tvOverlay .sheet", title: "De hele training", text: "Alle vormen samen in de opbouw van de Ajax-planner. Met één klik te downloaden als pdf.", go: function(){ training("plan"); openTrainingView(DEMO_DATE); } },
+      { sel: "#overzichtWrap", title: "Rapport", text: "Per blok per speler het gemiddelde van trainers en scouts, de ster en het advies. Tik op een speler voor alle afzonderlijke beoordelingen.", go: function(){ switchTab("overzicht"); } },
       { sel: "#ajaxListBtn", title: "De Ajax-lijst", text: "In één klik de lijst in Ajax-opmaak per lichting, klaar om af te drukken of als pdf te versturen.", go: function(){ switchTab("overzicht"); } },
-      { title: "Veilig en praktisch", text: "Iedereen logt in met een eigen account; scouts krijgen alleen toegang tijdens hun bezoek. Foto’s zijn afgeschermd, er worden automatisch back-ups gemaakt en de app werkt als app op de telefoon.<br><br>Klik nu gerust zelf rond. <small>Niets wordt opgeslagen; verversen zet de demo terug.</small>", go: function(){ switchTab("spelers"); } }
+      { sel: "#spelersList", title: "Zo ziet een scout het", text: "Een scout krijgt een eigen account voor de duur van zijn bezoek. Hij ziet alleen het smoelenboek met hesjenummers en beoordeelt met de Ajax-scoutingslijst, met advies en onderbouwing.<br><br>Geen tabbladen, geen beoordelingen van anderen.", go: function(){ Auth.setViewAs("scout"); switchTab("spelers"); renderAll(); } },
+      { title: "Veilig en praktisch", text: "Iedereen logt in met een eigen account; scouts alleen tijdens hun bezoek. Foto’s zijn afgeschermd, er worden automatisch back-ups gemaakt en de app werkt als app op telefoon en laptop.<br><br>Klik nu gerust zelf rond. <small>Niets wordt opgeslagen; verversen zet de demo terug.</small>", go: function(){ switchTab("spelers"); } }
     ];
     function build(){
       layer = document.createElement("div"); layer.className = "tour-layer";
       spot = document.createElement("div"); spot.className = "tour-spot";
-      box = document.createElement("div"); box.className = "tour-box"; box.setAttribute("role", "dialog");
-      layer.appendChild(spot); layer.appendChild(box); document.body.appendChild(layer);
+      layer.appendChild(spot); document.body.appendChild(layer);
+      panel = document.createElement("aside"); panel.className = "tour-panel"; panel.setAttribute("aria-label", "Rondleiding");
+      document.body.appendChild(panel);
       window.addEventListener("resize", place);
       document.addEventListener("keydown", function(e){
-        if (layer.hidden) return;
-        if (e.key === "ArrowRight"){ next(); e.preventDefault(); e.stopPropagation(); }
-        else if (e.key === "ArrowLeft"){ prev(); e.preventDefault(); e.stopPropagation(); }
+        if (!document.body.classList.contains("tour-open")) return;
+        if (/INPUT|TEXTAREA|SELECT/.test((e.target.tagName || ""))) return;
+        if (e.key === "ArrowRight" || e.key === "ArrowDown"){ next(); e.preventDefault(); e.stopPropagation(); }
+        else if (e.key === "ArrowLeft" || e.key === "ArrowUp"){ prev(); e.preventDefault(); e.stopPropagation(); }
         else if (e.key === "Escape"){ stop(); e.stopPropagation(); }
       }, true);
     }
     function target(){ var s = steps[i]; return s.sel ? document.querySelector(s.sel) : null; }
     function place(){
-      if (!layer || layer.hidden) return;
-      var el = target(), vh = window.innerHeight;
-      if (!el || !el.getClientRects().length){
-        spot.style.display = "none"; layer.classList.add("dim");
-        box.style.top = Math.max(16, vh / 2 - box.offsetHeight / 2) + "px"; box.style.bottom = "auto";
-        return;
-      }
-      layer.classList.remove("dim"); spot.style.display = "block";
-      var r = el.getBoundingClientRect(), pad = 6;
+      if (!layer || !document.body.classList.contains("tour-open")) return;
+      var el = target();
+      if (!el || !el.getClientRects().length){ spot.style.display = "none"; return; }
+      var r = el.getBoundingClientRect(), pad = 6, vh = window.innerHeight;
       var top = Math.max(4, r.top - pad), bottom = Math.min(vh - 4, r.bottom + pad);
+      spot.style.display = "block";
       spot.style.left = (r.left - pad) + "px"; spot.style.top = top + "px";
       spot.style.width = (r.width + pad * 2) + "px"; spot.style.height = Math.max(20, bottom - top) + "px";
-      // Ballon aan de kant met de meeste ruimte; past het nergens, dan onderaan over het onderdeel heen.
-      var h = box.offsetHeight, below = vh - bottom, above = top;
-      if (below >= h + 16){ box.style.top = (bottom + 10) + "px"; box.style.bottom = "auto"; }
-      else if (above >= h + 16){ box.style.top = (top - h - 10) + "px"; box.style.bottom = "auto"; }
-      else { box.style.top = "auto"; box.style.bottom = "16px"; }
+    }
+    function renderPanel(){
+      var s = steps[i];
+      panel.innerHTML =
+        '<div class="tp-head"><span>Rondleiding · stap ' + (i + 1) + ' van ' + steps.length + '</span>' +
+        '<button type="button" class="icon-btn" data-tour="stop" aria-label="Rondleiding sluiten">&times;</button></div>' +
+        '<div class="tp-bar"><span style="width:' + Math.round((i + 1) / steps.length * 100) + '%"></span></div>' +
+        '<h2 class="tp-title">' + s.title + '</h2><div class="tp-text">' + s.text + '</div>' +
+        '<div class="tp-btns">' + (i ? '<button type="button" class="btn ghost" data-tour="prev">&larr; Vorige</button>' : '<span></span>') +
+        '<button type="button" class="btn primary" data-tour="next">' + (i === steps.length - 1 ? "Afsluiten" : "Volgende &rarr;") + '</button></div>' +
+        '<div class="tp-keys">Pijltjestoetsen = vorige/volgende · Esc = sluiten</div>' +
+        '<ol class="tp-list">' + steps.map(function(x, n){ return '<li><button type="button" data-tour-go="' + n + '"' + (n === i ? ' class="on"' : '') + '>' + x.title + '</button></li>'; }).join("") + '</ol>';
+      panel.querySelector('[data-tour="stop"]').onclick = stop;
+      panel.querySelector('[data-tour="next"]').onclick = next;
+      if (i) panel.querySelector('[data-tour="prev"]').onclick = prev;
+      Array.prototype.forEach.call(panel.querySelectorAll("[data-tour-go]"), function(b){ b.onclick = function(){ show(Number(b.getAttribute("data-tour-go"))); }; });
     }
     function show(n){
       i = Math.max(0, Math.min(steps.length - 1, n));
+      document.body.classList.add("tour-open");
       closeAll();
-      var s = steps[i];
-      try { s.go(); } catch(e){ console.error(e); }
-      box.innerHTML = '<div class="tour-count">' + (i + 1) + ' / ' + steps.length + '</div>' +
-        '<div class="tour-title">' + s.title + '</div><div class="tour-text">' + s.text + '</div>' +
-        '<div class="tour-btns"><button type="button" class="btn ghost small" data-tour="stop">Stoppen</button><span></span>' +
-        (i ? '<button type="button" class="btn ghost small" data-tour="prev">Vorige</button>' : '') +
-        '<button type="button" class="btn primary small" data-tour="next">' + (i === steps.length - 1 ? "Klaar" : "Volgende") + '</button></div>';
-      box.querySelector('[data-tour="stop"]').onclick = stop;
-      box.querySelector('[data-tour="next"]').onclick = next;
-      if (i) box.querySelector('[data-tour="prev"]').onclick = prev;
-      layer.hidden = false;
-      // Wachten tot het scherm is opgebouwd (vensters, foto's), dan het onderdeel in beeld brengen en uitlichten.
+      try { steps[i].go(); } catch(e){ console.error(e); }
+      renderPanel();
+      spot.style.display = "none";
+      // Wachten tot het scherm is opgebouwd (vensters, foto's), dan het onderdeel in beeld brengen en omranden.
       setTimeout(function(){
         var el = target();
         if (el && el.scrollIntoView && !el.closest(".overlay") && !el.closest(".tabbar")) el.scrollIntoView({ block: "center" });
@@ -5705,7 +5734,7 @@
     }
     function next(){ if (i === steps.length - 1) stop(); else show(i + 1); }
     function prev(){ show(i - 1); }
-    function stop(){ if (layer) layer.hidden = true; closeAll(); switchTab("spelers"); }
+    function stop(){ document.body.classList.remove("tour-open"); if (spot) spot.style.display = "none"; closeAll(); switchTab("spelers"); }
     function start(){ if (!layer) build(); show(0); }
     return { start: start };
   })();

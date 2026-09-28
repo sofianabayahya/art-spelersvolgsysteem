@@ -112,7 +112,11 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
 - Verzonnen data (`DemoDB.seed`): 24 spelers, trainers Tim de Groot/Kevin Postma/Rick Verhoef, scouts Johan Laan/Erik
   Stam, beoordelingen, aanwezigheid, en de training van 27 sep (`DEMO_VORMEN`, kopie van de echte 5 vormen) met
   reflectie, tips/tops en een reactie van de hoofdtrainer. Geen echte kinderen of namen in de demo.
-- Rondleiding (`Tour`): 16 stappen, oplichtend onderdeel + ballon, Vorige/Volgende/pijltjestoetsen, Esc = stoppen.
+- Rondleiding (`Tour`), laptop eerst (Sofian presenteert altijd op de laptop): app links (±70%), vast uitlegpaneel
+  rechts (`--tp` = clamp(340px, 30vw, 500px)) met tekst, Vorige/Volgende, voortgangsbalk en alle stappen als lijst
+  (klik = springen). Besproken onderdeel krijgt een gele rand (licht gedimde rest). App-vensters blijven in het linkerdeel
+  (`body.tour-open .overlay{right:var(--tp)}`). 17 stappen, incl. "Zo ziet een scout het" (bekijken als scout).
+  Pijltjestoetsen, Esc = paneel dicht. Smal scherm: paneel onderin (niet het doel).
   Gele "DEMO"-pil bovenaan met knop "Rondleiding". Stappen zijn in `Tour` aan te passen (sel, title, text, go).
 - Wijzigt de app, controleer dan of de selectors van de rondleiding nog kloppen.
 
