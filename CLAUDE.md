@@ -153,6 +153,11 @@ Zodra `git` beschikbaar is: overstappen op een gewone clone.
 - Tekentool zoomt bij opslaan automatisch in op het getekende stuk (`contentBox`: alle items + 60px marge, 3:2, min 330x220;
   gebruikt de tekening > 80% van het veld, dan heel veld). Vinkje "Opslaan ingezoomd op de spelers" (standaard aan,
   bewaard als `zoom` in tekening_json). Tekenen gebeurt altijd op het hele veld. Geen aparte "kwart vak"-veldvorm (besluit).
+- Tekening zonder opgeslagen plaatje (alleen `tekening_json`) wordt door de app zelf getekend (`DrawTool.staticSvg`):
+  tegels, "Bekijk hele training", invulvenster en afdruk. Opslaan in de tekentool maakt alsnog een JPEG.
+- 2026-09-28: training 20 sep (door Sofian "3e training" genoemd, kick-off meegeteld) ingevoerd door Claude vanuit de
+  planner-foto + evaluatieverslag: A Passeren (A1, A2), B Afwerken (B1, B2), C Beschermen/vrijmaken (C2), met
+  nagetekende tekeningen (tekening_json), status gedeeld, eigenaar leeg, korte algemene evaluatie. Sofian past aan.
 - Tekentool: nog een keer op de actieve knop = stoppen met neerzetten. Spelers r=12.5 (was 17). ART gebruikt alleen
   pupillendoelen (5x2 m) en minidoelen (2x1 m); ~10 beeldpunten per meter (oude "L" groot doel wordt nog getekend).
   Pion vervangen door trainingshoedjes in 6 kleuren (oranje, blauw, rood, geel, groen, roze; `HAT`, `hatSvg`), getekend

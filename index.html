@@ -463,7 +463,11 @@
     background:var(--surface-alt); border:1px solid var(--border); border-radius:12px; min-width:0; }
   .tr-tile.tr-mine{ border-color:var(--accent); }
   .tr-tile-img{ display:flex; align-items:center; justify-content:center; aspect-ratio:3 / 2; background:#fff; border-radius:8px; overflow:hidden; }
-  .tr-tile-img img{ width:100%; height:100%; object-fit:contain; display:block; }
+  .tr-tile-img img, .tr-tile-img svg{ width:100%; height:100%; object-fit:contain; display:block; }
+  .tv-svg svg{ width:100%; max-height:300px; display:block; margin-bottom:8px; border-radius:8px; }
+  .oef-svg svg{ width:100%; max-height:360px; display:block; border-radius:10px; }
+  @media (min-width:900px){ .oef-left .oef-svg svg{ max-height:70vh; } }
+  .tp-svg svg{ width:100%; max-height:62mm; display:block; margin-bottom:2mm; }
   .tr-tile-empty{ font-size:13px; font-weight:600; color:#667; text-align:center; padding:6px; }
   .tr-tile-cap{ font-size:14px; }
   .tr-tile-cap small{ color:var(--ink-muted); font-size:12px; }
@@ -3373,7 +3377,26 @@
         if (n !== -1){ pickTool(n); e.preventDefault(); }
       }
     }, true);
-    return { open: open };
+
+    /* Tekening als losse SVG uit de tekengegevens (tekening_json), zonder de tekentool te openen. Voor vormen zonder
+       opgeslagen plaatje (bv. ingevoerd door de beheerder); zelfde inzoomen als bij opslaan. Eigen id's per tekening. */
+    var svgSeq = 0;
+    function staticSvg(json){
+      if (!json || !FIELDS[json.field]) return "";
+      var saved = st;
+      st = { field: json.field, items: json.items || [], sel: null, zoom: json.zoom !== false };
+      try {
+        var f = FIELDS[st.field], b = (st.zoom ? contentBox() : null) || { x: 0, y: 0, w: f.w, h: f.h }, u = "s" + (++svgSeq);
+        var inner = '<defs><pattern id="drawNet" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#e9e9e9"/><path d="M0 0 L6 6 M6 0 L0 6" stroke="#9a9a9a" stroke-width="1"/></pattern>' +
+          '<marker id="drawHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#111"/></marker></defs>' +
+          '<g>' + fieldSvg() + '</g><g>' +
+          st.items.map(function(it, i){ return it.t === "zone" ? itemSvg(it, i) : ""; }).join("") +
+          st.items.map(function(it, i){ return it.t === "zone" ? "" : itemSvg(it, i); }).join("") + '</g>';
+        return ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + b.x + ' ' + b.y + ' ' + b.w + ' ' + b.h + '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Tekening">' + inner + '</svg>')
+          .replace(/drawNet/g, "drawNet" + u).replace(/drawHead/g, "drawHead" + u);
+      } finally { st = saved; }
+    }
+    return { open: open, staticSvg: staticSvg };
   })();
 
   /* ---------- TRAINING tab (coachdashboard) ----------
@@ -3484,6 +3507,7 @@
     var mine = row ? row.eigenaar_id === myUserId() : (Store.getPlan(d) || {})[ROLE_FIELD[o]] === myUserId();
     var fb = row ? Store.getFeedback(row.id).length : 0;
     var img = row && row.tekening_path ? '<img alt="Tekening ' + o + v + '" data-tek-path="' + esc(row.tekening_path) + '">'
+      : row && row.tekening_json ? DrawTool.staticSvg(row.tekening_json)
       : '<span class="tr-tile-empty">' + (mode === "plan" && canEditOef(d, o, row) ? "+ Maak deze vorm" : (row ? "Geen tekening" : "Nog niet gemaakt")) + '</span>';
     var status = mode === "evaluatie"
       ? (row && row.eval_terug ? terugPill(row) : '<span class="pill none">Nog niet geëvalueerd</span>') + (row && Store.getReactie(row.id) ? ' <span class="pill good">Reactie</span>' : '')
@@ -3575,7 +3599,7 @@
       if (!r) return '<div class="tv-deel">' + head + '<div class="tv-empty">Nog niet ingevuld.</div></div>';
       var b = function(k, t){ return t ? '<div class="tv-b"><b>' + k + '</b>' + nl(t) + '</div>' : ''; };
       return '<div class="tv-deel">' + head +
-        (r.tekening_path ? '<img alt="Tekening ' + code + '" data-tek-path="' + esc(r.tekening_path) + '">' : '') +
+        (r.tekening_path ? '<img alt="Tekening ' + code + '" data-tek-path="' + esc(r.tekening_path) + '">' : (r.tekening_json ? '<div class="tv-svg">' + DrawTool.staticSvg(r.tekening_json) + '</div>' : '')) +
         b("Aantallen", r.aantallen) +
         b(code + ".1 · " + vormSub(v), r.variatie_1) +
         b(code + ".2 · contextvariatie", r.variatie_2) +
@@ -3716,7 +3740,8 @@
       function cell(o, v){
         var r = Store.getOef(d, o, v);
         if (!r) return '<td class="tp-empty">–</td>';
-        var img = r.tekening_path && urls[r.tekening_path] ? '<img src="' + esc(urls[r.tekening_path]) + '" alt="">' : '';
+        var img = r.tekening_path && urls[r.tekening_path] ? '<img src="' + esc(urls[r.tekening_path]) + '" alt="">'
+          : (r.tekening_json ? '<div class="tp-svg">' + DrawTool.staticSvg(r.tekening_json) + '</div>' : '');
         var l1 = o + v + ".1 · " + vormSub(v), l2 = o + v + ".2 · contextvariatie";
         return '<td>' + img +
           (r.aantallen ? '<div class="tp-k">' + esc(r.aantallen) + '</div>' : '') +
@@ -3850,6 +3875,7 @@
     var path = s.row && !s.removeTek ? s.row.tekening_path : null;
     $("oTekDel").hidden = !s.editable || s.mode !== "plan" || !(s.newBlob || path);
     if (s.newBlob){ wrap.innerHTML = '<img alt="Tekening van de oefenvorm" src="' + URL.createObjectURL(s.newBlob) + '">'; return; }
+    if (!path && s.tekJson){ wrap.innerHTML = '<div class="oef-svg">' + DrawTool.staticSvg(s.tekJson) + '</div>'; return; }
     if (!path){ wrap.innerHTML = '<div class="tr-note">Nog geen tekening.</div>'; return; }
     wrap.innerHTML = '<div class="tr-note">Laden…</div>';
     Store.getTekeningUrl(path).then(function(url){
