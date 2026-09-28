@@ -113,6 +113,23 @@ Bij verlopen token: nieuwe maken met dezelfde rechten en opslaan met
 `security add-generic-password -U -a "$USER" -s github-art-token -w`.
 Zodra `git` beschikbaar is: overstappen op een gewone clone.
 
+## Namen oefenen
+- Knop "Namen oefenen" boven het smoelenboek (alle rollen). Twee vormen: Koppelen (tik foto + naam; goed = naam op kaart en
+  weg uit lijst) en Wie is dit? (grote foto, kies naam; fouten komen 2 vragen later terug). Per lichting of "Alle" (8 minst
+  gekende). Voortgang per gebruiker in localStorage `art-namen-<userId>`; gekend = 3x goed over >= 2 dagen.
+
+## Coachdashboard (besluiten Sofian 2026-09-28, nog te bouwen)
+- Tabbladen worden Spelers · Training · Rapport; Aanwezigheid en Evaluatie gaan op in Training.
+- Trainingsopzet: hoofdtrainer A en B hebben elk een vaardigheid; per vaardigheid oefenvorm 1 en 2, elk twee keer gegeven
+  (groep 1, spacing, groep 2; assistent draait door). Rolverdeling per training zichtbaar (hoofdtrainer A/B, assistent,
+  taken/coachgedrag), eigenaar + deadline per oefenvorm, controlepunt wedstrijdelement, aanpassingen vooraf ("als het niet loopt").
+- Evaluatie per oefenvorm: kwam de doelvaardigheid terug (ja/deels/nee), groep 1 → wat aangepast → groep 2, loopt het /
+  wat aangepast, ruimte en welke lichting had moeite, wat volgende keer anders.
+- NIET: aantal keer per speler, video (upload of link), groepsindeling voor scouts, halfuur-timer. Grote instelbare timer:
+  Sofian denkt nog na.
+- Tekening: upload screenshot/foto van de oefenvorm (verkleind); tekst in vaste velden in de app. Eenvoudig tekenbord pas later.
+- Periodisering Blok 1+2 aangeleverd als pptx (Downloads).
+
 ## Openstaand werk
 - [x] 2026-09-27: testdata opgeschoond (alle beoordelingen, scoutrapporten, favorieten) en alle accounts behalve Sofian
       (hoofdtrainer) verwijderd, o.a. Tommy (trainer, tommyverhulst1@gmail.com) en Peter Muster (scout). Back-up nr. 2 ervoor.

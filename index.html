@@ -335,6 +335,49 @@
   .role-banner{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
     background:var(--mid-soft); color:var(--mid); border:1px solid var(--mid); border-radius:10px; padding:6px 8px 6px 12px; font-size:13.5px; }
   .role-banner b{ color:var(--ink); text-transform:capitalize; }
+  /* Namen oefenen */
+  .ng-entry{
+    display:flex; align-items:center; gap:10px; width:100%; text-align:left; cursor:pointer; font:inherit; color:var(--ink);
+    background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:10px 12px;
+  }
+  .ng-entry .ng-ico{ width:34px; height:34px; border-radius:10px; background:var(--accent); color:var(--accent-ink); display:flex; align-items:center; justify-content:center; font:700 18px "Barlow Condensed",sans-serif; flex:0 0 auto; }
+  .ng-entry b{ display:block; font-size:15px; }
+  .ng-entry small{ color:var(--ink-muted); font-size:13px; }
+  .ng-entry .ng-go{ margin-left:auto; color:var(--ink-muted); font-size:22px; }
+  #nameGameOverlay{ align-items:stretch; }
+  .ng-sheet{ max-width:560px; height:100%; max-height:none; border-radius:0; display:flex; flex-direction:column; gap:10px;
+    padding-top:calc(14px + env(safe-area-inset-top,0px)); }
+  @media (min-width:600px){ #nameGameOverlay{ align-items:center; } .ng-sheet{ height:92vh; border-radius:20px; } }
+  .ng-sheet .sheet-head{ margin-bottom:0; }
+  .ng-tabs{ display:flex; background:var(--surface-alt); border-radius:12px; padding:3px; }
+  .ng-tabs button{ flex:1; border:none; background:transparent; color:var(--ink-muted); font:600 15px "Barlow",sans-serif; padding:9px; border-radius:10px; cursor:pointer; }
+  .ng-tabs button.active{ background:var(--accent); color:var(--accent-ink); }
+  #ngBody{ flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:12px; }
+  .ng-hint{ font-size:13.5px; color:var(--ink-muted); }
+  .ng-grid{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px; }
+  .ng-card{ position:relative; padding:0; border:2px solid var(--border); border-radius:12px; overflow:hidden; background:var(--surface); cursor:pointer; font:inherit; color:var(--ink); }
+  .ng-card .ng-ph{ position:relative; height:0; padding-top:100%; background:var(--surface-alt); }
+  .ng-card img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .ng-card .ng-lbl{ min-height:34px; padding:5px 4px; font-size:12.5px; font-weight:700; line-height:1.2; display:flex; align-items:center; justify-content:center; text-align:center; }
+  .ng-card.sel{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+  .ng-card.done{ border-color:var(--good); cursor:default; }
+  .ng-card.done .ng-lbl{ color:var(--good); }
+  .ng-card.reveal .ng-lbl{ color:var(--mid); }
+  .ng-names{ display:flex; flex-wrap:wrap; gap:8px; }
+  .ng-name{ border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); font:600 15px "Barlow",sans-serif; padding:10px 14px; border-radius:999px; cursor:pointer; }
+  .ng-name.sel{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  .ng-name.ok{ background:var(--good); border-color:var(--good); color:#0d2414; }
+  .ng-name.bad{ background:var(--low); border-color:var(--low); color:#2a0c0c; }
+  .ng-shake{ animation:ngShake .45s; }
+  @keyframes ngShake{ 20%{ transform:translateX(-6px); } 40%{ transform:translateX(6px); } 60%{ transform:translateX(-4px); } 80%{ transform:translateX(4px); } }
+  @media (prefers-reduced-motion: reduce){ .ng-shake{ animation:none; } }
+  .ng-quiz-photo{ width:min(100%, 320px); aspect-ratio:1/1; margin:0 auto; border-radius:18px; overflow:hidden; background:var(--surface-alt); }
+  .ng-quiz-photo img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .ng-options{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .ng-options .ng-name{ border-radius:12px; padding:12px 10px; text-align:center; }
+  .ng-progress{ font-size:13.5px; color:var(--ink-muted); text-align:center; }
+  .ng-done{ text-align:center; padding:20px 10px; display:flex; flex-direction:column; gap:10px; align-items:center; }
+  .ng-done .big{ font:700 40px "Barlow Condensed",sans-serif; }
   /* Instellingen: uitklapbare groepen */
   .set-group{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:10px; }
   .set-group > summary{
@@ -658,6 +701,7 @@
       </div>
       <span class="count" id="spelersCount"></span>
     </div>
+    <button type="button" class="ng-entry" id="ngEntry"><span class="ng-ico">Aa</span><span><b>Namen oefenen</b><small id="ngEntrySub"></small></span><span class="ng-go">&rsaquo;</span></button>
     <div id="spelersList" class="player-grid"></div>
   </section>
 
@@ -803,6 +847,21 @@
       <button class="btn ghost" id="deletePlayerBtn" style="display:none; color:var(--low); border-color:var(--low-soft);">Verwijderen</button>
       <button class="btn primary block" id="savePlayerBtn">Opslaan</button>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="nameGameOverlay" hidden>
+  <div class="sheet ng-sheet" role="dialog" aria-modal="true" aria-labelledby="ngTitle">
+    <div class="sheet-head">
+      <h3 id="ngTitle">Namen oefenen</h3>
+      <button class="icon-btn" id="closeNameGame" aria-label="Sluiten">&times;</button>
+    </div>
+    <div class="ng-tabs" role="tablist">
+      <button type="button" data-ng-mode="match" class="active">Koppelen</button>
+      <button type="button" data-ng-mode="quiz">Wie is dit?</button>
+    </div>
+    <div class="chips ng-lichting" id="ngLichting"></div>
+    <div id="ngBody"></div>
   </div>
 </div>
 
@@ -1845,6 +1904,8 @@
   function renderSpelers(){
     var players = filteredPlayers();
     $("spelersCount").textContent = players.length + (players.length === 1 ? " speler" : " spelers");
+    $("ngEntry").hidden = !players.length;
+    if (players.length) $("ngEntrySub").textContent = NameGame.entryText();
     var rates = canRate();
     $("rateBar").hidden = !rates || !players.length;
     $("spelersCount").hidden = !$("rateBar").hidden; // voortgang toont het aantal al
@@ -1896,6 +1957,177 @@
     if (Auth.myRole() === "scout") return !!myScoutGrade(playerId, state.beoordelenBlok);
     return Store.getScores().some(function(s){ return s.playerId === playerId && s.trainerId === myUserId() && s.blok === state.beoordelenBlok; });
   }
+
+  /* ---------- Namen oefenen ----------
+     Gebaseerd op hoe je namen het best leert: zelf de naam ophalen (niet alleen kijken), direct feedback bij een fout,
+     kleine sets (per lichting) en gespreid herhalen. Voortgang per gebruiker op dit toestel.
+     Een naam is "gekend" na 3 keer goed, verspreid over minstens 2 dagen. */
+  var NameGame = (function(){
+    var mode = "match", lichting = null, selCard = null, selName = null, busy = false;
+    var quiz = null; // { queue: [ids], total, fouten, pool }
+
+    function key(){ return "art-namen-" + (myUserId() || "x"); }
+    function load(){ try { return JSON.parse(localStorage.getItem(key()) || "{}") || {}; } catch(e){ return {}; } }
+    function save(d){ try { localStorage.setItem(key(), JSON.stringify(d)); } catch(e){} }
+    function record(pid, ok){
+      var d = load(), r = d[pid] || { ok: 0, days: [] };
+      if (ok){ r.ok++; var t = todayISO(); if (r.days.indexOf(t) === -1) r.days.push(t); }
+      else r.ok = Math.max(0, r.ok - 1);
+      d[pid] = r; save(d);
+    }
+    function known(pid){ var r = load()[pid]; return !!r && r.ok >= 3 && r.days.length >= 2; }
+    function shuffle(a){ a = a.slice(); for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+    function withPhoto(ps){ return ps.filter(function(p){ return p.fotoPath; }); }
+
+    // Oefenset: één lichting, of bij "Alle" de 8 minst gekende spelers.
+    function pool(){
+      var ps = withPhoto(Store.getPlayers());
+      if (lichting !== "all") return ps.filter(function(p){ return p.lichting === lichting; });
+      return shuffle(ps).sort(function(a, b){ return (known(a.id) ? 1 : 0) - (known(b.id) ? 1 : 0); }).slice(0, 8);
+    }
+    function entryText(){
+      var ps = withPhoto(filteredPlayers());
+      var k = ps.filter(function(p){ return known(p.id); }).length;
+      return ps.length ? k + " van " + ps.length + " namen gekend" : "Nog geen spelers met foto";
+    }
+
+    function open(){
+      lichting = state.lichting && state.lichting !== "all" ? state.lichting : (LICHTINGEN[0] ? LICHTINGEN[0].key : "all");
+      $("nameGameOverlay").hidden = false;
+      start();
+    }
+    function close(){ $("nameGameOverlay").hidden = true; quiz = null; renderSpelers(); }
+
+    function renderLichting(){
+      var items = LICHTINGEN.map(function(l){ return { key: l.key, label: l.label }; }).concat([{ key: "all", label: "Alle" }]);
+      var wrap = $("ngLichting");
+      wrap.innerHTML = items.map(function(l){
+        var ps = l.key === "all" ? withPhoto(Store.getPlayers()) : withPhoto(Store.getPlayers()).filter(function(p){ return p.lichting === l.key; });
+        var k = ps.filter(function(p){ return known(p.id); }).length;
+        return '<button type="button" class="chip' + (l.key === lichting ? " active" : "") + '" data-ng-l="' + l.key + '">' + esc(l.label) +
+          (l.key === "all" ? "" : ' <small>' + k + '/' + ps.length + '</small>') + '</button>';
+      }).join("");
+      Array.prototype.forEach.call(wrap.querySelectorAll("[data-ng-l]"), function(b){
+        b.addEventListener("click", function(){ lichting = b.getAttribute("data-ng-l"); start(); });
+      });
+    }
+
+    function start(){
+      selCard = selName = null; busy = false; quiz = null;
+      Array.prototype.forEach.call(document.querySelectorAll("[data-ng-mode]"), function(b){ b.classList.toggle("active", b.getAttribute("data-ng-mode") === mode); });
+      renderLichting();
+      if (mode === "match") renderMatch(); else startQuiz();
+    }
+
+    /* Koppelen: tik een foto en een naam. Goed = naam op de kaart en weg uit de lijst. */
+    function renderMatch(){
+      var ps = shuffle(pool());
+      var body = $("ngBody");
+      if (!ps.length){ body.innerHTML = '<div class="ng-hint">Geen spelers met foto in deze lichting.</div>'; return; }
+      body.innerHTML = '<div class="ng-hint">Tik op een foto en daarna op de juiste naam.</div>' +
+        '<div class="ng-grid">' + ps.map(function(p){
+          return '<button type="button" class="ng-card" data-card="' + p.id + '"><div class="ng-ph"><img data-ident-photo="' + p.id + '" data-foto-path="' + esc(p.fotoPath) + '" alt=""></div>' +
+            '<div class="ng-lbl">?</div></button>';
+        }).join("") + '</div>' +
+        '<div class="ng-names">' + shuffle(ps).map(function(p){ return '<button type="button" class="ng-name" data-name="' + p.id + '">' + esc(p.naam.split(" ")[0]) + '</button>'; }).join("") + '</div>';
+      fillPlayerPhotos(body, { zoom: false });
+      var fouten = 0, goed = 0;
+      function check(){
+        if (!selCard || !selName) return;
+        var card = body.querySelector('[data-card="' + selCard + '"]'), chip = body.querySelector('[data-name="' + selName + '"]');
+        var p = ps.find(function(x){ return x.id === selCard; });
+        if (selCard === selName){
+          record(p.id, true); goed++;
+          card.classList.remove("sel"); card.classList.add("done"); card.disabled = true;
+          card.querySelector(".ng-lbl").textContent = p.naam;
+          chip.remove();
+          selCard = selName = null;
+          if (goed === ps.length) finish("match", ps.length, fouten);
+        } else {
+          record(p.id, false); fouten++;
+          busy = true;
+          card.classList.add("ng-shake", "reveal"); chip.classList.add("bad", "ng-shake");
+          card.querySelector(".ng-lbl").textContent = p.naam; // laat kort zien wie het wél is
+          setTimeout(function(){
+            card.classList.remove("ng-shake", "reveal", "sel"); chip.classList.remove("bad", "ng-shake", "sel");
+            card.querySelector(".ng-lbl").textContent = "?";
+            selCard = selName = null; busy = false;
+          }, 1300);
+        }
+      }
+      Array.prototype.forEach.call(body.querySelectorAll("[data-card]"), function(c){
+        c.addEventListener("click", function(){
+          if (busy || c.classList.contains("done")) return;
+          Array.prototype.forEach.call(body.querySelectorAll(".ng-card.sel"), function(x){ x.classList.remove("sel"); });
+          selCard = c.getAttribute("data-card"); c.classList.add("sel"); check();
+        });
+      });
+      Array.prototype.forEach.call(body.querySelectorAll("[data-name]"), function(n){
+        n.addEventListener("click", function(){
+          if (busy) return;
+          Array.prototype.forEach.call(body.querySelectorAll(".ng-name.sel"), function(x){ x.classList.remove("sel"); });
+          selName = n.getAttribute("data-name"); n.classList.add("sel"); check();
+        });
+      });
+    }
+
+    /* Wie is dit?: grote foto, kies de naam. Fouten komen een paar vragen later terug. */
+    function startQuiz(){
+      var ps = pool();
+      if (!ps.length){ $("ngBody").innerHTML = '<div class="ng-hint">Geen spelers met foto in deze lichting.</div>'; return; }
+      var order = shuffle(ps).sort(function(a, b){ return (known(a.id) ? 1 : 0) - (known(b.id) ? 1 : 0); });
+      quiz = { pool: ps, queue: order.map(function(p){ return p.id; }), total: ps.length, fouten: 0, klaar: 0 };
+      renderQuiz();
+    }
+    function renderQuiz(){
+      var body = $("ngBody");
+      if (!quiz.queue.length){ finish("quiz", quiz.total, quiz.fouten); return; }
+      var p = quiz.pool.find(function(x){ return x.id === quiz.queue[0]; });
+      var others = shuffle(quiz.pool.filter(function(x){ return x.id !== p.id; })).slice(0, 5);
+      var opts = shuffle([p].concat(others));
+      body.innerHTML = '<div class="ng-progress">' + quiz.klaar + ' van ' + quiz.total + ' goed</div>' +
+        '<div class="ng-quiz-photo"><img data-ident-photo="' + p.id + '" data-foto-path="' + esc(p.fotoPath) + '" alt=""></div>' +
+        '<div class="ng-options">' + opts.map(function(o){ return '<button type="button" class="ng-name" data-opt="' + o.id + '">' + esc(o.naam) + '</button>'; }).join("") + '</div>';
+      fillPlayerPhotos(body, { zoom: false });
+      var answered = false;
+      Array.prototype.forEach.call(body.querySelectorAll("[data-opt]"), function(b){
+        b.addEventListener("click", function(){
+          if (answered) return; answered = true;
+          var ok = b.getAttribute("data-opt") === p.id;
+          record(p.id, ok);
+          quiz.queue.shift();
+          if (ok){ b.classList.add("ok"); quiz.klaar++; }
+          else {
+            quiz.fouten++;
+            b.classList.add("bad", "ng-shake");
+            body.querySelector('[data-opt="' + p.id + '"]').classList.add("ok");
+            quiz.queue.splice(Math.min(2, quiz.queue.length), 0, p.id); // over twee vragen nog eens
+          }
+          setTimeout(renderQuiz, ok ? 650 : 1500);
+        });
+      });
+    }
+
+    function finish(m, total, fouten){
+      var body = $("ngBody");
+      body.innerHTML = '<div class="ng-done"><div class="big">' + (fouten ? total + " namen" : "Foutloos!") + '</div>' +
+        '<div>' + (fouten ? fouten + (fouten === 1 ? " fout" : " fouten") + " onderweg. Oefen morgen nog eens: dan blijft het beter hangen." : "Alle " + total + " in één keer goed.") + '</div>' +
+        '<div class="btn-row" style="justify-content:center;">' +
+        '<button type="button" class="btn primary" id="ngAgain">Nog een keer</button>' +
+        '<button type="button" class="btn ghost" id="ngSwitch">' + (m === "match" ? "Nu: Wie is dit?" : "Nu: Koppelen") + '</button></div></div>';
+      renderLichting();
+      $("ngAgain").addEventListener("click", start);
+      $("ngSwitch").addEventListener("click", function(){ mode = m === "match" ? "quiz" : "match"; start(); });
+    }
+
+    $("ngEntry").addEventListener("click", open);
+    $("closeNameGame").addEventListener("click", close);
+    Array.prototype.forEach.call(document.querySelectorAll("[data-ng-mode]"), function(b){
+      b.addEventListener("click", function(){ mode = b.getAttribute("data-ng-mode"); start(); });
+    });
+    document.addEventListener("keydown", function(e){ if (e.key === "Escape" && !$("nameGameOverlay").hidden) close(); });
+    return { entryText: entryText };
+  })();
 
   /* ---------- Spelerskaart: alles over één speler, per rol ---------- */
   function openPlayerCard(playerId){
