@@ -320,6 +320,21 @@
     .pa-table td.c{ font-weight:700; font-size:12pt; }
   }
 
+  .season-chips{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+  .season-chip{ display:inline-flex; align-items:center; gap:6px; padding:5px 6px 5px 12px; border-radius:999px; background:var(--surface-alt); border:1px solid var(--border); font-weight:600; font-size:14px; }
+  .season-chip small{ color:var(--ink-muted); font-weight:600; }
+  .season-x{ width:26px; height:26px; border-radius:999px; border:none; background:transparent; color:var(--ink-muted); font-size:18px; cursor:pointer; }
+  .season-x:hover{ color:var(--low); background:var(--low-soft); }
+  .season-blok{ margin-bottom:6px; }
+  .sb-head{ font-weight:700; font-size:14px; margin-bottom:6px; }
+  .sb-head small{ color:var(--ink-muted); font-weight:500; margin-left:4px; }
+  .season-add{ display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap; }
+  .menu-roles{ border-bottom:1px solid var(--border); padding-bottom:4px; margin-bottom:4px; }
+  .menu-label{ font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:var(--ink-muted); padding:8px 14px 4px; }
+  .menu-roles button.active::after{ content:" \2713"; color:var(--good); font-weight:800; }
+  .role-banner{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    background:var(--mid-soft); color:var(--mid); border:1px solid var(--mid); border-radius:10px; padding:6px 8px 6px 12px; font-size:13.5px; }
+  .role-banner b{ color:var(--ink); text-transform:capitalize; }
   /* Instellingen: uitklapbare groepen */
   .set-group{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:10px; }
   .set-group > summary{
@@ -612,6 +627,12 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c1.5-4 4.5-6 7-6s5.5 2 7 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
         <div class="account-menu" id="accountMenu" hidden>
+          <div class="menu-roles" id="menuRoles" hidden>
+            <div class="menu-label">Bekijk de app als</div>
+            <button type="button" data-view-as="">Hoofdtrainer</button>
+            <button type="button" data-view-as="trainer">Trainer</button>
+            <button type="button" data-view-as="scout">Scout</button>
+          </div>
           <button type="button" id="menuInstellingenBtn" hidden>Instellingen</button>
           <button type="button" id="menuPwBtn">Wachtwoord wijzigen</button>
           <button type="button" id="menuLogoutBtn" class="danger">Uitloggen</button>
@@ -620,6 +641,10 @@
     </div>
   </div>
   <div class="chips" id="lichtingChips" role="tablist" aria-label="Lichting"></div>
+  <div class="role-banner" id="roleBanner" hidden>
+    <span>Testmodus: je ziet de app als <b id="roleBannerRole"></b></span>
+    <button type="button" class="btn small" id="roleBannerBack">Terug naar hoofdtrainer</button>
+  </div>
 </header>
 
 <main>
@@ -1148,6 +1173,7 @@
         if (res.error){ console.error(res.error); return; }
         url = (res.data && res.data.logo_url) || null;
         if (res.data && res.data.scout_signaal_drempel) scoutDrempel = res.data.scout_signaal_drempel;
+        applySeason(res.data);
         apply();
       }).catch(function(err){ console.error(err); });
     }
@@ -1165,8 +1191,17 @@
     function onReady(fn){ readyCb = fn; }
     function currentUser(){ return user; }
     function currentProfile(){ return profile; }
-    function isHoofdtrainer(){ return !!profile && profile.role === "hoofdtrainer"; }
-    function myRole(){ return profile ? profile.role : null; }
+    // Rolwissel (alleen de hoofdtrainer): de app bekijken als trainer of scout, om te testen zonder uit te loggen.
+    // De database blijft je als hoofdtrainer behandelen; opslaan gebeurt onder je eigen account.
+    var viewAs = (function(){ try { return localStorage.getItem("art-view-as"); } catch(e){ return null; } })();
+    function isRealHoofdtrainer(){ return !!profile && profile.role === "hoofdtrainer"; }
+    function isHoofdtrainer(){ return isRealHoofdtrainer() && !viewAs; }
+    function myRole(){ return profile ? (isRealHoofdtrainer() && viewAs ? viewAs : profile.role) : null; }
+    function getViewAs(){ return isRealHoofdtrainer() ? viewAs : null; }
+    function setViewAs(r){
+      viewAs = (r === "trainer" || r === "scout") ? r : null;
+      try { if (viewAs) localStorage.setItem("art-view-as", viewAs); else localStorage.removeItem("art-view-as"); } catch(e){}
+    }
 
     function showAuthScreen(msg){
       $("authLoading").hidden = true;
@@ -1230,11 +1265,12 @@
       });
     }
     function logout(){
+      setViewAs(null);
       Store.clearFotoUrlCache(); // foto-links horen niet op het toestel te blijven na uitloggen
       return sb.auth.signOut().then(function(){ user = null; profile = null; showAuthScreen(); });
     }
 
-    return { boot:boot, login:login, logout:logout, onReady:onReady, currentUser:currentUser, currentProfile:currentProfile, isHoofdtrainer:isHoofdtrainer, myRole:myRole };
+    return { boot:boot, login:login, logout:logout, onReady:onReady, currentUser:currentUser, currentProfile:currentProfile, isHoofdtrainer:isHoofdtrainer, myRole:myRole, isRealHoofdtrainer:isRealHoofdtrainer, getViewAs:getViewAs, setViewAs:setViewAs };
   })();
 
   function myUserId(){ var u = Auth.currentUser(); return u ? u.id : null; }
@@ -1267,25 +1303,27 @@
 
     function emit(kind){ listeners[kind].forEach(function(fn){ try{ fn(); }catch(e){} }); }
     function profileName(id){ return (profiles[id] && profiles[id].naam) || "Onbekend"; }
+    // Naam van de beoordelaar; ook als het account intussen is verwijderd (naam wordt bij de beoordeling bewaard).
+    function beoordelaarNaam(id, bewaard){ return (id && profiles[id] && profiles[id].naam) || bewaard || "Oud account"; }
 
     function mapPlayer(row){
       return { id: row.id, hesje: row.hesje, naam: row.naam, lichting: row.lichting, q: row.q,
         rank: row.rank, advies: row.advies, attendance: row.attendance || {}, fotoPath: row.foto_path || null, deletedAt: row.deleted_at || null };
     }
     function mapScore(row){
-      return { id: row.id, playerId: row.player_id, trainerId: row.trainer_id, trainerName: profileName(row.trainer_id),
+      return { id: row.id, playerId: row.player_id, trainerId: row.trainer_id, trainerName: beoordelaarNaam(row.trainer_id, row.trainer_naam),
         wedstrijdbeoordeling: row.wedstrijdbeoordeling, potentieel: row.potentieel, notitie: row.notitie,
         blok: row.blok || 1, updatedAt: row.updated_at };
     }
     function mapEval(row){
-      return { id: row.id, date: row.training_date, trainerId: row.trainer_id, trainerName: profileName(row.trainer_id),
+      return { id: row.id, date: row.training_date, trainerId: row.trainer_id, trainerName: beoordelaarNaam(row.trainer_id, row.trainer_naam),
         doel: row.doel, oefeningen: row.oefeningen || [], vorm: row.vorm, watGoed: row.wat_goed, watBeter: row.wat_beter,
         groep: row.groep, spelersNotitie: row.spelers_notitie, zelfGoed: row.zelf_goed, zelfOntwikkelpunt: row.zelf_ontwikkelpunt,
         vrijeNotitie: row.vrije_notitie, updatedAt: row.updated_at };
     }
     function mapScout(row){
       return Object.assign({
-        id: row.id, playerId: row.player_id, scoutId: row.scout_id, scoutNaam: profileName(row.scout_id),
+        id: row.id, playerId: row.player_id, scoutId: row.scout_id, scoutNaam: beoordelaarNaam(row.scout_id, row.scout_naam),
         naam: row.naam, gebjaar: row.gebjaar, positie: row.positie, club: row.club, voet: row.voet,
         wedstrijd: row.wedstrijd, observatie: row.observatie, bijzonder: row.bijzonder,
         techniek: row.techniek || {}, tactiek: row.tactiek || {}, motoriek: row.motoriek || {}, mentaliteit: row.mentaliteit || {},
@@ -1652,7 +1690,7 @@
     var d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
     return d.getDate() + " " + MONTH_SHORT[d.getMonth()];
   }
-  var BLOKKEN = (function(){
+  function computeBlokken(){
     var map = {};
     TRAINING_DATES.forEach(function(t){
       if (!map[t.blok]) map[t.blok] = { blok: t.blok, start: t.date, end: t.date };
@@ -1662,7 +1700,34 @@
       }
     });
     return Object.keys(map).map(function(k){ return map[k]; }).sort(function(a,b){ return a.blok - b.blok; });
-  })();
+  }
+  var BLOKKEN = computeBlokken();
+
+  // Seizoen (trainingsdata met blok, lichtingen) komt uit app_settings; de hoofdtrainer beheert het in Instellingen.
+  function applySeason(row){
+    if (row && Array.isArray(row.lichtingen) && row.lichtingen.length){
+      LICHTINGEN = row.lichtingen.slice().sort(function(a, b){ return String(a.label).localeCompare(String(b.label)); });
+    }
+    if (row && Array.isArray(row.training_dates) && row.training_dates.length){
+      TRAINING_DATES = row.training_dates.slice().sort(function(a, b){ return a.date.localeCompare(b.date) || a.blok - b.blok; });
+    }
+    BLOKKEN = computeBlokken();
+    populateBlokSelects();
+    var hasBlok = function(n){ return BLOKKEN.some(function(b){ return b.blok === n; }); };
+    if (!hasBlok(state.beoordelenBlok)) state.beoordelenBlok = currentBlok();
+    if (!hasBlok(state.overzichtBlok)) state.overzichtBlok = currentBlok();
+    $("spelersBlokSelect").value = String(state.beoordelenBlok);
+    $("overzichtBlokSelect").value = String(state.overzichtBlok);
+    // Datumkeuzes opnieuw opbouwen bij de volgende weergave.
+    $("trainingDateSelect").innerHTML = "";
+    $("evalDateSelect").innerHTML = "";
+    var hasDate = function(d){ return TRAINING_DATES.some(function(t){ return t.date === d; }); };
+    if (state.absDate && !hasDate(state.absDate)) state.absDate = null;
+    if (state.evalDate && !hasDate(state.evalDate)) state.evalDate = null;
+    if (state.lichting !== "all" && !LICHTINGEN.some(function(l){ return l.key === state.lichting; })) state.lichting = "all";
+    renderLichtingChips();
+    if (Auth.currentProfile()) renderAll();
+  }
   function blokLabel(n){
     var b = BLOKKEN.find(function(x){ return x.blok === n; });
     if (!b) return "Blok " + n;
@@ -1984,6 +2049,22 @@
   function closePlayerSheet(){ $("playerOverlay").hidden = true; editingPlayerId = null; resetDeleteConfirm(); }
 
 
+  // Verkleint een afbeelding tot max. `max` pixels (lange zijde) als PNG, met behoud van transparantie.
+  function shrinkImage(file, max){
+    return new Promise(function(resolve, reject){
+      var img = new Image();
+      img.onload = function(){
+        var k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+        var c = document.createElement("canvas");
+        c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(img.src);
+        c.toBlob(function(b){ b ? resolve(b) : reject(new Error("Verkleinen mislukt")); }, "image/png");
+      };
+      img.onerror = function(){ reject(new Error("Afbeelding kon niet worden gelezen")); };
+      img.src = URL.createObjectURL(file);
+    });
+  }
   function processPlayerFotoFile(file){
     return new Promise(function(resolve, reject){
       var reader = new FileReader();
@@ -2424,7 +2505,7 @@
   function defaultAbsDate(){
     var t = todayISO();
     var past = TRAINING_DATES.filter(function(x){ return x.date <= t; });
-    return past.length ? past[past.length - 1].date : TRAINING_DATES[0].date;
+    return past.length ? past[past.length - 1].date : (TRAINING_DATES[0] ? TRAINING_DATES[0].date : todayISO());
   }
   function populateDateSelect(){
     var sel = $("trainingDateSelect");
@@ -2589,7 +2670,7 @@
   function evalDefaultDate(){
     var t = todayISO();
     var past = TRAINING_DATES.filter(function(x){ return x.date <= t; });
-    return past.length ? past[past.length - 1].date : TRAINING_DATES[0].date;
+    return past.length ? past[past.length - 1].date : (TRAINING_DATES[0] ? TRAINING_DATES[0].date : todayISO());
   }
   function populateEvalDateSelect(){
     var sel = $("evalDateSelect");
@@ -3032,10 +3113,13 @@
             '<div class="name">' + esc(p.naam) + '</div>' +
             '<div class="sub" data-account-sub="' + p.id + '">' + (isMe ? 'Dit ben jij' : '&nbsp;') + '</div>' +
             '</div>' +
-            '<select class="table-select" data-role="' + p.id + '">' +
-            ["trainer","scout","hoofdtrainer"].map(function(r){
-              return '<option value="' + r + '"' + (p.role === r ? " selected" : "") + '>' + roleLabel(r) + '</option>';
-            }).join("") + '</select>' +
+            // Je eigen rol kun je hier niet wijzigen (voorkomt dat je jezelf buitensluit); testen als trainer/scout gaat via "Bekijk de app als".
+            (isMe
+              ? '<span class="pill none">' + roleLabel(p.role) + '</span>'
+              : '<select class="table-select" data-role="' + p.id + '">' +
+                ["trainer","scout","hoofdtrainer"].map(function(r){
+                  return '<option value="' + r + '"' + (p.role === r ? " selected" : "") + '>' + roleLabel(r) + '</option>';
+                }).join("") + '</select>') +
             (manageable
               ? '<div class="btn-row" style="width:100%; margin:0;">' +
                 '<button class="btn ghost small" data-reset-pw="' + p.id + '">Nieuw wachtwoord</button>' +
@@ -3045,6 +3129,7 @@
             '</div>';
         }).join("");
 
+    var allPlayers = Store.getPlayers().concat(Store.getTrash());
     var trash = Store.getTrash().sort(function(a, b){ return (b.deletedAt || "").localeCompare(a.deletedAt || ""); });
     var trashHtml = !trash.length
       ? '<div class="card" style="padding:14px; font-size:13px; color:var(--ink-muted);">De prullenbak is leeg.</div>'
@@ -3086,7 +3171,7 @@
       '<div class="card" style="padding:14px; display:flex; flex-direction:column; gap:10px;">' +
       '<div class="field" style="margin-bottom:0;"><label for="fRosterPaste">Eén speler per regel: Naam, Geboortejaar, Kwartaal (optioneel), Hesjenummer (optioneel)</label>' +
       '<textarea id="fRosterPaste" rows="6" placeholder="Bijv.:\nJan Jansen, 2019, Q2, 90\nPiet Pietersen, 2018, , 91"></textarea></div>' +
-      '<div class="note" style="font-size:11.5px; color:var(--ink-muted); margin:0;">Beschikbare lichtingen op dit moment: ' + LICHTINGEN.map(function(l){ return l.label; }).join(", ") + '. Komt er een nieuw geboortejaar bij (bijvoorbeeld 2020), laat het me dan even weten &mdash; dat ene stapje moet ik nog voor je toevoegen.</div>' +
+      '<div class="note" style="font-size:11.5px; color:var(--ink-muted); margin:0;">Beschikbare lichtingen op dit moment: ' + LICHTINGEN.map(function(l){ return l.label; }).join(", ") + '. Komt er een nieuw geboortejaar bij? Voeg het eerst toe bij Instellingen &rarr; Seizoen.</div>' +
       '<div class="hint" id="rosterPasteHint"></div>' +
       '<button class="btn primary" id="importPasteBtn">Spelers toevoegen</button>' +
       '</div>' +
@@ -3101,6 +3186,35 @@
       '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Prullenbak</h2></div>' +
       '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Verwijderde spelers blijven hier 30 dagen staan, met al hun gegevens. Daarna worden ze automatisch definitief verwijderd.</div>' +
       '<div id="trashList" style="display:flex; flex-direction:column; gap:10px;">' + trashHtml + '</div>' +
+      '</div></details>' +
+      '<details class="set-group" data-group="seizoen"' + (settingsOpen.seizoen ? ' open' : '') + '><summary>Seizoen</summary><div class="set-body">' +
+      '<div class="section-title"><h2 style="font-size:15px;">Lichtingen</h2></div>' +
+      '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">De geboortejaren die in ART meedoen. Een lichting met spelers kan niet worden verwijderd.</div>' +
+      '<div class="season-chips">' + LICHTINGEN.map(function(l){
+        var n = allPlayers.filter(function(p){ return p.lichting === l.key; }).length;
+        return '<span class="season-chip">' + esc(l.label) + ' <small>' + n + '</small>' +
+          (n ? '' : '<button type="button" class="season-x" data-del-lichting="' + esc(l.key) + '" aria-label="Lichting ' + esc(l.label) + ' verwijderen">&times;</button>') + '</span>';
+      }).join("") + '</div>' +
+      '<div class="season-add">' +
+      '<div class="field" style="margin:0; flex:1;"><label for="fNewLichting">Geboortejaar toevoegen</label><input type="number" id="fNewLichting" inputmode="numeric" placeholder="bv. 2020"></div>' +
+      '<button class="btn primary" id="addLichtingBtn">Toevoegen</button></div>' +
+      '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Trainingen en blokken</h2></div>' +
+      '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Alle ART-trainingen van dit seizoen, per blok. Beoordelingen, aanwezigheid en het rapport gaan per blok.</div>' +
+      BLOKKEN.map(function(b){
+        var dates = TRAINING_DATES.filter(function(t){ return t.blok === b.blok; });
+        return '<div class="season-blok"><div class="sb-head">Blok ' + b.blok + ' <small>' + dates.length + (dates.length === 1 ? ' training' : ' trainingen') + '</small></div>' +
+          '<div class="season-chips">' + dates.map(function(t){
+            return '<span class="season-chip">' + esc(formatDateShort(t.date)) + ' ' + t.date.slice(0, 4) +
+              '<button type="button" class="season-x" data-del-date="' + t.date + '" aria-label="Training ' + esc(formatDateShort(t.date)) + ' verwijderen">&times;</button></span>';
+          }).join("") + '</div></div>';
+      }).join("") +
+      '<div class="season-add">' +
+      '<div class="field" style="margin:0; flex:1.3;"><label for="fNewDate">Datum</label><input type="date" id="fNewDate"></div>' +
+      '<div class="field" style="margin:0; flex:1;"><label for="fNewDateBlok">Blok</label><select id="fNewDateBlok">' +
+      BLOKKEN.map(function(b){ return '<option value="' + b.blok + '">Blok ' + b.blok + '</option>'; }).join("") +
+      '<option value="' + ((BLOKKEN.length ? BLOKKEN[BLOKKEN.length - 1].blok : 0) + 1) + '">Nieuw blok ' + ((BLOKKEN.length ? BLOKKEN[BLOKKEN.length - 1].blok : 0) + 1) + '</option>' +
+      '</select></div>' +
+      '<button class="btn primary" id="addDateBtn">Toevoegen</button></div>' +
       '</div></details>' +
       '<details class="set-group" data-group="beoordelen"' + (settingsOpen.beoordelen ? ' open' : '') + '><summary>Beoordelen &amp; ster</summary><div class="set-body">' +
       '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Ster &#9733;</h2></div>' +
@@ -3206,6 +3320,48 @@
       Store.makeBackup().then(function(){ showToast("Back-up gemaakt"); renderBackupList(); })
         .catch(function(err){ console.error(err); showToast("Back-up maken mislukt"); })
         .then(function(){ b.disabled = false; });
+    });
+
+    // Seizoen opslaan in app_settings en direct overal toepassen.
+    function saveSeason(patch, toast){
+      return sb.from("app_settings").update(patch).eq("id", 1).then(function(res){
+        if (res.error) throw res.error;
+        applySeason({ lichtingen: patch.lichtingen || LICHTINGEN, training_dates: patch.training_dates || TRAINING_DATES });
+        showToast(toast);
+        renderInstellingen();
+      }).catch(function(err){ console.error(err); showToast("Opslaan mislukt"); });
+    }
+    $("addLichtingBtn").addEventListener("click", function(){
+      var y = parseInt($("fNewLichting").value, 10);
+      if (!(y >= 2000 && y <= 2040)){ showToast("Vul een geboortejaar in, bv. 2020"); return; }
+      if (LICHTINGEN.some(function(l){ return l.key === "l" + y; })){ showToast("Lichting " + y + " bestaat al"); return; }
+      saveSeason({ lichtingen: LICHTINGEN.concat([{ key: "l" + y, label: String(y) }]) }, "Lichting " + y + " toegevoegd");
+    });
+    Array.prototype.forEach.call(body.querySelectorAll("[data-del-lichting]"), function(b){
+      b.addEventListener("click", function(){
+        var key = b.getAttribute("data-del-lichting");
+        if (LICHTINGEN.length <= 1){ showToast("Er moet minstens één lichting blijven"); return; }
+        saveSeason({ lichtingen: LICHTINGEN.filter(function(l){ return l.key !== key; }) }, "Lichting verwijderd");
+      });
+    });
+    $("addDateBtn").addEventListener("click", function(){
+      var d = $("fNewDate").value, blok = parseInt($("fNewDateBlok").value, 10);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(d)){ showToast("Kies een datum"); return; }
+      if (TRAINING_DATES.some(function(t){ return t.date === d; })){ showToast("Die training staat er al"); return; }
+      saveSeason({ training_dates: TRAINING_DATES.concat([{ date: d, blok: blok }]) }, "Training " + formatDateShort(d) + " toegevoegd aan blok " + blok);
+    });
+    Array.prototype.forEach.call(body.querySelectorAll("[data-del-date]"), function(b){
+      b.addEventListener("click", function(){
+        var d = b.getAttribute("data-del-date");
+        if (TRAINING_DATES.length <= 1){ showToast("Er moet minstens één training blijven"); return; }
+        confirmDialog({
+          title: "Training verwijderen?",
+          messageHtml: "De training van <b>" + esc(formatDateShort(d)) + " " + d.slice(0, 4) + "</b> verdwijnt uit het seizoen. Aanwezigheid die op die datum is ingevuld blijft bewaard, maar telt niet meer mee.",
+          confirmLabel: "Training verwijderen"
+        }).then(function(ok){
+          if (ok) saveSeason({ training_dates: TRAINING_DATES.filter(function(t){ return t.date !== d; }) }, "Training verwijderd");
+        });
+      });
     });
 
     $("saveScoutDrempelBtn").addEventListener("click", function(){
@@ -3362,12 +3518,16 @@
       var hint = $("logoHint");
       hint.textContent = "";
       if (!file){ hint.textContent = "Kies eerst een afbeelding."; return; }
-      if (file.size > 2 * 1024 * 1024){ hint.textContent = "Bestand is te groot (max 2MB)."; return; }
-      var ext = (file.name.split(".").pop() || "png").toLowerCase();
-      var path = "logo." + ext;
+      if (file.size > 20 * 1024 * 1024){ hint.textContent = "Bestand is te groot (max 20 MB)."; return; }
+      var isSvg = /svg/.test(file.type);
+      var path = isSvg ? "logo.svg" : "logo.png";
       var publicUrl = "";
       $("uploadLogoBtn").disabled = true;
-      sb.storage.from("branding").upload(path, file, { upsert: true, cacheControl: "3600" }).then(function(res){
+      hint.textContent = "Bezig met verkleinen en uploaden…";
+      // Logo verkleinen tot max. 256px (het wordt nooit groter getoond); SVG blijft zoals het is.
+      (isSvg ? Promise.resolve(file) : shrinkImage(file, 256)).then(function(blob){
+        return sb.storage.from("branding").upload(path, blob, { upsert: true, cacheControl: "86400", contentType: isSvg ? "image/svg+xml" : "image/png" });
+      }).then(function(res){
         if (res.error) throw res.error;
         var pub = sb.storage.from("branding").getPublicUrl(path);
         publicUrl = pub.data.publicUrl + "?v=" + Date.now();
@@ -3475,6 +3635,14 @@
     document.body.classList.toggle("no-tabbar", visibleTabs <= 1);
     var menuBtn = $("menuInstellingenBtn");
     if (menuBtn) menuBtn.hidden = !isHoofd;
+    // Rolwissel: menu en testbalk alleen voor de echte hoofdtrainer.
+    var real = Auth.isRealHoofdtrainer(), va = Auth.getViewAs();
+    $("menuRoles").hidden = !real;
+    Array.prototype.forEach.call(document.querySelectorAll("[data-view-as]"), function(b){
+      b.classList.toggle("active", (b.getAttribute("data-view-as") || null) === va);
+    });
+    $("roleBanner").hidden = !va;
+    if (va) $("roleBannerRole").textContent = va === "scout" ? "scout" : "trainer";
     if (!tabAllowedForRole(state.tab, role, isHoofd) && state.tab !== "spelers"){
       switchTab("spelers");
     }
@@ -3519,6 +3687,17 @@
   });
   document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeAccountMenu(); });
   $("menuInstellingenBtn").addEventListener("click", function(){ closeAccountMenu(); switchTab("instellingen"); });
+  function switchViewAs(r){
+    Auth.setViewAs(r || null);
+    closeAccountMenu();
+    switchTab("spelers");
+    renderAll();
+    showToast(r ? "Je bekijkt de app nu als " + r : "Terug als hoofdtrainer");
+  }
+  Array.prototype.forEach.call(document.querySelectorAll("[data-view-as]"), function(b){
+    b.addEventListener("click", function(){ switchViewAs(b.getAttribute("data-view-as")); });
+  });
+  $("roleBannerBack").addEventListener("click", function(){ switchViewAs(null); });
   $("menuLogoutBtn").addEventListener("click", function(){ closeAccountMenu(); Auth.logout(); });
 
   function openPwSheet(){

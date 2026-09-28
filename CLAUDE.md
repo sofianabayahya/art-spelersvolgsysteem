@@ -54,6 +54,15 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
 - Migraties staan in `supabase/migrations/`.
 
 ## Praktische afspraken in de app
+- Rolwissel (alleen hoofdtrainer): accountmenu → "Bekijk de app als" Hoofdtrainer/Trainer/Scout (`Auth.setViewAs`,
+  localStorage `art-view-as`). Puur weergave: database-rechten blijven hoofdtrainer, opslaan onder eigen account.
+  Gele testbalk met "Terug naar hoofdtrainer". Eigen rol is niet te wijzigen in Accounts; database-trigger
+  `trg_laatste_hoofdtrainer` weigert dat de laatste hoofdtrainer van rol verandert of verdwijnt.
+- Seizoen instelbaar (Instellingen → Seizoen): `app_settings.training_dates` (datum+blok) en `app_settings.lichtingen`;
+  `applySeason()` past het toe. De vaste lijsten in de code zijn alleen nog de terugval.
+- Account verwijderen laat beoordelingen/evaluaties staan (FK on delete set null); naam beoordelaar wordt bewaard in
+  `trainer_naam` / `scout_naam` (trigger `bewaar_beoordelaar_naam`). Toch: accounts bij voorkeur uitzetten.
+- Logo wordt bij upload verkleind tot max. 256px PNG (`shrinkImage`).
 - Prullenbak: spelers verwijderen = `players.deleted_at` zetten; RLS verbergt ze voor niet-hoofdtrainers; pg_cron-job
   `art-prullenbak-legen` (dagelijks 03:30 UTC) verwijdert na 30 dagen definitief. Terugzetten/definitief in Instellingen.
 - Back-ups: Supabase Pro maakt dagelijks een volledige back-up (7 dagen). Daarnaast tabel `backups` met JSON-momentopname
