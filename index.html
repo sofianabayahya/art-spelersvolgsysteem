@@ -353,6 +353,7 @@
   .ng-tabs button{ flex:1; border:none; background:transparent; color:var(--ink-muted); font:600 15px "Barlow",sans-serif; padding:9px; border-radius:10px; cursor:pointer; }
   .ng-tabs button.active{ background:var(--accent); color:var(--accent-ink); }
   #ngBody{ flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:12px; }
+  .ng-stop{ flex:0 0 auto; padding:13px; margin-bottom:env(safe-area-inset-bottom,0px); }
   .ng-hint{ font-size:13.5px; color:var(--ink-muted); }
   .ng-grid{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px; }
   .ng-card{ position:relative; padding:0; border:2px solid var(--border); border-radius:12px; overflow:hidden; background:var(--surface); cursor:pointer; font:inherit; color:var(--ink); }
@@ -959,6 +960,7 @@
     </div>
     <div class="chips ng-lichting" id="ngLichting"></div>
     <div id="ngBody"></div>
+    <button type="button" class="btn ghost block ng-stop" id="ngStop">Stoppen (je voortgang blijft bewaard)</button>
   </div>
 </div>
 
@@ -2290,6 +2292,7 @@
 
     $("ngEntry").addEventListener("click", open);
     $("closeNameGame").addEventListener("click", close);
+    $("ngStop").addEventListener("click", close);
     Array.prototype.forEach.call(document.querySelectorAll("[data-ng-mode]"), function(b){
       b.addEventListener("click", function(){ mode = b.getAttribute("data-ng-mode"); start(); });
     });
@@ -4479,6 +4482,41 @@
   guardSheet("scoutOverlay", "closeScoutSheet", closeScoutSheet);
   guardSheet("pwOverlay", "closePwSheet", closePwSheet);
   guardSheet("oefOverlay", "closeOefSheet", closeOef);
+
+  /* ---------- Terugvegen / terugknop sluit het open venster ----------
+     Zolang er een venster openstaat, staat er één extra stap in de browsergeschiedenis. Terug (veeg op iPhone,
+     knop op Android) sluit dan het bovenste venster via zijn eigen sluitknop (dus met de waarschuwing bij
+     niet-opgeslagen invoer), in plaats van de app te verlaten. */
+  (function(){
+    var CLOSERS = { playerCardOverlay: "closePlayerCard", nameGameOverlay: "closeNameGame", scoreOverlay: "closeScoreSheet",
+      evalOverlay: "closeEvalSheet", scoutOverlay: "closeScoutSheet", pwOverlay: "closePwSheet", oefOverlay: "closeOefSheet",
+      playerOverlay: "closePlayerSheet", fotoLightbox: "closeFotoLightbox" };
+    var open = [], pushed = false, ignorePop = false;
+    function sync(){
+      // Uitgesteld, zodat "kaart dicht → formulier open" niet als "alles dicht" telt.
+      setTimeout(function(){
+        if (open.length && !pushed){ history.pushState({ artOverlay: true }, ""); pushed = true; }
+        else if (!open.length && pushed){ pushed = false; if (history.state && history.state.artOverlay){ ignorePop = true; history.back(); } }
+      }, 0);
+    }
+    Object.keys(CLOSERS).forEach(function(id){
+      var el = $(id); if (!el) return;
+      new MutationObserver(function(){
+        var i = open.indexOf(id);
+        if (!el.hidden && i === -1) open.push(id);
+        else if (el.hidden && i !== -1) open.splice(i, 1);
+        sync();
+      }).observe(el, { attributes: true, attributeFilter: ["hidden"] });
+    });
+    window.addEventListener("popstate", function(){
+      if (ignorePop){ ignorePop = false; return; }
+      pushed = false;
+      if (!$("confirmOverlay").hidden){ $("confirmCancelBtn").click(); sync(); return; }
+      var top = open[open.length - 1];
+      if (top) $(CLOSERS[top]).click();
+      sync(); // blijft er een venster open (bijv. na de waarschuwing), dan komt de extra stap terug
+    });
+  })();
 
   /* ---------- Updates binnenhalen zonder de app af te sluiten ----------
      Een geïnstalleerde app (beginscherm) blijft vaak dagen open staan. We vergelijken daarom af en toe

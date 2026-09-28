@@ -54,6 +54,8 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
 - Migraties staan in `supabase/migrations/`.
 
 ## Praktische afspraken in de app
+- Terugvegen (iPhone) / terugknop (Android) sluit het bovenste open venster via zijn sluitknop (één extra stap in
+  history zolang er een venster openstaat). Namenspel heeft ook een grote knop "Stoppen".
 - Rolwissel (alleen hoofdtrainer): accountmenu → "Bekijk de app als" Hoofdtrainer/Trainer/Scout (`Auth.setViewAs`,
   localStorage `art-view-as`). Puur weergave: database-rechten blijven hoofdtrainer, opslaan onder eigen account.
   Gele testbalk met "Terug naar hoofdtrainer". Eigen rol is niet te wijzigen in Accounts; database-trigger
