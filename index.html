@@ -509,6 +509,9 @@
   .draw-tool{ position:relative; }
   .draw-key{ position:absolute; right:2px; bottom:1px; font:700 9.5px "Barlow",sans-serif; color:#556; line-height:1; }
   @media (pointer:coarse){ .draw-key{ display:none; } }
+  .draw-zoom{ display:flex; gap:8px; align-items:flex-start; font-size:14px; font-weight:600; flex-wrap:wrap; cursor:pointer; }
+  .draw-zoom input{ width:18px; height:18px; margin-top:1px; }
+  .draw-zoom small{ flex-basis:100%; font-weight:400; font-size:12px; color:var(--ink-muted); padding-left:26px; }
   .draw-phone{ background:#FFF4D6; color:#4a3a00; font-size:13.5px; padding:8px 14px; border-bottom:1px solid var(--border); display:flex; gap:10px; align-items:center; }
   .draw-phone button{ margin-left:auto; background:none; border:none; font:700 18px sans-serif; color:inherit; cursor:pointer; }
   .draw-select{ font:600 14px "Barlow",sans-serif; padding:9px; border-radius:10px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); cursor:pointer; }
@@ -3175,6 +3178,7 @@
         }).join("") +
         '<div class="draw-group"><div class="draw-group-h">Veldvorm</div><div class="draw-fields">' +
         Object.keys(FIELDS).map(function(k){ return '<button type="button" data-draw-field="' + k + '">' + FIELDS[k].label + '</button>'; }).join("") + '</div></div>' +
+        '<label class="draw-zoom"><input type="checkbox" id="drawZoom" checked> Opslaan ingezoomd op de spelers<small>Het plaatje toont alleen het stuk waar je getekend hebt. Tekenen doe je gewoon op het hele veld.</small></label>' +
         '<button type="button" class="draw-clear" id="drawClear">Alles wissen</button>';
       Array.prototype.forEach.call(document.querySelectorAll("[data-draw-tool]"), function(b){
         // Nog een keer op dezelfde knop tikken = stoppen met neerzetten.
@@ -3184,6 +3188,7 @@
       Array.prototype.forEach.call(document.querySelectorAll("[data-draw-field]"), function(b){
         b.addEventListener("click", function(){ snapshot(); st.field = b.getAttribute("data-draw-field"); st.sel = null; render(); });
       });
+      el("drawZoom").addEventListener("change", function(){ if (st) st.zoom = this.checked; });
       el("drawClear").addEventListener("click", function(){ if (!st.items.length) return; snapshot(); st.items = []; st.sel = null; st.num = 0; render(); });
     }
 
@@ -3259,18 +3264,41 @@
     function removeSel(){ if (st.sel == null) return; snapshot(); st.items.splice(st.sel, 1); st.sel = null; render(); }
     function undo(){ var s = st.undo.pop(); if (!s) return; var o = JSON.parse(s); st.field = o.field; st.items = o.items; st.sel = null; render(); }
 
+    /* Inzoomen bij opslaan: alleen het stuk waar spelers, spullen en pijlen staan (met ruimte eromheen), in 3:2 zoals
+       de tegels. Gebruikt de tekening bijna het hele veld (of staat er niets), dan blijft het hele veld zichtbaar. */
+    function contentBox(){
+      var f = FIELDS[st.field];
+      if (!st.items.length) return null;
+      var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      st.items.forEach(function(it){
+        ("x" in it ? [[it.x, it.y]] : [[it.x1, it.y1], [it.x2, it.y2]]).forEach(function(q){
+          x0 = Math.min(x0, q[0]); y0 = Math.min(y0, q[1]); x1 = Math.max(x1, q[0]); y1 = Math.max(y1, q[1]);
+        });
+      });
+      var m = 60; x0 -= m; y0 -= m; x1 += m; y1 += m;
+      var w = Math.max(x1 - x0, 330), h = Math.max(y1 - y0, 220);
+      if (w / h < 1.5) w = h * 1.5; else h = w / 1.5;
+      if (w > f.w * 0.8 || h > f.h * 0.8) return null;
+      var x = Math.max(0, Math.min(f.w - w, (x0 + x1) / 2 - w / 2)), y = Math.max(0, Math.min(f.h - h, (y0 + y1) / 2 - h / 2));
+      return { x: Math.round(x), y: Math.round(y), w: Math.round(w), h: Math.round(h) };
+    }
+
     // Tekening als JPEG: de SVG op een canvas zetten (2x zo scherp) en wit uitvullen.
     function toBlob(){
       var keepSel = st.sel; st.sel = null; st.tool = null; render();
       var svg = el("drawSvg"), f = FIELDS[st.field];
+      var box = st.zoom !== false ? contentBox() : null;
+      var b = box || { x: 0, y: 0, w: f.w, h: f.h };
+      svg.setAttribute("viewBox", b.x + " " + b.y + " " + b.w + " " + b.h);
       var xml = new XMLSerializer().serializeToString(svg);
+      render(); // beeld in de tekentool terug naar het hele veld
       if (xml.indexOf('xmlns="http://www.w3.org/2000/svg"') === -1) xml = xml.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"');
-      xml = xml.replace("<svg", '<svg width="' + f.w + '" height="' + f.h + '"');
+      xml = xml.replace("<svg", '<svg width="' + b.w + '" height="' + b.h + '"');
       return new Promise(function(resolve, reject){
         var img = new Image();
         img.onload = function(){
-          var c = document.createElement("canvas"), k = Math.min(2, 1600 / Math.max(f.w, f.h));
-          c.width = Math.round(f.w * k); c.height = Math.round(f.h * k);
+          var c = document.createElement("canvas"), k = Math.min(2.5, 1600 / Math.max(b.w, b.h));
+          c.width = Math.round(b.w * k); c.height = Math.round(b.h * k);
           var ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
           ctx.drawImage(img, 0, 0, c.width, c.height);
           c.toBlob(function(b){ st.sel = keepSel; b ? resolve(b) : reject(new Error("Opslaan mislukt")); }, "image/jpeg", 0.88);
@@ -3282,9 +3310,10 @@
 
     function open(initial, onSave){
       st = { field: (initial && FIELDS[initial.field]) ? initial.field : "liggend", items: initial && initial.items ? JSON.parse(JSON.stringify(initial.items)) : [],
-             tool: null, sel: null, drag: null, undo: [], onSave: onSave, num: 0 };
+             tool: null, sel: null, drag: null, undo: [], onSave: onSave, num: 0, zoom: !(initial && initial.zoom === false) };
       st.items.forEach(function(it){ if (it.t === "num") st.num = Math.max(st.num, it.n); });
       if (!el("drawTools").innerHTML) buildTools();
+      el("drawZoom").checked = st.zoom;
       // Telefoon of tablet: advies om op de laptop te tekenen (sluitbaar).
       el("drawPhone").hidden = !window.matchMedia("(max-width: 899px), (pointer: coarse)").matches;
       el("drawOverlay").hidden = false;
@@ -3325,7 +3354,7 @@
     el("drawCancel").addEventListener("click", close);
     el("drawSave").addEventListener("click", function(){
       var b = el("drawSave"); b.disabled = true;
-      var data = { field: st.field, items: st.items };
+      var data = { field: st.field, items: st.items, zoom: st.zoom };
       toBlob().then(function(blob){ var cb = st.onSave; close(); cb(blob, data); })
         .catch(function(err){ console.error(err); showToast("Tekening opslaan mislukt"); })
         .then(function(){ b.disabled = false; });
