@@ -118,8 +118,15 @@ Zodra `git` beschikbaar is: overstappen op een gewone clone.
   weg uit lijst) en Wie is dit? (grote foto, kies naam; fouten komen 2 vragen later terug). Per lichting of "Alle" (8 minst
   gekende). Voortgang per gebruiker in localStorage `art-namen-<userId>`; gekend = 3x goed over >= 2 dagen.
 
-## Coachdashboard (besluiten Sofian 2026-09-28, nog te bouwen)
-- Tabbladen worden Spelers · Training · Rapport; Aanwezigheid en Evaluatie gaan op in Training.
+## Coachdashboard (tabblad Training, fase 1 gebouwd 2026-09-28)
+- Tabbladen: Spelers · Training · Rapport. Training = datumkeuze + Voorbereiden / Aanwezig / Evaluatie (oude panelen
+  absenties en evaluatie zijn sub-panelen; hun eigen datumkeuze is verborgen, state.trainingDate stuurt ze aan).
+- Tabellen: `training_plans` (per datum: hoofd_a, hoofd_b, assistent, deadline), `oefenvormen` (datum, onderdeel A/B/C,
+  volgnr 1/2, eigenaar, vaste velden, tekening_path, status concept/gedeeld, eval_*), `oefenvorm_feedback` (tip/top).
+  Bucket `training-images` (privé). Onderdeel A = hoofd_a, B = hoofd_b, C = assistent (alleen C.2).
+- Periodisering in `app_settings.periodisering` = { regels: [...], trainingen: { datum: {A:{v,a},B,C} | {toernooi} } },
+  gekoppeld op datum aan de afgesproken trainingen (kick-off 6 sep en 17 jan zijn geen trainingen in de app).
+- Nog niet: bibliotheek, timer, tekenbord.
 - Trainingsopzet: hoofdtrainer A en B hebben elk een vaardigheid; per vaardigheid oefenvorm 1 en 2, elk twee keer gegeven
   (groep 1, spacing, groep 2; assistent draait door). Rolverdeling per training zichtbaar (hoofdtrainer A/B, assistent,
   taken/coachgedrag), eigenaar + deadline per oefenvorm, controlepunt wedstrijdelement, aanpassingen vooraf ("als het niet loopt").

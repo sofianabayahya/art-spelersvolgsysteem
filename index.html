@@ -378,6 +378,37 @@
   .ng-progress{ font-size:13.5px; color:var(--ink-muted); text-align:center; }
   .ng-done{ text-align:center; padding:20px 10px; display:flex; flex-direction:column; gap:10px; align-items:center; }
   .ng-done .big{ font:700 40px "Barlow Condensed",sans-serif; }
+  /* Training (coachdashboard) */
+  .tr-head{ align-items:center; flex-wrap:nowrap; }
+  .tr-head select{ margin-left:auto; font:600 16px "Barlow",sans-serif; padding:6px 10px; border-radius:999px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); }
+  .tr-card{ padding:12px 14px; display:flex; flex-direction:column; gap:8px; }
+  .tr-card-h{ font-family:"Barlow Condensed",sans-serif; font-weight:700; font-size:18px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .tr-card-h small{ font-family:"Barlow",sans-serif; font-weight:600; font-size:13px; color:var(--ink-muted); }
+  .tr-letter{ width:28px; height:28px; border-radius:8px; background:var(--accent); color:var(--accent-ink); display:inline-flex; align-items:center; justify-content:center; font-size:17px; }
+  .tr-note{ font-size:13px; color:var(--ink-muted); }
+  .tr-role{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:6px 0; border-top:1px solid var(--border); font-size:14.5px; }
+  .tr-role:first-of-type{ border-top:none; }
+  .tr-role small{ display:block; color:var(--ink-muted); font-size:12px; }
+  .tr-role select, .tr-role input{ font:600 16px "Barlow",sans-serif; padding:6px 8px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--ink); max-width:55%; }
+  .tr-vorm{ display:flex; align-items:center; gap:10px; width:100%; text-align:left; font:inherit; color:var(--ink); cursor:pointer;
+    background:var(--surface-alt); border:1px solid var(--border); border-radius:12px; padding:10px 12px; }
+  .tr-vorm-id{ font:700 20px "Barlow Condensed",sans-serif; min-width:34px; }
+  .tr-vorm-body{ flex:1; min-width:0; display:flex; flex-direction:column; gap:4px; }
+  .tr-vorm-top{ display:flex; flex-wrap:wrap; gap:4px; }
+  .tr-vorm-sum{ font-size:13px; color:var(--ink-muted); }
+  .tr-rules summary{ cursor:pointer; font-weight:700; }
+  .tr-rules ul{ margin:6px 0 0; padding-left:18px; font-size:13.5px; }
+  .tr-rules li{ margin:4px 0; }
+  .oef-sheet{ max-width:620px; }
+  .oef-meta{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+  .oef-tek img{ width:100%; max-height:360px; object-fit:contain; border-radius:10px; background:#fff; display:block; }
+  .oef-actions{ display:flex; gap:8px; margin-top:6px; }
+  .oef-actions .btn{ flex:1; justify-content:center; }
+  .tr-fb{ display:flex; align-items:flex-start; gap:8px; padding:8px 0; border-top:1px solid var(--border); font-size:14px; }
+  .tr-fb > div{ flex:1; }
+  .tr-fb-add{ display:flex; gap:6px; margin-top:8px; }
+  .tr-fb-add select, .tr-fb-add input{ font:16px "Barlow",sans-serif; padding:8px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--ink); }
+  .tr-fb-add input{ flex:1; min-width:0; }
   /* Instellingen: uitklapbare groepen */
   .set-group{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:10px; }
   .set-group > summary{
@@ -726,10 +757,26 @@
   </section>
 
   <!-- EVALUATIE -->
+  <!-- TRAINING: kop met datum en onderdelen; de sub-panelen staan hieronder -->
+  <section class="panel" id="panel-training" hidden>
+    <div class="section-title tr-head">
+      <h2>Training</h2>
+      <select id="trainingPick" aria-label="Trainingsdatum"></select>
+    </div>
+    <div class="ng-tabs tr-tabs" role="tablist">
+      <button type="button" data-tr-sub="plan">Voorbereiden</button>
+      <button type="button" data-tr-sub="aanwezig">Aanwezig</button>
+      <button type="button" data-tr-sub="evaluatie">Evaluatie</button>
+    </div>
+  </section>
+  <section class="panel" id="panel-plan" hidden>
+    <div id="planWrap" style="display:flex; flex-direction:column; gap:12px;"></div>
+  </section>
+
   <section class="panel" id="panel-evaluatie" hidden>
     <div id="trainerGateEval" class="trainer-gate"></div>
     <div class="section-title">
-      <h2>Trainingsevaluatie</h2>
+      <h2>Jouw evaluatie</h2>
       <span class="count" id="evalCount"></span>
     </div>
     <div class="card" style="padding:14px; display:flex; flex-direction:column; gap:10px;">
@@ -739,6 +786,7 @@
       </div>
       <button class="btn primary" id="addEvalBtn">+ Evaluatie toevoegen</button>
     </div>
+    <div id="oefEvalList" style="display:flex; flex-direction:column; gap:10px;"></div>
     <div id="evalList" style="display:flex; flex-direction:column; gap:10px;"></div>
   </section>
 
@@ -785,13 +833,9 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 4l2 2h4l2-2 3 3-2 3v10a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V10L5 7z" stroke-linejoin="round"/></svg>
     <span class="tab-label">Spelers</span>
   </button>
-  <button class="tab-btn" data-tab="absenties">
+  <button class="tab-btn" data-tab="training">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9h16M8 3v4M16 3v4M9 14l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    <span class="tab-label">Aanwezigheid</span>
-  </button>
-  <button class="tab-btn" data-tab="evaluatie">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 4h9l4 4v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" stroke-linejoin="round"/><path d="M9 12h6M9 16h6M9 8h3" stroke-linecap="round"/></svg>
-    <span class="tab-label">Evaluatie</span>
+    <span class="tab-label">Training</span>
   </button>
   <button class="tab-btn" data-tab="overzicht">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V10M12 19V5M20 19v-7" stroke-linecap="round"/></svg>
@@ -847,6 +891,59 @@
       <button class="btn ghost" id="deletePlayerBtn" style="display:none; color:var(--low); border-color:var(--low-soft);">Verwijderen</button>
       <button class="btn primary block" id="savePlayerBtn">Opslaan</button>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="oefOverlay" hidden>
+  <div class="sheet oef-sheet">
+    <div class="sheet-head">
+      <h3 id="oefTitle">Oefenvorm</h3>
+      <button class="icon-btn" id="closeOefSheet" aria-label="Sluiten">&times;</button>
+    </div>
+    <div class="oef-meta" id="oefMeta"></div>
+    <div id="oefPlanFields">
+      <div class="field"><label for="oVaardigheid">Doelvaardigheid</label><input type="text" id="oVaardigheid"></div>
+      <div class="field"><label for="oAantallen">Aantallen</label><input type="text" id="oAantallen" placeholder="bv. 4v4 of 5v5"></div>
+      <div class="field"><label for="oOrganisatie">Organisatie en ruimte</label><textarea id="oOrganisatie" placeholder="Veldgrootte, pionnen, goals, hoe start het, wie draait door…"></textarea></div>
+      <div class="field"><label for="oRegels">Regels</label><textarea id="oRegels"></textarea></div>
+      <div class="field"><label for="oWedstrijd">Wedstrijdelement</label><input type="text" id="oWedstrijd" placeholder="bv. rood tegen geel, punten tellen, wie wint…"></div>
+      <div class="field-row">
+        <div class="field"><label for="oJong">Aanpassing jongste lichting</label><textarea id="oJong" placeholder="bv. kleinere ruimte"></textarea></div>
+        <div class="field"><label for="oOud">Aanpassing oudste lichting</label><textarea id="oOud" placeholder="bv. grotere ruimte, meer weerstand"></textarea></div>
+      </div>
+      <div class="field"><label for="oNietLoopt">Als het niet loopt</label><textarea id="oNietLoopt" placeholder="Wat pas je aan: ruimte, regels, aantallen?"></textarea></div>
+      <div class="field"><label for="oCoach">Coachaccenten</label><textarea id="oCoach"></textarea></div>
+      <div class="field">
+        <label>Tekening</label>
+        <div class="oef-tek" id="oTekWrap"></div>
+        <input type="file" id="oTekInput" accept="image/*" hidden>
+        <div class="btn-row" style="margin-top:6px;">
+          <button type="button" class="btn ghost small" id="oTekBtn">Tekening of screenshot toevoegen</button>
+          <button type="button" class="btn ghost small" id="oTekDel" hidden>Tekening verwijderen</button>
+        </div>
+      </div>
+    </div>
+    <div id="oefEvalFields" hidden>
+      <div class="field">
+        <label>Kwam de doelvaardigheid terug?</label>
+        <div class="grade-btns" id="oTerug">
+          <button type="button" class="grade-btn" data-terug="ja">Ja</button>
+          <button type="button" class="grade-btn" data-terug="deels">Deels</button>
+          <button type="button" class="grade-btn" data-terug="nee">Nee</button>
+        </div>
+      </div>
+      <div class="field"><label for="eGroep1">Groep 1: hoe ging het? Loopt het?</label><textarea id="eGroep1"></textarea></div>
+      <div class="field"><label for="eAangepast">Wat heb je aangepast?</label><textarea id="eAangepast"></textarea></div>
+      <div class="field"><label for="eGroep2">Groep 2: hoe ging het daarna?</label><textarea id="eGroep2"></textarea></div>
+      <div class="field-row">
+        <div class="field"><label for="eRuimte">Klopte de ruimte?</label><textarea id="eRuimte"></textarea></div>
+        <div class="field"><label for="eLichting">Welke lichting had moeite?</label><textarea id="eLichting"></textarea></div>
+      </div>
+      <div class="field"><label for="eVolgende">Wat doe je volgende keer anders?</label><textarea id="eVolgende"></textarea></div>
+    </div>
+    <div class="hint" id="oefHint"></div>
+    <div class="oef-actions" id="oefActions"></div>
+    <div class="oef-feedback" id="oefFeedback"></div>
   </div>
 </div>
 
@@ -1145,6 +1242,8 @@
     { value:"4", label:"4 – Direct aannemen" }
   ];
 
+  // Ajax-periodisering per trainingsdatum (onderdeel A/B/C: vaardigheid en aantallen) + vaste regels; uit app_settings.
+  var PERIODISERING = { regels: [], trainingen: {} };
   var TRAINING_DATES = [
     { date:"2026-09-13", blok:1 }, { date:"2026-09-20", blok:1 }, { date:"2026-09-27", blok:1 }, { date:"2026-10-04", blok:1 },
     { date:"2026-10-25", blok:2 }, { date:"2026-11-01", blok:2 }, { date:"2026-11-08", blok:2 }, { date:"2026-11-15", blok:2 },
@@ -1233,6 +1332,7 @@
         url = (res.data && res.data.logo_url) || null;
         if (res.data && res.data.scout_signaal_drempel) scoutDrempel = res.data.scout_signaal_drempel;
         applySeason(res.data);
+        if (res.data && res.data.periodisering) PERIODISERING = res.data.periodisering;
         apply();
       }).catch(function(err){ console.error(err); });
     }
@@ -1356,7 +1456,7 @@
   var Store = (function(){
     var trash = [];
     var players = [], scores = [], evaluations = [], scoutReports = [], cancelled = [], profiles = {};
-    var listeners = { players: [], scores: [], settings: [], evals: [], scout: [] };
+    var listeners = { players: [], scores: [], settings: [], evals: [], scout: [], training: [] };
     var modeCb = function(){};
     var channel = null;
 
@@ -1439,6 +1539,67 @@
       });
     }
 
+    // Training (coachdashboard): rolverdeling per datum, oefenvormen, feedback. Scouts krijgen niets terug (RLS).
+    var plans = {}, oefs = [], feedback = [], tekeningUrlCache = {};
+    function loadTraining(){
+      return Promise.all([
+        sb.from("training_plans").select("*"),
+        sb.from("oefenvormen").select("*"),
+        sb.from("oefenvorm_feedback").select("*").order("created_at")
+      ]).then(function(r){
+        plans = {}; (r[0].data || []).forEach(function(p){ plans[p.training_date] = p; });
+        oefs = r[1].data || [];
+        feedback = r[2].data || [];
+        emit("training");
+      }).catch(function(e){ console.error(e); });
+    }
+    function getPlan(d){ return plans[d] || null; }
+    function savePlan(d, patch){
+      return sb.from("training_plans").upsert(Object.assign({ training_date: d, updated_at: new Date().toISOString() }, patch)).then(function(res){
+        if (res.error) throw res.error;
+        return loadTraining();
+      });
+    }
+    function getOefs(d){ return oefs.filter(function(o){ return o.training_date === d; }); }
+    function getOef(d, onderdeel, volgnr){ return oefs.find(function(o){ return o.training_date === d && o.onderdeel === onderdeel && o.volgnr === volgnr; }) || null; }
+    function saveOef(row){
+      return sb.from("oefenvormen").upsert(row, { onConflict: "training_date,onderdeel,volgnr" }).select().single().then(function(res){
+        if (res.error) throw res.error;
+        return loadTraining().then(function(){ return res.data; });
+      });
+    }
+    function getFeedback(oefId){ return feedback.filter(function(f){ return f.oefenvorm_id === oefId; }); }
+    function addFeedback(oefId, soort, tekst){
+      return sb.from("oefenvorm_feedback").insert({ oefenvorm_id: oefId, auteur_id: myUserId(), soort: soort, tekst: tekst }).then(function(res){
+        if (res.error) throw res.error;
+        return loadTraining();
+      });
+    }
+    function deleteFeedback(id){
+      return sb.from("oefenvorm_feedback").delete().eq("id", id).then(function(res){
+        if (res.error) throw res.error;
+        return loadTraining();
+      });
+    }
+    function uploadTekening(d, key, blob, oldPath){
+      var path = "trainingen/" + d + "/" + key + "-" + Date.now() + ".jpg";
+      return sb.storage.from("training-images").upload(path, blob, { upsert: false, contentType: "image/jpeg", cacheControl: "86400" }).then(function(res){
+        if (res.error) throw res.error;
+        if (oldPath) sb.storage.from("training-images").remove([oldPath]);
+        return path;
+      });
+    }
+    function getTekeningUrl(path){
+      var c = tekeningUrlCache[path];
+      if (c && c.exp > Date.now()) return Promise.resolve(c.url);
+      return sb.storage.from("training-images").createSignedUrl(path, 86400).then(function(res){
+        if (res.error) throw res.error;
+        tekeningUrlCache[path] = { url: res.data.signedUrl, exp: Date.now() + 23 * 3600 * 1000 };
+        return res.data.signedUrl;
+      });
+    }
+    function onTraining(fn){ listeners.training.push(fn); }
+
     function subscribeRealtime(){
       if (channel) return;
       channel = sb.channel("art-live")
@@ -1447,6 +1608,9 @@
         .on("postgres_changes", { event:"*", schema:"public", table:"evaluations" }, function(){ loadEvals(); })
         .on("postgres_changes", { event:"*", schema:"public", table:"scout_reports" }, function(){ loadScoutReports(); })
         .on("postgres_changes", { event:"*", schema:"public", table:"cancelled_trainings" }, function(){ loadCancelled(); })
+        .on("postgres_changes", { event:"*", schema:"public", table:"training_plans" }, function(){ loadTraining(); })
+        .on("postgres_changes", { event:"*", schema:"public", table:"oefenvormen" }, function(){ loadTraining(); })
+        .on("postgres_changes", { event:"*", schema:"public", table:"oefenvorm_feedback" }, function(){ loadTraining(); })
         .on("postgres_changes", { event:"*", schema:"public", table:"profiles" }, function(){
           loadProfiles().then(function(){ loadScores(); loadEvals(); loadScoutReports(); });
         })
@@ -1455,7 +1619,7 @@
 
     function init(){
       loadProfiles().then(function(){
-        return Promise.all([loadPlayers(), loadScores(), loadEvals(), loadScoutReports(), loadCancelled()]);
+        return Promise.all([loadPlayers(), loadScores(), loadEvals(), loadScoutReports(), loadCancelled(), loadTraining()]);
       }).then(function(){
         modeCb("db");
         subscribeRealtime();
@@ -1712,6 +1876,8 @@
     }
 
     return {
+      getPlan: getPlan, savePlan: savePlan, getOefs: getOefs, getOef: getOef, saveOef: saveOef, getFeedback: getFeedback,
+      addFeedback: addFeedback, deleteFeedback: deleteFeedback, uploadTekening: uploadTekening, getTekeningUrl: getTekeningUrl, onTraining: onTraining,
       init: init, onPlayers: onPlayers, onScores: onScores, onSettings: onSettings, onEvals: onEvals, onScoutReports: onScoutReports, onModeReady: onModeReady,
       getPlayers: getPlayers, getScores: getScores, getCancelled: getCancelled, getEvaluations: getEvaluations, getScoutReports: getScoutReports, getMode: getMode,
       getProfiles: getProfiles, updateProfileRole: updateProfileRole, manageUsers: manageUsers, listBackups: listBackups, getBackupData: getBackupData, makeBackup: makeBackup,
@@ -1780,6 +1946,8 @@
     // Datumkeuzes opnieuw opbouwen bij de volgende weergave.
     $("trainingDateSelect").innerHTML = "";
     $("evalDateSelect").innerHTML = "";
+    $("trainingPick").innerHTML = "";
+    if (state.trainingDate && !TRAINING_DATES.some(function(t){ return t.date === state.trainingDate; })) state.trainingDate = null;
     var hasDate = function(d){ return TRAINING_DATES.some(function(t){ return t.date === d; }); };
     if (state.absDate && !hasDate(state.absDate)) state.absDate = null;
     if (state.evalDate && !hasDate(state.evalDate)) state.evalDate = null;
@@ -1886,7 +2054,7 @@
   /* ---------- tabs ---------- */
   function switchTab(tab){
     state.tab = tab;
-    ["spelers","overzicht","absenties","evaluatie","instellingen"].forEach(function(t){ $("panel-" + t).hidden = t !== tab; });
+    ["spelers","overzicht","training","plan","absenties","evaluatie","instellingen"].forEach(function(t){ $("panel-" + t).hidden = t !== tab; });
     Array.prototype.forEach.call(document.querySelectorAll(".tab-btn"), function(btn){
       btn.classList.toggle("active", btn.getAttribute("data-tab") === tab);
     });
@@ -2282,7 +2450,7 @@
 
 
   // Verkleint een afbeelding tot max. `max` pixels (lange zijde) als PNG, met behoud van transparantie.
-  function shrinkImage(file, max){
+  function shrinkImage(file, max, type, quality){
     return new Promise(function(resolve, reject){
       var img = new Image();
       img.onload = function(){
@@ -2291,7 +2459,7 @@
         c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
         c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
         URL.revokeObjectURL(img.src);
-        c.toBlob(function(b){ b ? resolve(b) : reject(new Error("Verkleinen mislukt")); }, "image/png");
+        c.toBlob(function(b){ b ? resolve(b) : reject(new Error("Verkleinen mislukt")); }, type || "image/png", quality);
       };
       img.onerror = function(){ reject(new Error("Afbeelding kon niet worden gelezen")); };
       img.src = URL.createObjectURL(file);
@@ -2551,6 +2719,296 @@
       showToast(navigator.onLine === false ? "Geen internet: niet opgeslagen. Je invoer staat er nog, probeer zo opnieuw." : "Opslaan mislukt, probeer opnieuw");
     }).then(function(){ btn.disabled = false; });
   });
+
+  /* ---------- TRAINING tab (coachdashboard) ----------
+     Eén datum, drie onderdelen: Voorbereiden (periodisering, rolverdeling, oefenvormen), Aanwezig, Evaluatie.
+     Opzet (afspraak): hoofdtrainer A en B hebben elk een vaardigheid met oefenvorm .1 en .2, die ze elk aan twee groepen
+     geven; de assistent draait door en doet onderdeel C (alleen C.2). */
+  var ROLE_FIELD = { A: "hoofd_a", B: "hoofd_b", C: "assistent" };
+  var ROLE_LABEL = { A: "Hoofdtrainer A", B: "Hoofdtrainer B", C: "Assistent" };
+  function trainingPeriod(d){ return (PERIODISERING.trainingen || {})[d] || null; }
+  function staffProfiles(){
+    return Store.getProfiles().filter(function(p){ return p.role === "trainer" || p.role === "hoofdtrainer"; })
+      .sort(function(a, b){ return (a.naam || "").localeCompare(b.naam || ""); });
+  }
+  function profNaam(id){ var p = Store.getProfiles().find(function(x){ return x.id === id; }); return p ? p.naam : "Oud account"; }
+
+  function trainingDefaults(){
+    var dates = TRAINING_DATES.map(function(t){ return t.date; });
+    if (!state.trainingDate || dates.indexOf(state.trainingDate) === -1){
+      var t = todayISO(), d = null;
+      if (dates.indexOf(t) !== -1) d = t;
+      else {
+        var past = dates.filter(function(x){ return x < t; }), last = past[past.length - 1];
+        var next = dates.filter(function(x){ return x > t; })[0];
+        // Tot 2 dagen na een training gaat het nog om die training (evaluatie), daarna om de volgende.
+        d = last && (new Date(t) - new Date(last)) <= 2 * 86400000 ? last : (next || last || dates[0]);
+      }
+      state.trainingDate = d;
+      state.trainingSub = null;
+    }
+    if (!state.trainingSub){
+      var today = todayISO();
+      state.trainingSub = state.trainingDate === today ? "aanwezig" : (state.trainingDate < today ? "evaluatie" : "plan");
+    }
+  }
+
+  function renderTraining(){
+    trainingDefaults();
+    var pick = $("trainingPick");
+    if (!pick.options.length){
+      var blocks = {};
+      TRAINING_DATES.forEach(function(t){ (blocks[t.blok] = blocks[t.blok] || []).push(t); });
+      pick.innerHTML = Object.keys(blocks).map(function(b){
+        return '<optgroup label="Blok ' + b + '">' + blocks[b].map(function(t){
+          var per = trainingPeriod(t.date);
+          return '<option value="' + t.date + '">' + formatDateShort(t.date) + (per && per.toernooi ? " · toernooi" : "") + '</option>';
+        }).join("") + '</optgroup>';
+      }).join("");
+    }
+    pick.value = state.trainingDate;
+    state.absDate = state.trainingDate;
+    state.evalDate = state.trainingDate;
+    Array.prototype.forEach.call(document.querySelectorAll("[data-tr-sub]"), function(b){ b.classList.toggle("active", b.getAttribute("data-tr-sub") === state.trainingSub); });
+    $("panel-plan").hidden = state.trainingSub !== "plan";
+    $("panel-absenties").hidden = state.trainingSub !== "aanwezig";
+    $("panel-evaluatie").hidden = state.trainingSub !== "evaluatie";
+    if (state.trainingSub === "plan") renderPlan();
+    else if (state.trainingSub === "aanwezig") renderAbsenties();
+    else { renderOefEval(); renderEvaluatie(); }
+  }
+  $("trainingPick").addEventListener("change", function(){ state.trainingDate = this.value; state.trainingSub = null; trainingDefaults(); renderTraining(); });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-tr-sub]"), function(b){
+    b.addEventListener("click", function(){ state.trainingSub = b.getAttribute("data-tr-sub"); renderTraining(); });
+  });
+  // De oude datumkeuzes in Aanwezig en Evaluatie zijn vervangen door die van Training.
+  $("trainingDateSelect").closest(".field").hidden = true;
+  $("evalDateSelect").closest(".field").hidden = true;
+
+  function vormPill(row, d){
+    if (!row) return '<span class="pill none">Leeg</span>';
+    var plan = Store.getPlan(d) || {};
+    var late = row.status !== "gedeeld" && plan.deadline && todayISO() > plan.deadline && d >= todayISO();
+    if (row.status === "gedeeld") return '<span class="pill good">Gedeeld</span>';
+    return '<span class="pill ' + (late ? "low" : "mid") + '">' + (late ? "Concept · deadline voorbij" : "Concept") + '</span>';
+  }
+  function terugPill(row){
+    if (!row || !row.eval_terug) return "";
+    var band = row.eval_terug === "ja" ? "good" : (row.eval_terug === "deels" ? "mid" : "low");
+    return ' <span class="pill ' + band + '">Vaardigheid: ' + row.eval_terug + '</span>';
+  }
+  function vormButton(d, o, v, mode){
+    var row = Store.getOef(d, o, v);
+    var fb = row ? Store.getFeedback(row.id).length : 0;
+    var sum = row ? (mode === "evaluatie" ? (row.eval_volgende || row.eval_groep1 || "") : (row.organisatie || row.regels || "")) : "";
+    return '<button type="button" class="tr-vorm" data-vorm="' + o + '|' + v + '" data-mode="' + mode + '">' +
+      '<span class="tr-vorm-id">' + o + '.' + v + '</span>' +
+      '<span class="tr-vorm-body"><span class="tr-vorm-top">' +
+      (mode === "evaluatie" ? (row && row.eval_terug ? terugPill(row) : '<span class="pill none">Nog niet geëvalueerd</span>') : vormPill(row, d) + (fb ? ' <span class="pill none">' + fb + ' feedback</span>' : '')) +
+      '</span>' + (sum ? '<span class="tr-vorm-sum">' + esc(sum.length > 90 ? sum.slice(0, 90) + "…" : sum) + '</span>' : '') + '</span>' +
+      '<span class="ng-go">&rsaquo;</span></button>';
+  }
+
+  function renderPlan(){
+    var d = state.trainingDate, per = trainingPeriod(d), plan = Store.getPlan(d) || {}, isHoofd = Auth.isHoofdtrainer();
+    var staff = staffProfiles(), html = "";
+    if (per && per.toernooi){
+      html += '<div class="card tr-card"><div class="tr-card-h">' + esc(per.toernooi) + '</div><div class="tr-note">Geen oefenvormen voor te bereiden.</div></div>';
+    }
+    function roleRow(o){
+      var f = ROLE_FIELD[o], cur = plan[f] || "";
+      var control = isHoofd
+        ? '<select data-role-field="' + f + '"><option value="">Nog niet ingedeeld</option>' + staff.map(function(p){
+            return '<option value="' + p.id + '"' + (p.id === cur ? " selected" : "") + '>' + esc(p.naam) + '</option>'; }).join("") + '</select>'
+        : '<b>' + (cur ? esc(profNaam(cur)) : "Nog niet ingedeeld") + '</b>';
+      return '<div class="tr-role"><span>' + ROLE_LABEL[o] + (per && per[o] ? ' <small>' + o + ' · ' + esc(per[o].v) + '</small>' : '') + '</span>' + control + '</div>';
+    }
+    var deadlineTxt = plan.deadline ? formatDateShort(plan.deadline) + " " + plan.deadline.slice(0, 4) : "geen deadline";
+    html += '<div class="card tr-card"><div class="tr-card-h">Rolverdeling</div>' +
+      roleRow("A") + roleRow("B") + roleRow("C") +
+      '<div class="tr-role"><span>Oefenvormen delen vóór</span>' +
+      (isHoofd ? '<input type="date" id="planDeadline" value="' + (plan.deadline || "") + '">' : '<b>' + esc(deadlineTxt) + '</b>') + '</div></div>';
+    if (!per || !per.toernooi){
+      ["A", "B", "C"].forEach(function(o){
+        var p = per && per[o], owner = plan[ROLE_FIELD[o]];
+        html += '<div class="card tr-card"><div class="tr-card-h"><span class="tr-letter">' + o + '</span>' +
+          (p ? esc(p.v) + ' <small>' + esc(p.a) + '</small>' : 'Onderdeel ' + o) + '</div>' +
+          '<div class="tr-note">' + (owner ? esc(profNaam(owner)) : "Nog geen trainer ingedeeld") + (o === "C" ? " · alleen C.2" : "") + '</div>' +
+          (o === "C" ? [2] : [1, 2]).map(function(v){ return vormButton(d, o, v, "plan"); }).join("") + '</div>';
+      });
+    }
+    if (PERIODISERING.regels && PERIODISERING.regels.length){
+      html += '<details class="card tr-card tr-rules"><summary>Afspraken Ajax (' + PERIODISERING.regels.length + ')</summary><ul>' +
+        PERIODISERING.regels.map(function(r){ return '<li>' + esc(r) + '</li>'; }).join("") + '</ul></details>';
+    }
+    var wrap = $("planWrap");
+    wrap.innerHTML = html;
+    Array.prototype.forEach.call(wrap.querySelectorAll("[data-role-field]"), function(sel){
+      sel.addEventListener("change", function(){
+        var patch = {}; patch[sel.getAttribute("data-role-field")] = sel.value || null;
+        Store.savePlan(d, patch).then(function(){ showToast("Rolverdeling opgeslagen"); }).catch(function(err){ console.error(err); showToast("Opslaan mislukt"); });
+      });
+    });
+    if ($("planDeadline")) $("planDeadline").addEventListener("change", function(){
+      Store.savePlan(d, { deadline: this.value || null }).then(function(){ showToast("Deadline opgeslagen"); }).catch(function(err){ console.error(err); showToast("Opslaan mislukt"); });
+    });
+    bindVormButtons(wrap, d);
+  }
+
+  function renderOefEval(){
+    var d = state.trainingDate, per = trainingPeriod(d), wrap = $("oefEvalList");
+    var rows = Store.getOefs(d);
+    if (per && per.toernooi){ wrap.innerHTML = ""; return; }
+    if (!rows.length){
+      wrap.innerHTML = '<div class="card tr-card"><div class="tr-card-h">Oefenvormen</div><div class="tr-note">Voor deze training zijn nog geen oefenvormen voorbereid. Dat doe je bij Voorbereiden.</div></div>';
+      return;
+    }
+    wrap.innerHTML = '<div class="card tr-card"><div class="tr-card-h">Oefenvormen evalueren</div>' +
+      '<div class="tr-note">Per oefenvorm: kwam de doelvaardigheid terug, hoe ging het bij groep 1, wat heb je aangepast en hoe ging het bij groep 2?</div>' +
+      rows.slice().sort(function(a, b){ return (a.onderdeel + a.volgnr).localeCompare(b.onderdeel + b.volgnr); })
+        .map(function(r){ return vormButton(d, r.onderdeel, r.volgnr, "evaluatie"); }).join("") + '</div>';
+    bindVormButtons(wrap, d);
+  }
+  function bindVormButtons(wrap, d){
+    Array.prototype.forEach.call(wrap.querySelectorAll("[data-vorm]"), function(b){
+      b.addEventListener("click", function(){
+        var parts = b.getAttribute("data-vorm").split("|");
+        openOef(d, parts[0], Number(parts[1]), b.getAttribute("data-mode"));
+      });
+    });
+  }
+
+  /* Oefenvorm-venster: voorbereiden of evalueren. Bewerken: eigenaar (of ingedeelde trainer) en hoofdtrainer. */
+  var oefState = null;
+  var OEF_FIELDS = { oVaardigheid: "vaardigheid", oAantallen: "aantallen", oOrganisatie: "organisatie", oRegels: "regels",
+    oWedstrijd: "wedstrijdelement", oJong: "aanpassing_jong", oOud: "aanpassing_oud", oNietLoopt: "als_niet_loopt", oCoach: "coachaccenten",
+    eGroep1: "eval_groep1", eAangepast: "eval_aangepast", eGroep2: "eval_groep2", eRuimte: "eval_ruimte", eLichting: "eval_lichting", eVolgende: "eval_volgende" };
+  function canEditOef(d, o, row){
+    if (Auth.isHoofdtrainer()) return true;
+    if (row && row.eigenaar_id) return row.eigenaar_id === myUserId();
+    var owner = (Store.getPlan(d) || {})[ROLE_FIELD[o]];
+    return !owner || owner === myUserId();
+  }
+  function openOef(d, o, v, mode){
+    var row = Store.getOef(d, o, v), per = trainingPeriod(d) || {}, p = per[o] || {};
+    var editable = canEditOef(d, o, row);
+    oefState = { d: d, o: o, v: v, mode: mode, row: row, terug: row ? row.eval_terug : null, newBlob: null, removeTek: false, editable: editable };
+    $("oefTitle").textContent = (mode === "evaluatie" ? "Evaluatie " : "Oefenvorm ") + o + "." + v + " · " + formatDateShort(d);
+    var owner = row && row.eigenaar_id ? (row.eigenaar_naam || profNaam(row.eigenaar_id)) : ((Store.getPlan(d) || {})[ROLE_FIELD[o]] ? profNaam((Store.getPlan(d) || {})[ROLE_FIELD[o]]) : "");
+    $("oefMeta").innerHTML = (p.v ? '<span class="pill none">Periodisering: ' + esc(p.v) + ' · ' + esc(p.a) + '</span> ' : '') +
+      (owner ? '<span class="pill none">Eigenaar: ' + esc(owner) + '</span> ' : '') + vormPill(row, d) +
+      (editable ? '' : '<div class="tr-note" style="margin-top:6px;">Alleen de eigenaar en de hoofdtrainer kunnen dit wijzigen. Je kunt wel feedback geven.</div>');
+    Object.keys(OEF_FIELDS).forEach(function(id){
+      var col = OEF_FIELDS[id], val = row ? (row[col] || "") : "";
+      if (!row && col === "vaardigheid") val = p.v || "";
+      if (!row && col === "aantallen") val = p.a || "";
+      $(id).value = val;
+      $(id).disabled = !editable;
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-terug]"), function(b){
+      b.classList.toggle("selected", b.getAttribute("data-terug") === oefState.terug);
+      b.disabled = !editable;
+    });
+    $("oefPlanFields").hidden = mode !== "plan";
+    $("oefEvalFields").hidden = mode !== "evaluatie";
+    $("oTekBtn").hidden = !editable;
+    renderTekening();
+    $("oefHint").textContent = "";
+    var acts = $("oefActions");
+    if (!editable) acts.innerHTML = "";
+    else if (mode === "evaluatie") acts.innerHTML = '<button class="btn primary block" data-oef-save="eval">Evaluatie opslaan</button>';
+    else acts.innerHTML = (row && row.status === "gedeeld")
+      ? '<button class="btn primary block" data-oef-save="gedeeld">Opslaan</button>'
+      : '<button class="btn ghost" data-oef-save="concept">Opslaan als concept</button><button class="btn primary" data-oef-save="gedeeld">Delen met de staf</button>';
+    Array.prototype.forEach.call(acts.querySelectorAll("[data-oef-save]"), function(b){
+      b.addEventListener("click", function(){ saveOefSheet(b.getAttribute("data-oef-save"), b); });
+    });
+    renderOefFeedback();
+    $("oefOverlay").hidden = false;
+  }
+  function closeOef(){ $("oefOverlay").hidden = true; oefState = null; }
+
+  function renderTekening(){
+    var wrap = $("oTekWrap"), s = oefState;
+    var path = s.row && !s.removeTek ? s.row.tekening_path : null;
+    $("oTekDel").hidden = !s.editable || !(s.newBlob || path);
+    if (s.newBlob){ wrap.innerHTML = '<img alt="Tekening van de oefenvorm" src="' + URL.createObjectURL(s.newBlob) + '">'; return; }
+    if (!path){ wrap.innerHTML = '<div class="tr-note">Nog geen tekening.</div>'; return; }
+    wrap.innerHTML = '<div class="tr-note">Laden…</div>';
+    Store.getTekeningUrl(path).then(function(url){
+      if (oefState === s) wrap.innerHTML = '<a href="' + esc(url) + '" target="_blank" rel="noopener"><img alt="Tekening van de oefenvorm" src="' + esc(url) + '"></a>';
+    }).catch(function(){ wrap.innerHTML = '<div class="tr-note">Tekening kon niet worden geladen.</div>'; });
+  }
+  $("oTekBtn").addEventListener("click", function(){ $("oTekInput").click(); });
+  $("oTekInput").addEventListener("change", function(){
+    var file = this.files && this.files[0]; this.value = "";
+    if (!file || !oefState) return;
+    // Verkleinen tot max. 1400px als JPEG: scherp genoeg voor een tekening, klein genoeg voor een snelle app.
+    shrinkImage(file, 1400, "image/jpeg", 0.85).then(function(blob){ oefState.newBlob = blob; oefState.removeTek = false; renderTekening(); })
+      .catch(function(err){ console.error(err); showToast("Afbeelding kon niet worden gelezen"); });
+  });
+  $("oTekDel").addEventListener("click", function(){ if (!oefState) return; oefState.newBlob = null; oefState.removeTek = true; renderTekening(); });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-terug]"), function(b){
+    b.addEventListener("click", function(){
+      if (!oefState || !oefState.editable) return;
+      oefState.terug = b.getAttribute("data-terug");
+      Array.prototype.forEach.call(document.querySelectorAll("[data-terug]"), function(x){ x.classList.toggle("selected", x === b); });
+    });
+  });
+
+  function saveOefSheet(kind, btn){
+    var s = oefState; if (!s || btn.disabled) return;
+    var plan = Store.getPlan(s.d) || {};
+    var row = { training_date: s.d, onderdeel: s.o, volgnr: s.v,
+      eigenaar_id: s.row && s.row.eigenaar_id ? s.row.eigenaar_id : (plan[ROLE_FIELD[s.o]] || myUserId()) };
+    Object.keys(OEF_FIELDS).forEach(function(id){ row[OEF_FIELDS[id]] = $(id).value.trim() || null; });
+    if (kind === "eval") row.eval_terug = s.terug || null;
+    else row.status = kind === "gedeeld" ? "gedeeld" : (s.row ? s.row.status : "concept");
+    if (kind === "eval" && s.row) row.status = s.row.status;
+    Array.prototype.forEach.call($("oefActions").querySelectorAll("button"), function(b){ b.disabled = true; });
+    $("oefHint").textContent = "Bezig met opslaan…";
+    var oldPath = s.row ? s.row.tekening_path : null;
+    var tek = s.newBlob ? Store.uploadTekening(s.d, s.o + s.v, s.newBlob, oldPath)
+      : Promise.resolve(s.removeTek ? null : oldPath);
+    tek.then(function(path){
+      if (s.removeTek && oldPath && !s.newBlob) sb.storage.from("training-images").remove([oldPath]);
+      row.tekening_path = path;
+      return Store.saveOef(row);
+    }).then(function(){
+      showToast(kind === "eval" ? "Evaluatie opgeslagen" : (kind === "gedeeld" ? "Gedeeld met de staf" : "Concept opgeslagen"));
+      closeOef();
+    }).catch(function(err){
+      console.error(err);
+      $("oefHint").textContent = navigator.onLine === false ? "Geen internet: niet opgeslagen. Je invoer staat er nog." : "Opslaan mislukt, probeer het opnieuw.";
+      Array.prototype.forEach.call($("oefActions").querySelectorAll("button"), function(b){ b.disabled = false; });
+    });
+  }
+
+  // Tips en tops van collega's (alleen bij een bestaande oefenvorm, in de voorbereiding).
+  function renderOefFeedback(){
+    var s = oefState, box = $("oefFeedback");
+    if (!s || s.mode !== "plan" || !s.row){ box.innerHTML = ""; return; }
+    var list = Store.getFeedback(s.row.id);
+    box.innerHTML = '<div class="tr-card-h" style="margin-top:8px;">Feedback van de staf</div>' +
+      (list.length ? list.map(function(f){
+        return '<div class="tr-fb"><span class="pill ' + (f.soort === "top" ? "good" : "mid") + '">' + (f.soort === "top" ? "Top" : "Tip") + '</span>' +
+          '<div><b>' + esc(f.auteur_naam || "Oud account") + '</b> ' + esc(f.tekst) + '</div>' +
+          (f.auteur_id === myUserId() || Auth.isHoofdtrainer() ? '<button type="button" class="season-x" data-fb-del="' + f.id + '" aria-label="Feedback verwijderen">&times;</button>' : '') + '</div>';
+      }).join("") : '<div class="tr-note">Nog geen feedback.</div>') +
+      '<div class="tr-fb-add"><select id="fbSoort" aria-label="Soort feedback"><option value="tip">Tip</option><option value="top">Top</option></select>' +
+      '<input type="text" id="fbTekst" placeholder="Jouw tip of top…"><button type="button" class="btn primary small" id="fbAdd">Plaatsen</button></div>';
+    $("fbAdd").addEventListener("click", function(){
+      var t = $("fbTekst").value.trim(); if (!t) return;
+      this.disabled = true;
+      Store.addFeedback(s.row.id, $("fbSoort").value, t).then(function(){ showToast("Feedback geplaatst"); renderOefFeedback(); })
+        .catch(function(err){ console.error(err); showToast("Plaatsen mislukt"); });
+    });
+    Array.prototype.forEach.call(box.querySelectorAll("[data-fb-del]"), function(b){
+      b.addEventListener("click", function(){
+        Store.deleteFeedback(b.getAttribute("data-fb-del")).then(function(){ renderOefFeedback(); }).catch(function(){ showToast("Verwijderen mislukt"); });
+      });
+    });
+  }
 
   /* ---------- RAPPORT tab (alleen hoofdtrainer) ----------
      Per blok: per speler de gemiddelde letters van trainers en van scouts (Wedstrijd · Potentieel), het advies,
@@ -3850,7 +4308,7 @@
   function tabAllowedForRole(tab, role, isHoofd){
     if (isHoofd) return true;
     if (tab === "spelers") return true;
-    if (tab === "absenties" || tab === "evaluatie") return role === "trainer";
+    if (tab === "training") return role === "trainer";
     return false; // overzicht, instellingen: alleen hoofdtrainer
   }
 
@@ -3885,8 +4343,7 @@
     updateTabVisibility();
     if (state.tab === "spelers") renderSpelers();
     else if (state.tab === "overzicht") renderOverzicht();
-    else if (state.tab === "absenties") renderAbsenties();
-    else if (state.tab === "evaluatie") renderEvaluatie();
+    else if (state.tab === "training") renderTraining();
     else if (state.tab === "instellingen") renderInstellingen();
   }
 
@@ -3895,6 +4352,7 @@
   Store.onSettings(renderAll);
   Store.onEvals(renderAll);
   Store.onScoutReports(renderAll);
+  Store.onTraining(renderAll);
   Store.onModeReady(function(mode){
     var pill = $("modePill"), text = $("modePillText");
     pill.className = "mode-pill db";
@@ -3982,7 +4440,8 @@
   var SHEET_DRAFTS = {
     scoreOverlay: function(){ return state.scoreDraft; },
     evalOverlay: function(){ return state.evalDraft; },
-    scoutOverlay: function(){ return state.scoutDraft; }
+    scoutOverlay: function(){ return state.scoutDraft; },
+    oefOverlay: function(){ return oefState ? { t: oefState.terug, n: !!oefState.newBlob, r: oefState.removeTek } : null; }
   };
   function sheetSnapshot(overlayId){
     var overlay = $(overlayId);
@@ -4019,6 +4478,7 @@
   guardSheet("evalOverlay", "closeEvalSheet", closeEvalSheet);
   guardSheet("scoutOverlay", "closeScoutSheet", closeScoutSheet);
   guardSheet("pwOverlay", "closePwSheet", closePwSheet);
+  guardSheet("oefOverlay", "closeOefSheet", closeOef);
 
   /* ---------- Updates binnenhalen zonder de app af te sluiten ----------
      Een geïnstalleerde app (beginscherm) blijft vaak dagen open staan. We vergelijken daarom af en toe
