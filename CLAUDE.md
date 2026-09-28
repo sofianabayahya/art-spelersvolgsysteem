@@ -161,6 +161,9 @@ Zodra `git` beschikbaar is: overstappen op een gewone clone.
 - 2026-09-28: training 27 sep ingevoerd door Claude vanuit de planner-foto + evaluatieverslag "3e training" (Sofians
   eigen test-A1/A2 op 27 sep op zijn verzoek overschreven; hun 2 tekening-jpg's staan nog los in de bucket): A Passeren (A1, A2), B Afwerken (B1, B2), C Beschermen/vrijmaken (C2), met
   nagetekende tekeningen (tekening_json), status gedeeld, eigenaar leeg, korte algemene evaluatie. Sofian past aan.
+- Periodisering niet opgeschoven (20 sep ging één keer mis: Kai deed de training van de week erna). In plaats daarvan
+  toont de app per onderdeel wat er echt gemaakt is (`thema()`: doelvaardigheid/aantallen van de vorm gaan voor de
+  periodisering). Een trainer "hernoemt" een onderdeel door de doelvaardigheid in zijn vorm aan te passen.
 - Tekentool: nog een keer op de actieve knop = stoppen met neerzetten. Spelers r=12.5 (was 17). ART gebruikt alleen
   pupillendoelen (5x2 m) en minidoelen (2x1 m); ~10 beeldpunten per meter (oude "L" groot doel wordt nog getekend).
   Pion vervangen door trainingshoedjes in 6 kleuren (oranje, blauw, rood, geel, groen, roze; `HAT`, `hatSvg`), getekend

@@ -3493,6 +3493,12 @@
     });
     return { total: total, klaar: klaar, open: open, compleet: klaar === total };
   }
+  // Thema van een onderdeel: wat er echt gemaakt is (doelvaardigheid/aantallen van de vorm) gaat voor de periodisering.
+  // Zo klopt een training ook als er een keer van de periodisering is afgeweken.
+  function thema(d, o){
+    var p = (trainingPeriod(d) || {})[o] || {}, r1 = Store.getOef(d, o, 1), r2 = Store.getOef(d, o, 2);
+    return { v: (r1 && r1.vaardigheid) || (r2 && r2.vaardigheid) || p.v || "", a: (r2 && r2.aantallen) || p.a || "" };
+  }
   function myOnderdeel(d){
     var plan = Store.getPlan(d) || {}, me = myUserId();
     return ["A", "B", "C"].filter(function(o){ return plan[ROLE_FIELD[o]] === me; })[0] || null;
@@ -3545,7 +3551,7 @@
     } else {
       // Jouw taak: één regel; je eigen rij staat hieronder met een groene rand.
       if (mine){
-        var pm = per[mine] || {};
+        var pm = thema(d, mine);
         html += '<div class="tr-mytask">Jouw taak: <b>' + ROLE_LABEL[mine] + '</b> · ' + esc(pm.v || ("Onderdeel " + mine)) +
           ' · klaar vóór <b>' + esc(deadlineTxt) + '</b></div>';
       } else if (!isHoofd){
@@ -3556,7 +3562,7 @@
         (st.compleet ? ' <span class="tr-status ok" style="margin-left:auto;">&#10003; Compleet</span>'
                      : ' <small style="margin-left:auto;">' + st.klaar + ' van ' + st.total + ' klaar</small>') + '</div>';
       ["A", "B", "C"].forEach(function(o){
-        var p = per[o] || {}, ownerId = plan[ROLE_FIELD[o]], owner = ownerId ? profNaam(ownerId) : "";
+        var p = thema(d, o), ownerId = plan[ROLE_FIELD[o]], owner = ownerId ? profNaam(ownerId) : "";
         var remind = "";
         if (isHoofd && owner && st.open[o] && d >= todayISO() && ownerId !== myUserId()){
           var msg = "Hoi " + owner.split(" ")[0] + ", wil je " + st.open[o].join(" en ") + (p.v ? " (" + p.v + ")" : "") +
@@ -3609,7 +3615,7 @@
     }
     var body = per.toernooi ? '<div class="tr-note">' + esc(per.toernooi) + '</div>' :
       ["A", "B", "C"].map(function(o){
-        var p = per[o] || {};
+        var p = thema(d, o);
         return '<div class="tv-onderdeel"><h4><span class="tr-letter">' + o + '</span>' + esc(p.v || ("Onderdeel " + o)) +
           (p.a ? ' <small>SSG ' + esc(p.a) + '</small>' : '') + '</h4>' +
           '<div class="tv-delen">' + vormenVan(o).map(function(v){ return deel(o, v); }).join("") + '</div></div>';
@@ -3763,7 +3769,8 @@
         '<table class="tp-table"><thead><tr><th class="tp-thema">Moment / thema</th><th>Deel 1 · droog · x1.1 en x1.2 / max 6 min <small>(space max 1 min)</small></th><th>Deel 2 · small-sided game · x2.1 en x2.2 / max 8 min <small>(space max 1 min)</small></th></tr></thead><tbody>' +
         rows.map(function(o){
           var p = per[o] || {}, r = Store.getOef(d, o, 1) || Store.getOef(d, o, 2);
-          return '<tr><td class="tp-thema"><b>' + o + '</b><br>' + esc((r && r.vaardigheid) || p.v || "") + '<br><span>' + esc(p.a || "") + '</span></td>' +
+          var th = thema(d, o);
+          return '<tr><td class="tp-thema"><b>' + o + '</b><br>' + esc(th.v) + '<br><span>' + esc(th.a) + '</span></td>' +
             (o === "C" ? '<td class="tp-empty">alleen C2</td>' : cell(o, 1)) + cell(o, 2) + '</tr>';
         }).join("") + '</tbody></table>') +
         (PERIODISERING.regels && PERIODISERING.regels.length ? '<ul class="tp-regels">' + PERIODISERING.regels.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join("") + '</ul>' : '');
@@ -3788,7 +3795,7 @@
     wrap.innerHTML = '<div class="card tr-card"><div class="tr-card-h">Oefenvormen evalueren</div>' +
       '<div class="tr-note">Per oefenvorm: kwam de doelvaardigheid terug, hoe ging het bij groep 1, wat heb je aangepast en hoe ging het bij groep 2? En je reflectie op jezelf.</div>' +
       order.map(function(o){
-        var p = (per || {})[o] || {}, r0 = rows.filter(function(r){ return r.onderdeel === o; })[0];
+        var p = thema(d, o), r0 = rows.filter(function(r){ return r.onderdeel === o; })[0];
         return '<div class="tr-orow' + (mineO(o) ? " tr-row-mine" : "") + '"><div class="tr-orow-head"><span class="tr-letter">' + o + '</span><div class="tr-orow-main">' +
           esc(p.v || ("Onderdeel " + o)) + '<small>' + esc(vormOwner(d, o, r0) || "") + '</small></div></div>' + vormTiles(d, o, "evaluatie", true) + '</div>';
       }).join("") + '</div>';
