@@ -131,6 +131,20 @@ Zodra `git` beschikbaar is: overstappen op een gewone clone.
   een blok kiezen, daarna schuift iedereen per training één rol door; toernooien tellen niet mee; trainingen die al
   geweest zijn blijven ongemoeid; deadline = x dagen vóór de training. Opslaan = rijen in training_plans (geen schema).
 - Alle trainers zien de hele training (en elkaars reflecties); alleen de eigenaar (en hoofdtrainer) bewerkt.
+- Update 2026-09-28 (2): Training opent altijd op Voorbereiden van de eerstvolgende training; balkje "jouw vorm nog
+  evalueren" voor de vorige training. Rollen heten Trainer A / Trainer B / Assistent (niet "hoofdtrainer A/B": verwarrend
+  met de app-rol). Geen rolverdelingskaart meer: hoofdtrainer heeft knop "Rollen wijzigen" (rollen + evt. afwijkende
+  deadline + rooster). Deadline = vanzelf vrijdagavond (training_plans.deadline null = 2 dagen voor zondag; `effDeadline`).
+  Knoppen bij een vorm: "Opslaan, nog niet klaar" en "Klaar" (status concept/gedeeld); upload = linkje "of een
+  foto/screenshot toevoegen". Oefenvormvenster: tekening links (laptop, blijft staan) of bovenaan (telefoon), ook bij evalueren.
+- Fase 2 gebouwd: evaluatie per vorm bevat reflectie (`oefenvormen.reflectie_goed`, `reflectie_anders`, zichtbaar voor
+  alle trainers). Reactie hoofdtrainer in tabel `reflectie_reacties` (1 per vorm; RLS: alleen die trainer + hoofdtrainer
+  lezen, alleen hoofdtrainer schrijft). Oude evaluatieformulier uit beeld; oude evaluaties alleen nog getoond als ze er
+  zijn ("Eerdere evaluaties"). Trainingstabellen staan nu in de realtime-publicatie. Migratie 20260928_reflectie.sql.
+- Tekentool: nog een keer op de actieve knop = stoppen met neerzetten. Spelers r=12.5 (was 17). ART gebruikt alleen
+  pupillendoelen (5x2 m) en minidoelen (2x1 m); ~10 beeldpunten per meter (oude "L" groot doel wordt nog getekend).
+  Pion vervangen door trainingshoedjes in 6 kleuren (oranje, blauw, rood, geel, groen, roze; `HAT`, `hatSvg`), getekend
+  naar de foto's van Sofian (niet de foto's zelf: scherper, lichter, geen webshopnaam). Bal: wit met naden (`ballSvg`).
 - Ajax-opbouw (Sofian): vorm 1 is droog, zonder weerstand (1v0, bewegingsvariaties); vorm 2 is de contextvorm met
   weerstand (aantallen uit de periodisering, bv. 2v1 of 3v3), x2.2 = contextvariatie (welke regel/ruimte verandert).
 - Kleine tekeningen (thumbnail) bij elke vorm, ook in Evaluatie; eigen vormen staan bovenaan.
