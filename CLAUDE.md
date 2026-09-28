@@ -141,6 +141,15 @@ Zodra `git` beschikbaar is: overstappen op een gewone clone.
   alle trainers). Reactie hoofdtrainer in tabel `reflectie_reacties` (1 per vorm; RLS: alleen die trainer + hoofdtrainer
   lezen, alleen hoofdtrainer schrijft). Oude evaluatieformulier uit beeld; oude evaluaties alleen nog getoond als ze er
   zijn ("Eerdere evaluaties"). Trainingstabellen staan nu in de realtime-publicatie. Migratie 20260928_reflectie.sql.
+- Opbouw per vaardigheid (Sofian, 2026-09-28): A1 = droog (A1.1, spacing, A1.2 contextvariatie); A2 = small-sided game
+  (A2.1, spacing, A2.2 contextvariatie). Dus bij BEIDE vormen is x.2 de contextvariatie. C alleen C2 (SSG).
+- Voorbereiden/Evaluatie tonen de vormen als tegels met de tekening (`vormTile`): telefoon 2 naast elkaar, laptop max
+  320px per tegel; eigen rij met groene rand; "Jouw taak" is één regel bovenaan.
+- Tekentool op telefoon/tablet: gele tip "uittekenen gaat het snelst op een laptop" (sluitbaar). Laptop-efficiëntie:
+  sneltoetsen op de knoppen (1-4 spelers, T, K, B bal, H hoedje in laatst gekozen kleur, V vak met hoedjes, D pupillendoel,
+  M minidoel, L/P/R/S pijlen), "Vak met hoedjes" (sleep rechthoek = 4 hoedjes op de hoeken), klik op bestaand item met
+  neerzet-knop actief = pakken, rechtermuisklik = stoppen. In vorm 2: "Neem tekening van A1 over". Nog niet: meerdere
+  items tegelijk selecteren (later, als ze het missen).
 - Tekentool: nog een keer op de actieve knop = stoppen met neerzetten. Spelers r=12.5 (was 17). ART gebruikt alleen
   pupillendoelen (5x2 m) en minidoelen (2x1 m); ~10 beeldpunten per meter (oude "L" groot doel wordt nog getekend).
   Pion vervangen door trainingshoedjes in 6 kleuren (oranje, blauw, rood, geel, groen, roze; `HAT`, `hatSvg`), getekend

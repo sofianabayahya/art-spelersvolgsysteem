@@ -453,6 +453,22 @@
   .tr-orow-main small{ display:block; color:var(--ink-muted); font-size:12.5px; }
   .tr-orow-pills{ display:flex; flex-wrap:wrap; gap:4px; margin-top:3px; }
   .tr-remind{ flex:0 0 auto; }
+  .tr-mytask{ font-size:14.5px; padding:10px 12px; border-radius:12px; background:var(--surface-alt); border:1px solid var(--border); }
+  .tr-orow{ flex-direction:column; align-items:stretch; }
+  .tr-orow-head{ display:flex; align-items:center; gap:10px; }
+  .tr-row-mine{ border-left:4px solid var(--accent); padding-left:10px; margin-left:-4px; }
+  .tr-tiles{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; margin-top:8px; }
+  @media (min-width:700px){ .tr-tiles{ grid-template-columns:repeat(2, minmax(0, 320px)); } }
+  .tr-tile{ display:flex; flex-direction:column; gap:4px; padding:6px; text-align:left; font:inherit; color:var(--ink); cursor:pointer;
+    background:var(--surface-alt); border:1px solid var(--border); border-radius:12px; min-width:0; }
+  .tr-tile.tr-mine{ border-color:var(--accent); }
+  .tr-tile-img{ display:flex; align-items:center; justify-content:center; aspect-ratio:3 / 2; background:#fff; border-radius:8px; overflow:hidden; }
+  .tr-tile-img img{ width:100%; height:100%; object-fit:contain; display:block; }
+  .tr-tile-empty{ font-size:13px; font-weight:600; color:#667; text-align:center; padding:6px; }
+  .tr-tile-cap{ font-size:14px; }
+  .tr-tile-cap small{ color:var(--ink-muted); font-size:12px; }
+  .tr-tile-st{ display:flex; flex-wrap:wrap; gap:4px; }
+  .tr-tile-st .pill{ font-size:11px; }
   .tr-orow-pills .pill{ border:none; cursor:pointer; font-family:inherit; }
   .tv-sheet{ max-width:1100px; }
   @media (min-width:600px){ #tvOverlay{ align-items:center; } .tv-sheet{ border-radius:20px; max-height:92vh; } }
@@ -490,6 +506,11 @@
   .draw-selbar{ flex-wrap:wrap; justify-content:center; }
   .draw-tool{ aspect-ratio:1 / 1; border-radius:10px; border:1px solid var(--border); background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; }
   .draw-tool.active{ outline:3px solid var(--accent); outline-offset:1px; }
+  .draw-tool{ position:relative; }
+  .draw-key{ position:absolute; right:2px; bottom:1px; font:700 9.5px "Barlow",sans-serif; color:#556; line-height:1; }
+  @media (pointer:coarse){ .draw-key{ display:none; } }
+  .draw-phone{ background:#FFF4D6; color:#4a3a00; font-size:13.5px; padding:8px 14px; border-bottom:1px solid var(--border); display:flex; gap:10px; align-items:center; }
+  .draw-phone button{ margin-left:auto; background:none; border:none; font:700 18px sans-serif; color:inherit; cursor:pointer; }
   .draw-select{ font:600 14px "Barlow",sans-serif; padding:9px; border-radius:10px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); cursor:pointer; }
   .draw-fields{ display:flex; flex-wrap:wrap; gap:6px; }
   .draw-fields button, .draw-clear{ font:600 13px "Barlow",sans-serif; padding:7px 10px; border-radius:999px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); cursor:pointer; }
@@ -1004,6 +1025,7 @@
         <input type="file" id="oTekInput" accept="image/*" hidden>
         <div class="btn-row" style="margin-top:6px; align-items:center;">
           <button type="button" class="btn primary small" id="oDrawBtn">Tekenen</button>
+          <button type="button" class="btn ghost small" id="oCopyBtn" hidden>Neem tekening van A1 over</button>
           <button type="button" class="linkbtn" id="oTekBtn">of een foto/screenshot toevoegen</button>
           <button type="button" class="linkbtn danger" id="oTekDel" hidden>Tekening verwijderen</button>
         </div>
@@ -1118,6 +1140,7 @@
         <button type="button" class="btn primary small" id="drawSave">Opslaan</button>
       </div>
     </div>
+    <div class="draw-phone" id="drawPhone" hidden><span><b>Tip:</b> uittekenen gaat het snelst op een laptop (grotere knoppen, muis en sneltoetsen). Op de telefoon kun je wel kleine dingen aanpassen.</span><button type="button" id="drawPhoneX" aria-label="Tip sluiten">&times;</button></div>
     <div class="draw-body">
       <aside class="draw-tools" id="drawTools"></aside>
       <div class="draw-stage">
@@ -2977,25 +3000,28 @@
     var DISH = { wit: "#F4F4F4", geel: "#F2C200", oranje: "#F57C00", roze: "#E0409A" };
     var TOOLS = [
       { group: "Spelers", items: [
-        { t: "p", c: "rood", label: "Speler rood (rondje)" }, { t: "p", c: "lichtblauw", label: "Speler lichtblauw (rondje)" },
-        { t: "p", c: "geel", label: "Speler geel (driehoek)" }, { t: "p", c: "blauw", label: "Speler blauw (driehoek)" },
-        { t: "p", c: "trainer", label: "Trainer" }, { t: "p", c: "keeper", label: "Keeper" } ] },
+        { t: "p", c: "rood", label: "Speler rood (rondje)", key: "1" }, { t: "p", c: "lichtblauw", label: "Speler lichtblauw (rondje)", key: "2" },
+        { t: "p", c: "geel", label: "Speler geel (driehoek)", key: "3" }, { t: "p", c: "blauw", label: "Speler blauw (driehoek)", key: "4" },
+        { t: "p", c: "trainer", label: "Trainer", key: "T" }, { t: "p", c: "keeper", label: "Keeper", key: "K" } ] },
       { group: "Spullen", items: [
-        { t: "ball", label: "Bal" },
+        { t: "ball", label: "Bal", key: "B" }, { t: "hatzone", label: "Vak met hoedjes: sleep een rechthoek, op elke hoek komt een hoedje (kleur van het laatst gekozen hoedje)", key: "V" },
         { t: "cone", c: "oranje", label: "Hoedje oranje" }, { t: "cone", c: "blauw", label: "Hoedje blauw" },
         { t: "cone", c: "rood", label: "Hoedje rood" }, { t: "cone", c: "geel", label: "Hoedje geel" },
         { t: "cone", c: "groen", label: "Hoedje groen" }, { t: "cone", c: "roze", label: "Hoedje roze" },
         { t: "dish", c: "wit", label: "Schijfje wit" }, { t: "dish", c: "geel", label: "Schijfje geel" },
         { t: "dish", c: "oranje", label: "Schijfje oranje" }, { t: "dish", c: "roze", label: "Schijfje roze" },
-        { t: "goal", s: "M", label: "Pupillendoel (5x2 m)" }, { t: "goal", s: "S", label: "Minidoel (2x1 m)" },
+        { t: "goal", s: "M", label: "Pupillendoel (5x2 m)", key: "D" }, { t: "goal", s: "S", label: "Minidoel (2x1 m)", key: "M" },
         { t: "board", label: "Kaatsbord" } ] },
       { group: "Pijlen en lijnen", items: [
-        { t: "arrow", k: "run", label: "Loopactie (stippel)" }, { t: "arrow", k: "pass", label: "Pass" },
-        { t: "arrow", k: "dribble", label: "Dribbel" }, { t: "arrow", k: "shot", label: "Schot" },
+        { t: "arrow", k: "run", label: "Loopactie (stippel)", key: "L" }, { t: "arrow", k: "pass", label: "Pass", key: "P" },
+        { t: "arrow", k: "dribble", label: "Dribbel", key: "R" }, { t: "arrow", k: "shot", label: "Schot", key: "S" },
         { t: "wall", label: "Muur / lijn" } ] },
       { group: "Volgorde en markeren", items: [ { t: "num", label: "Nummer" }, { t: "zone", label: "Vak markeren" }, { t: "text", label: "Tekst (bv. 5P)" } ] }
     ];
     var st = null; // { field, items, tool, sel, drag, undo, onSave, num }
+    var lastHat = "oranje"; // kleur voor "Vak met hoedjes" en sneltoets H
+    function flatTools(){ var flat = []; TOOLS.forEach(function(g){ flat = flat.concat(g.items); }); return flat; }
+    function isDragTool(t){ return /arrow|wall|zone|hatzone/.test(t.t); }
 
     function el(id){ return document.getElementById(id); }
     function svgPt(evt){
@@ -3105,8 +3131,8 @@
       });
       Array.prototype.forEach.call(document.querySelectorAll("[data-draw-field]"), function(b){ b.classList.toggle("active", b.getAttribute("data-draw-field") === st.field); });
       el("drawHint").textContent = st.tool != null
-        ? (/arrow|wall|zone/.test(toolDef(st.tool).t) ? "Sleep over het veld om te tekenen. Klik nog een keer op de knop om te stoppen." : "Klik op het veld om neer te zetten. Klik nog een keer op de knop (of Esc) om te stoppen.")
-        : "Klik iets aan om het te verplaatsen, te draaien of te verwijderen.";
+        ? (/arrow|wall|zone/.test(toolDef(st.tool).t) ? (toolDef(st.tool).t === "hatzone" ? "Sleep een rechthoek: op elke hoek komt een " + lastHat + " hoedje. Rechtermuisklik of nog een keer op de knop = stoppen." : "Sleep over het veld om te tekenen. Rechtermuisklik of nog een keer op de knop = stoppen.") : "Klik op het veld om neer te zetten. Rechtermuisklik, nog een keer op de knop of Esc = stoppen.")
+        : "Klik iets aan om het te verplaatsen, te draaien of te verwijderen. Sneltoetsen staan op de knoppen (H = hoedje).";
     }
     function toolDef(idx){ var flat = []; TOOLS.forEach(function(g){ flat = flat.concat(g.items); }); return flat[idx]; }
     function toolIcon(t){
@@ -3121,6 +3147,8 @@
       else       if (t.t === "shirt") s += '<path d="M-10 -12 L-4 -14 Q0 -10 4 -14 L10 -12 L15 -5 L10 -2 L10 14 L-10 14 L-10 -2 L-15 -5 Z" fill="' + SHIRT[t.c] + '" stroke="#333" stroke-width="1"/>';
       else if (t.t === "ball") s += ballSvg(1.6);
       else if (t.t === "cone") s += hatSvg(t.c, 1.05);
+      else if (t.t === "hatzone") s += '<rect x="-11" y="-9" width="22" height="18" fill="none" stroke="#999" stroke-dasharray="3 2"/>' +
+        [[-11, -9], [11, -9], [-11, 9], [11, 9]].map(function(q){ return '<g transform="translate(' + q[0] + ' ' + q[1] + ')">' + hatSvg(lastHat, 0.42) + '</g>'; }).join("");
       else if (t.t === "dish") s += '<ellipse rx="13" ry="6" fill="' + DISH[t.c] + '" stroke="#555"/>';
       else if (t.t === "goal"){ var gw = t.s === "M" ? 34 : 17; s += '<rect x="' + (-gw / 2) + '" y="-6" width="' + gw + '" height="12" fill="#ddd" stroke="#777"/>'; }
       else if (t.t === "arrow"){
@@ -3139,7 +3167,10 @@
         '<button type="button" class="draw-select" data-draw-select>Selecteren</button>' +
         TOOLS.map(function(g){
           return '<div class="draw-group"><div class="draw-group-h">' + g.group + '</div><div class="draw-grid">' +
-            g.items.map(function(t){ var h = '<button type="button" class="draw-tool" data-draw-tool="' + idx + '" title="' + t.label + '" aria-label="' + t.label + '">' + toolIcon(t) + '</button>'; idx++; return h; }).join("") +
+            g.items.map(function(t){
+              var key = t.key || (t.t === "cone" ? "H" : "");
+              var h = '<button type="button" class="draw-tool" data-draw-tool="' + idx + '" title="' + t.label + (key ? " (toets " + key + ")" : "") + '" aria-label="' + t.label + '">' +
+                toolIcon(t) + (t.key ? '<span class="draw-key">' + t.key + '</span>' : '') + '</button>'; idx++; return h; }).join("") +
             '</div></div>';
         }).join("") +
         '<div class="draw-group"><div class="draw-group-h">Veldvorm</div><div class="draw-fields">' +
@@ -3147,7 +3178,7 @@
         '<button type="button" class="draw-clear" id="drawClear">Alles wissen</button>';
       Array.prototype.forEach.call(document.querySelectorAll("[data-draw-tool]"), function(b){
         // Nog een keer op dezelfde knop tikken = stoppen met neerzetten.
-        b.addEventListener("click", function(){ var n = Number(b.getAttribute("data-draw-tool")); st.tool = st.tool === n ? null : n; st.sel = null; render(); });
+        b.addEventListener("click", function(){ pickTool(Number(b.getAttribute("data-draw-tool"))); });
       });
       document.querySelector("[data-draw-select]").addEventListener("click", function(){ st.tool = null; render(); });
       Array.prototype.forEach.call(document.querySelectorAll("[data-draw-field]"), function(b){
@@ -3156,14 +3187,26 @@
       el("drawClear").addEventListener("click", function(){ if (!st.items.length) return; snapshot(); st.items = []; st.sel = null; st.num = 0; render(); });
     }
 
+    // Knop kiezen; nog een keer dezelfde knop = stoppen. Hoedjeskleur onthouden voor "Vak met hoedjes" en toets H.
+    function pickTool(n){
+      var t = flatTools()[n];
+      if (t && t.t === "cone" && t.c !== lastHat){
+        lastHat = t.c;
+        var hz = document.querySelector('[data-draw-tool="' + flatTools().map(function(x){ return x.t; }).indexOf("hatzone") + '"]');
+        if (hz) hz.innerHTML = toolIcon({ t: "hatzone" }) + '<span class="draw-key">V</span>';
+      }
+      st.tool = st.tool === n ? null : n; st.sel = null; render();
+    }
     function onDown(evt){
+      if (evt.button === 2) return; // rechtermuisknop = stoppen (zie contextmenu)
       if (!st) return;
       var p = svgPt(evt), target = evt.target.closest("[data-i]");
-      if (st.tool != null){
+      if (st.tool != null && !(target && !isDragTool(toolDef(st.tool)))){
         var t = toolDef(st.tool);
         snapshot();
-        if (/arrow|wall|zone/.test(t.t)){
-          var it = t.t === "arrow" ? { t: "arrow", k: t.k, x1: p.x, y1: p.y, x2: p.x, y2: p.y } : { t: t.t, x1: p.x, y1: p.y, x2: p.x, y2: p.y };
+        if (isDragTool(t)){
+          var it = t.t === "arrow" ? { t: "arrow", k: t.k, x1: p.x, y1: p.y, x2: p.x, y2: p.y }
+            : (t.t === "hatzone" ? { t: "zone", hz: true, x1: p.x, y1: p.y, x2: p.x, y2: p.y } : { t: t.t, x1: p.x, y1: p.y, x2: p.x, y2: p.y });
           st.items.push(it);
           st.drag = { mode: "draw", i: st.items.length - 1 };
         } else {
@@ -3205,6 +3248,11 @@
       var it = st.items[st.drag.i];
       // Te kort getrokken lijnen/vakken (per ongeluk klikken) weer weghalen.
       if (st.drag.mode === "draw" && Math.abs(it.x2 - it.x1) + Math.abs(it.y2 - it.y1) < 12){ st.items.splice(st.drag.i, 1); st.undo.pop(); }
+      // Vak met hoedjes: de gesleepte rechthoek wordt vier hoedjes op de hoeken.
+      else if (st.drag.mode === "draw" && it.hz){
+        st.items.splice(st.drag.i, 1);
+        [[it.x1, it.y1], [it.x2, it.y1], [it.x1, it.y2], [it.x2, it.y2]].forEach(function(q){ st.items.push({ t: "cone", c: lastHat, x: q[0], y: q[1] }); });
+      }
       if (st.drag.mode === "move" && !st.drag.moved) st.undo.pop();
       st.drag = null; render();
     }
@@ -3237,6 +3285,8 @@
              tool: null, sel: null, drag: null, undo: [], onSave: onSave, num: 0 };
       st.items.forEach(function(it){ if (it.t === "num") st.num = Math.max(st.num, it.n); });
       if (!el("drawTools").innerHTML) buildTools();
+      // Telefoon of tablet: advies om op de laptop te tekenen (sluitbaar).
+      el("drawPhone").hidden = !window.matchMedia("(max-width: 899px), (pointer: coarse)").matches;
       el("drawOverlay").hidden = false;
       render();
     }
@@ -3247,6 +3297,7 @@
     svg.addEventListener("pointermove", onMove);
     svg.addEventListener("pointerup", onUp);
     svg.addEventListener("pointercancel", onUp);
+    svg.addEventListener("contextmenu", function(e){ if (!st) return; e.preventDefault(); st.tool = null; st.sel = null; render(); });
     el("drawDelete").addEventListener("click", removeSel);
     el("drawRotate").addEventListener("click", function(){ var it = st.items[st.sel]; if (!it) return; snapshot(); it.r = ((it.r || 0) + 90) % 180; render(); });
     el("drawNumber").addEventListener("click", function(){
@@ -3270,6 +3321,7 @@
       if (txt && txt.trim()){ snapshot(); it.s = txt.trim().slice(0, 30); render(); }
     });
     el("drawUndo").addEventListener("click", undo);
+    el("drawPhoneX").addEventListener("click", function(){ el("drawPhone").hidden = true; });
     el("drawCancel").addEventListener("click", close);
     el("drawSave").addEventListener("click", function(){
       var b = el("drawSave"); b.disabled = true;
@@ -3285,6 +3337,12 @@
       else if (e.key === "Escape"){ if (st.tool != null){ st.tool = null; render(); } else { st.sel = null; render(); } e.stopPropagation(); }
       else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z"){ undo(); e.preventDefault(); }
       else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "d"){ duplicate(); e.preventDefault(); }
+      else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key.length === 1){
+        var k = e.key.toUpperCase(), flat = flatTools(), n = -1;
+        if (k === "H") n = flat.findIndex(function(t){ return t.t === "cone" && t.c === lastHat; });
+        else n = flat.findIndex(function(t){ return t.key === k; });
+        if (n !== -1){ pickTool(n); e.preventDefault(); }
+      }
     }, true);
     return { open: open };
   })();
@@ -3360,9 +3418,10 @@
     var band = row.eval_terug === "ja" ? "good" : (row.eval_terug === "deels" ? "mid" : "low");
     return ' <span class="pill ' + band + '">Vaardigheid: ' + row.eval_terug + '</span>';
   }
-  // Ajax-opbouw: vorm 1 is droog (1v0, zonder weerstand, bewegingsvariaties), vorm 2 is de contextvorm met weerstand.
+  // Ajax-opbouw per vaardigheid: vorm 1 = droog (x1.1, spacing, x1.2 contextvariatie),
+  // vorm 2 = small-sided game (x2.1, spacing, x2.2 contextvariatie). C heeft alleen C2.
   function vormenVan(o){ return o === "C" ? [2] : [1, 2]; }
-  function vormSub(v){ return v === 1 ? "droog" : "context&shy;vorm"; }
+  function vormSub(v){ return v === 1 ? "droog" : "small-sided game"; }
   function vormOwner(d, o, row){
     if (row && row.eigenaar_id) return row.eigenaar_naam || profNaam(row.eigenaar_id);
     var id = (Store.getPlan(d) || {})[ROLE_FIELD[o]];
@@ -3390,21 +3449,24 @@
     var p = d.split("-"), x = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]) + n);
     return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0");
   }
-  function vormButton(d, o, v, mode){
+  // Tegel met de tekening zichtbaar; tik = vorm openen. Telefoon: twee naast elkaar (halve breedte), laptop max 320px.
+  function vormTile(d, o, v, mode){
     var row = Store.getOef(d, o, v);
-    var fb = row ? Store.getFeedback(row.id).length : 0;
-    var sum = row ? (mode === "evaluatie" ? (row.eval_volgende || row.eval_groep1 || "") : (row.variatie_1 || row.organisatie || row.regels || "")) : "";
     var mine = row ? row.eigenaar_id === myUserId() : (Store.getPlan(d) || {})[ROLE_FIELD[o]] === myUserId();
-    var owner = vormOwner(d, o, row);
-    return '<button type="button" class="tr-vorm' + (mine ? " tr-mine" : "") + '" data-vorm="' + o + '|' + v + '" data-mode="' + mode + '">' +
-      '<span class="tr-vorm-id">' + o + v + '<small>' + vormSub(v) + '</small></span>' +
-      '<span class="tr-vorm-body"><span class="tr-vorm-top">' +
-      (mode === "evaluatie" ? (row && row.eval_terug ? terugPill(row) : '<span class="pill none">Nog niet geëvalueerd</span>') : vormPill(row, d) + (fb ? ' <span class="pill none">' + fb + ' feedback</span>' : '')) +
-      (mode === "evaluatie" && owner ? ' <span class="pill none">' + (mine ? "Jouw vorm" : esc(owner)) + '</span>' : '') +
-      (mode === "evaluatie" && row && Store.getReactie(row.id) ? ' <span class="pill good">Reactie</span>' : '') +
-      '</span>' + (sum ? '<span class="tr-vorm-sum">' + esc(sum.length > 90 ? sum.slice(0, 90) + "…" : sum) + '</span>' : '') + '</span>' +
-      (row && row.tekening_path ? '<img class="tr-thumb" alt="" data-tek-path="' + esc(row.tekening_path) + '">' : '') +
-      '<span class="ng-go">&rsaquo;</span></button>';
+    var fb = row ? Store.getFeedback(row.id).length : 0;
+    var img = row && row.tekening_path ? '<img alt="Tekening ' + o + v + '" data-tek-path="' + esc(row.tekening_path) + '">'
+      : '<span class="tr-tile-empty">' + (mode === "plan" && canEditOef(d, o, row) ? "+ Maak deze vorm" : (row ? "Geen tekening" : "Nog niet gemaakt")) + '</span>';
+    var status = mode === "evaluatie"
+      ? (row && row.eval_terug ? terugPill(row) : '<span class="pill none">Nog niet geëvalueerd</span>') + (row && Store.getReactie(row.id) ? ' <span class="pill good">Reactie</span>' : '')
+      : vormPill(row, d) + (fb ? ' <span class="pill none">' + fb + ' feedback</span>' : '');
+    return '<button type="button" class="tr-tile' + (mine ? " tr-mine" : "") + '" data-vorm="' + o + '|' + v + '" data-mode="' + mode + '">' +
+      '<span class="tr-tile-img">' + img + '</span>' +
+      '<span class="tr-tile-cap"><b>' + o + v + '</b> <small>' + vormSub(v) + '</small></span>' +
+      '<span class="tr-tile-st">' + status + '</span></button>';
+  }
+  function vormTiles(d, o, mode, only){
+    var vs = vormenVan(o).filter(function(v){ return !only || Store.getOef(d, o, v); });
+    return vs.length ? '<div class="tr-tiles">' + vs.map(function(v){ return vormTile(d, o, v, mode); }).join("") + '</div>' : '';
   }
   // Kleine tekeningen invullen (afgeschermde opslag: tijdelijke link per tekening).
   function fillTekeningen(wrap){
@@ -3428,36 +3490,30 @@
     if (per.toernooi){
       html += '<div class="card tr-card"><div class="tr-card-h">' + esc(per.toernooi) + '</div><div class="tr-note">Geen oefenvormen voor te bereiden.</div></div>';
     } else {
-      // 1. Jouw taak
+      // Jouw taak: één regel; je eigen rij staat hieronder met een groene rand.
       if (mine){
         var pm = per[mine] || {};
-        html += '<div class="card tr-card tr-mine"><div class="tr-card-h">Jouw taak <small>' + ROLE_LABEL[mine] + '</small></div>' +
-          '<div class="tr-note"><b>' + esc(pm.v || ("Onderdeel " + mine)) + '</b>' + (pm.a ? ' · contextvorm ' + esc(pm.a) : '') +
-          ' · klaar vóór <b>' + esc(deadlineTxt) + '</b></div>' +
-          vormenVan(mine).map(function(v){ return vormButton(d, mine, v, "plan"); }).join("") + '</div>';
+        html += '<div class="tr-mytask">Jouw taak: <b>' + ROLE_LABEL[mine] + '</b> · ' + esc(pm.v || ("Onderdeel " + mine)) +
+          ' · klaar vóór <b>' + esc(deadlineTxt) + '</b></div>';
       } else if (!isHoofd){
-        html += '<div class="card tr-card"><div class="tr-note">Je bent voor deze training niet ingedeeld. Je kunt de training wel bekijken en tips en tops geven.</div></div>';
+        html += '<div class="tr-mytask">Je bent voor deze training niet ingedeeld. Je kunt de training bekijken en tips en tops geven.</div>';
       }
-      // 2. De training: per onderdeel wie, welke vaardigheid en hoe ver.
+      // De training als kleine Ajax-planner: per onderdeel wie, welke vaardigheid, en de tekeningen als tegels.
       html += '<div class="card tr-card"><div class="tr-card-h">De training' +
         (st.compleet ? ' <span class="tr-status ok" style="margin-left:auto;">&#10003; Compleet</span>'
                      : ' <small style="margin-left:auto;">' + st.klaar + ' van ' + st.total + ' klaar</small>') + '</div>';
       ["A", "B", "C"].forEach(function(o){
         var p = per[o] || {}, ownerId = plan[ROLE_FIELD[o]], owner = ownerId ? profNaam(ownerId) : "";
-        var pills = vormenVan(o).map(function(v){
-          var r = Store.getOef(d, o, v), cls = !r ? "none" : (r.status === "gedeeld" ? "good" : "mid");
-          var txt = !r ? "leeg" : (r.status === "gedeeld" ? "&#10003;" : "bezig");
-          return '<button type="button" class="pill ' + cls + '" data-vorm="' + o + '|' + v + '" data-mode="plan">' + o + v + ' ' + txt + '</button>';
-        }).join("");
         var remind = "";
         if (isHoofd && owner && st.open[o] && d >= todayISO() && ownerId !== myUserId()){
           var msg = "Hoi " + owner.split(" ")[0] + ", wil je " + st.open[o].join(" en ") + (p.v ? " (" + p.v + ")" : "") +
             " voor de training van " + formatDateShort(d) + " nog afmaken in de ART-app? Graag vóór " + deadlineTxt + ". https://www.artsvs.nl";
           remind = '<a class="btn ghost small tr-remind" target="_blank" rel="noopener" href="https://wa.me/?text=' + encodeURIComponent(msg) + '">Herinner</a>';
         }
-        html += '<div class="tr-orow"><span class="tr-letter">' + o + '</span><div class="tr-orow-main">' + esc(p.v || ("Onderdeel " + o)) +
-          '<small>' + (owner ? esc(owner) : "Nog niet ingedeeld") + ' · ' + ROLE_LABEL[o].toLowerCase() + '</small>' +
-          '<div class="tr-orow-pills">' + pills + '</div></div>' + remind + '</div>';
+        html += '<div class="tr-orow' + (ownerId && ownerId === myUserId() ? " tr-row-mine" : "") + '"><div class="tr-orow-head"><span class="tr-letter">' + o + '</span><div class="tr-orow-main">' + esc(p.v || ("Onderdeel " + o)) +
+          (p.a ? ' <small style="display:inline;">· SSG ' + esc(p.a) + '</small>' : '') +
+          '<small>' + (owner ? esc(owner) : "Nog niet ingedeeld") + ' · ' + ROLE_LABEL[o].toLowerCase() + '</small></div>' + remind + '</div>' +
+          vormTiles(d, o, "plan") + '</div>';
       });
       html += '<div class="btn-row"><button type="button" class="btn primary" id="viewTrainingBtn">Bekijk hele training</button>' +
         '<button type="button" class="btn ghost" id="printTrainingBtn">Downloaden</button>' +
@@ -3486,14 +3542,14 @@
     $("tvMeta").innerHTML = ["A", "B", "C"].map(function(o){ var id = plan[ROLE_FIELD[o]]; return ROLE_LABEL[o] + ": <b>" + (id ? esc(profNaam(id)) : "–") + "</b>"; }).join(" &middot; ");
     function deel(o, v){
       var r = Store.getOef(d, o, v), code = o + v;
-      var head = '<div class="tv-deel-h"><span>' + code + ' · ' + (v === 1 ? "deel 1 · droog, bewegingsvariaties" : "deel 2 · contextvorm") + '</span>' + vormPill(r, d) + '</div>';
+      var head = '<div class="tv-deel-h"><span>' + code + ' · ' + (v === 1 ? "deel 1 · droog" : "deel 2 · small-sided game") + '</span>' + vormPill(r, d) + '</div>';
       if (!r) return '<div class="tv-deel">' + head + '<div class="tv-empty">Nog niet ingevuld.</div></div>';
       var b = function(k, t){ return t ? '<div class="tv-b"><b>' + k + '</b>' + nl(t) + '</div>' : ''; };
       return '<div class="tv-deel">' + head +
         (r.tekening_path ? '<img alt="Tekening ' + code + '" data-tek-path="' + esc(r.tekening_path) + '">' : '') +
         b("Aantallen", r.aantallen) +
-        b(v === 1 ? code + ".1 · bewegingsvariaties" : code + ".1 · de vorm", r.variatie_1) +
-        b(v === 1 ? code + ".2 · bewegingsvariaties" : code + ".2 · contextvariatie", r.variatie_2) +
+        b(code + ".1 · " + vormSub(v), r.variatie_1) +
+        b(code + ".2 · contextvariatie", r.variatie_2) +
         b("Organisatie en ruimte", r.organisatie) + b("Regels", r.regels) + b("Wedstrijdelement", r.wedstrijdelement) +
         b("Aanpassing jongste lichting", r.aanpassing_jong) + b("Aanpassing oudste lichting", r.aanpassing_oud) +
         b("Als het niet loopt", r.als_niet_loopt) + b("Coachaccenten", r.coachaccenten) + '</div>';
@@ -3502,7 +3558,7 @@
       ["A", "B", "C"].map(function(o){
         var p = per[o] || {};
         return '<div class="tv-onderdeel"><h4><span class="tr-letter">' + o + '</span>' + esc(p.v || ("Onderdeel " + o)) +
-          (p.a ? ' <small>contextvorm ' + esc(p.a) + '</small>' : '') + '</h4>' +
+          (p.a ? ' <small>SSG ' + esc(p.a) + '</small>' : '') + '</h4>' +
           '<div class="tv-delen">' + vormenVan(o).map(function(v){ return deel(o, v); }).join("") + '</div></div>';
       }).join("");
     if (PERIODISERING.regels && PERIODISERING.regels.length){
@@ -3632,7 +3688,7 @@
         var r = Store.getOef(d, o, v);
         if (!r) return '<td class="tp-empty">–</td>';
         var img = r.tekening_path && urls[r.tekening_path] ? '<img src="' + esc(urls[r.tekening_path]) + '" alt="">' : '';
-        var l1 = v === 1 ? o + "1.1 · bewegingsvariaties" : o + "2.1", l2 = v === 1 ? o + "1.2 · bewegingsvariaties" : o + "2.2 · contextvariatie";
+        var l1 = o + v + ".1 · " + vormSub(v), l2 = o + v + ".2 · contextvariatie";
         return '<td>' + img +
           (r.aantallen ? '<div class="tp-k">' + esc(r.aantallen) + '</div>' : '') +
           (r.variatie_1 ? '<div class="tp-b"><b>' + l1 + '</b><br>' + nl(r.variatie_1) + '</div>' : '') +
@@ -3650,7 +3706,7 @@
         '<div class="tp-head"><div class="tp-title">Training planner</div><div>Lichtingen: ' + esc(lichtingen) + '</div><div>Aantal spelers: ' + aantal + '</div><div>Datum: ' + esc(formatDateShort(d) + " " + d.slice(0, 4)) + '</div></div>' +
         '<div class="tp-rol">' + rol + '</div>' +
         (per.toernooi ? '<h2 class="tp-toernooi">' + esc(per.toernooi) + '</h2>' :
-        '<table class="tp-table"><thead><tr><th class="tp-thema">Moment / thema</th><th>Deel 1 · x1.1 en x1.2 / max 6 min <small>(space max 1 min)</small></th><th>Deel 2 · x2.1 en x2.2 / max 8 min <small>(space max 1 min)</small></th></tr></thead><tbody>' +
+        '<table class="tp-table"><thead><tr><th class="tp-thema">Moment / thema</th><th>Deel 1 · droog · x1.1 en x1.2 / max 6 min <small>(space max 1 min)</small></th><th>Deel 2 · small-sided game · x2.1 en x2.2 / max 8 min <small>(space max 1 min)</small></th></tr></thead><tbody>' +
         rows.map(function(o){
           var p = per[o] || {}, r = Store.getOef(d, o, 1) || Store.getOef(d, o, 2);
           return '<tr><td class="tp-thema"><b>' + o + '</b><br>' + esc((r && r.vaardigheid) || p.v || "") + '<br><span>' + esc(p.a || "") + '</span></td>' +
@@ -3672,13 +3728,16 @@
       wrap.innerHTML = '<div class="card tr-card"><div class="tr-card-h">Oefenvormen</div><div class="tr-note">Voor deze training zijn nog geen oefenvormen voorbereid. Dat doe je bij Voorbereiden.</div></div>';
       return;
     }
+    var me = myUserId(), mineO = function(o){ return rows.some(function(r){ return r.onderdeel === o && r.eigenaar_id === me; }); };
+    var order = ["A", "B", "C"].filter(function(o){ return rows.some(function(r){ return r.onderdeel === o; }); })
+      .sort(function(a, b){ return (mineO(a) ? 0 : 1) - (mineO(b) ? 0 : 1) || a.localeCompare(b); }); // eigen onderdeel eerst
     wrap.innerHTML = '<div class="card tr-card"><div class="tr-card-h">Oefenvormen evalueren</div>' +
-      '<div class="tr-note">Per oefenvorm: kwam de doelvaardigheid terug, hoe ging het bij groep 1, wat heb je aangepast en hoe ging het bij groep 2?</div>' +
-      rows.slice().sort(function(a, b){
-        var me = myUserId(), ma = a.eigenaar_id === me ? 0 : 1, mb = b.eigenaar_id === me ? 0 : 1; // eigen vormen eerst
-        return ma - mb || (a.onderdeel + a.volgnr).localeCompare(b.onderdeel + b.volgnr);
-      })
-        .map(function(r){ return vormButton(d, r.onderdeel, r.volgnr, "evaluatie"); }).join("") + '</div>';
+      '<div class="tr-note">Per oefenvorm: kwam de doelvaardigheid terug, hoe ging het bij groep 1, wat heb je aangepast en hoe ging het bij groep 2? En je reflectie op jezelf.</div>' +
+      order.map(function(o){
+        var p = (per || {})[o] || {}, r0 = rows.filter(function(r){ return r.onderdeel === o; })[0];
+        return '<div class="tr-orow' + (mineO(o) ? " tr-row-mine" : "") + '"><div class="tr-orow-head"><span class="tr-letter">' + o + '</span><div class="tr-orow-main">' +
+          esc(p.v || ("Onderdeel " + o)) + '<small>' + esc(vormOwner(d, o, r0) || "") + '</small></div></div>' + vormTiles(d, o, "evaluatie", true) + '</div>';
+      }).join("") + '</div>';
     bindVormButtons(wrap, d);
   }
   function bindVormButtons(wrap, d){
@@ -3707,7 +3766,7 @@
     var row = Store.getOef(d, o, v), per = trainingPeriod(d) || {}, p = per[o] || {};
     var editable = canEditOef(d, o, row);
     oefState = { d: d, o: o, v: v, mode: mode, row: row, terug: row ? row.eval_terug : null, newBlob: null, removeTek: false, editable: editable, tekJson: row ? row.tekening_json : null };
-    $("oefTitle").textContent = (mode === "evaluatie" ? "Evaluatie " : "") + o + v + (v === 1 ? " · droog" : " · contextvorm") + " · " + formatDateShort(d);
+    $("oefTitle").textContent = (mode === "evaluatie" ? "Evaluatie " : "") + o + v + " · " + vormSub(v) + " · " + formatDateShort(d);
     $("oAantallen").placeholder = v === 1 ? "1v0 (droog, zonder weerstand)" : "bv. 2v1 of 3v2";
     var owner = row && row.eigenaar_id ? (row.eigenaar_naam || profNaam(row.eigenaar_id)) : ((Store.getPlan(d) || {})[ROLE_FIELD[o]] ? profNaam((Store.getPlan(d) || {})[ROLE_FIELD[o]]) : "");
     $("oefMeta").innerHTML = (p.v ? '<span class="pill none">Periodisering: ' + esc(p.v) + ' · ' + esc(p.a) + '</span> ' : '') +
@@ -3724,18 +3783,22 @@
       b.classList.toggle("selected", b.getAttribute("data-terug") === oefState.terug);
       b.disabled = !editable;
     });
-    // Ajax-opbouw: deel 1 = bewegingsvariaties (x1.1 en x1.2, max 6 min), deel 2 = contextvorm (x2.1 en x2.2, max 8 min).
-    var code = o + v;
-    $("oVar1Label").textContent = v === 1 ? code + ".1 · bewegingsvariaties, droog (max 6 min)" : code + ".1 · de vorm met weerstand (max 8 min)";
-    $("oVar2Label").textContent = v === 1 ? code + ".2 · bewegingsvariaties, droog (max 6 min)" : code + ".2 · contextvariatie: welke regel of ruimte verandert (max 8 min)";
+    // Ajax-opbouw: x.1, dan spacing, dan x.2 = contextvariatie. Vorm 1 droog (max 6 min), vorm 2 small-sided game (max 8 min).
+    var code = o + v, min = v === 1 ? "max 6 min" : "max 8 min";
+    $("oVar1Label").textContent = code + ".1 · " + (v === 1 ? "droog, bewegingsvariaties" : "small-sided game") + " (" + min + ")";
+    $("oVar2Label").textContent = code + ".2 · contextvariatie na de spacing: welke regel of ruimte verandert (" + min + ")";
     $("oVar1").placeholder = v === 1 ? "1. binnenkantvoet pass\n2. buitenkantvoet pass\n3. trainer bepaalt" : "Wie doet wat, hoe wordt er gescoord…";
-    $("oVar2").placeholder = v === 1 ? "1. wreef pass\n2. punt pass\n3. trainer bepaalt" : "1. pass andere helft telt\n2. 2x raken scoren = 5p";
+    $("oVar2").placeholder = v === 1 ? "bv. tweede bal erbij, tijdsdruk, kleinere ruimte" : "1. pass andere helft telt\n2. 2x raken scoren = 5p";
     $("oefPlanFields").hidden = mode !== "plan";
     $("oefEvalFields").hidden = mode !== "evaluatie";
     // Tekening staat altijd bovenaan/links; bij evalueren alleen kijken.
     $("oTekBtn").hidden = !editable || mode !== "plan";
     $("oDrawBtn").hidden = !editable || mode !== "plan";
     $("oDrawBtn").textContent = oefState.tekJson ? "Tekening bewerken" : "Tekenen";
+    // Vorm 2 heeft vaak dezelfde organisatie als vorm 1: tekening overnemen en aanvullen.
+    var v1 = v === 2 && o !== "C" ? Store.getOef(d, o, 1) : null;
+    $("oCopyBtn").hidden = !editable || mode !== "plan" || !(v1 && v1.tekening_json);
+    $("oCopyBtn").textContent = "Neem tekening van " + o + "1 over";
     renderTekening();
     $("oefHint").textContent = "";
     var acts = $("oefActions");
@@ -3773,6 +3836,23 @@
       .catch(function(err){ console.error(err); showToast("Afbeelding kon niet worden gelezen"); });
   });
   $("oTekDel").addEventListener("click", function(){ if (!oefState) return; oefState.newBlob = null; oefState.removeTek = true; oefState.tekJson = null; $("oDrawBtn").textContent = "Tekenen"; renderTekening(); });
+  $("oCopyBtn").addEventListener("click", function(){
+    if (!oefState) return;
+    var src = Store.getOef(oefState.d, oefState.o, 1);
+    if (!src || !src.tekening_json) return;
+    var go = oefState.tekJson || (oefState.row && oefState.row.tekening_path)
+      ? confirmDialog({ title: "Tekening vervangen?", messageHtml: "De huidige tekening van deze vorm wordt vervangen door die van " + oefState.o + "1. Pas daarna aan wat anders is.", confirmLabel: "Vervangen", danger: false })
+      : Promise.resolve(true);
+    go.then(function(ok){ if (ok) openDraw(JSON.parse(JSON.stringify(src.tekening_json))); });
+  });
+  function openDraw(json){
+    DrawTool.open(json, function(blob, data){
+      if (!oefState) return;
+      oefState.newBlob = blob; oefState.tekJson = data; oefState.removeTek = false;
+      $("oDrawBtn").textContent = "Tekening bewerken";
+      renderTekening();
+    });
+  }
   $("oDrawBtn").addEventListener("click", function(){
     if (!oefState) return;
     DrawTool.open(oefState.tekJson, function(blob, data){
