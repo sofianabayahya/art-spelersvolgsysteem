@@ -131,8 +131,10 @@ Zodra `git` beschikbaar is: overstappen op een gewone clone.
 - Oefenvorm volgt de Ajax Training planner: volgnr 1 = deel 1 bewegingsvariaties (rondes x1.1/x1.2, max 6 min),
   volgnr 2 = deel 2 contextvorm (x2.1 beschrijving, x2.2 contextvariatie, max 8 min); velden `variatie_1`, `variatie_2`.
   Weergave als A1/A2/B1/B2/C2.
-- Tekentool (`DrawTool`, SVG): veldvormen, hesjes 4 kleuren, bal, pion, schijfjes, goals L/M/S, pijlen (loop/pass/
-  dribbel/schot), muur, nummers, vak. Opslaan = JPEG (tekening_path) + bewerkbare gegevens (`tekening_json`).
+- Tekentool (`DrawTool`, SVG): veldvormen 11x11 (staand/liggend), 8x8, 6x6, half veld, vak (geen zaalvoetbal);
+  spelers in 4 kleuren x 2 vormen (rood/lichtblauw rondje, geel/blauw driehoek) met automatisch nummer per team,
+  trainer T en keeper K; bal, pion, schijfjes (wit/geel/oranje/roze), goals L/M/S, kaatsbord; pijlen (loop/pass/
+  dribbel/schot), muur, nummers, vak, tekst; dupliceren (Cmd/Ctrl+D), draaien, ongedaan maken. Opslaan = JPEG (tekening_path) + bewerkbare gegevens (`tekening_json`).
   Laptop eerst, werkt ook met vinger. Geen animatie (besluit Sofian).
 - "Training downloaden": afdruk/PDF in Ajax-plannervorm (per thema deel 1 en 2 met tekening en teksten).
 - Namen oefenen alleen voor trainers en hoofdtrainer (scouts niet, besluit Sofian).

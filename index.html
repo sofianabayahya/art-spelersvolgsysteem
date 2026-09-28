@@ -435,7 +435,8 @@
   .draw-body{ flex:1; min-height:0; display:flex; }
   .draw-tools{ width:300px; flex:0 0 auto; overflow-y:auto; padding:12px 14px; border-right:1px solid var(--border); display:flex; flex-direction:column; gap:12px; }
   .draw-group-h{ font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:var(--ink-muted); margin-bottom:6px; }
-  .draw-grid{ display:grid; grid-template-columns:repeat(5, 1fr); gap:6px; }
+  .draw-grid{ display:grid; grid-template-columns:repeat(6, 1fr); gap:6px; }
+  .draw-selbar{ flex-wrap:wrap; justify-content:center; }
   .draw-tool{ aspect-ratio:1 / 1; border-radius:10px; border:1px solid var(--border); background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; }
   .draw-tool.active{ outline:3px solid var(--accent); outline-offset:1px; }
   .draw-select{ font:600 14px "Barlow",sans-serif; padding:9px; border-radius:10px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); cursor:pointer; }
@@ -1009,6 +1010,8 @@
         <div class="draw-hint" id="drawHint"></div>
         <svg id="drawSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 680" role="img" aria-label="Veld"></svg>
         <div class="draw-selbar" id="drawSelBar" hidden>
+          <button type="button" class="btn ghost small" id="drawDup" title="Dupliceren (Ctrl/Cmd+D)">Dupliceren</button>
+          <button type="button" class="btn ghost small" id="drawEditText">Tekst wijzigen</button>
           <button type="button" class="btn ghost small" id="drawNumber">Rugnummer +1</button>
           <button type="button" class="btn ghost small" id="drawRotate">Draaien</button>
           <button type="button" class="btn ghost small" id="drawDelete" style="color:var(--low); border-color:var(--low-soft);">Verwijderen</button>
@@ -2801,26 +2804,40 @@
      als gegevens (tekening_json), zodat je hem later weer kunt aanpassen. Niets beweegt (geen animatie). */
   var DrawTool = (function(){
     var FIELDS = {
-      liggend: { w: 1050, h: 680, label: "Heel veld" },
-      staand:  { w: 680, h: 1050, label: "Heel veld staand" },
+      liggend: { w: 1050, h: 680, label: "11x11 liggend" },
+      staand:  { w: 680, h: 1050, label: "11x11" },
+      f8:      { w: 520, h: 740, label: "8x8" },
+      f6:      { w: 420, h: 580, label: "6x6" },
       half:    { w: 680, h: 525, label: "Half veld" },
       vak:     { w: 800, h: 560, label: "Vak" }
     };
-    var SHIRT = { oranje: "#F57C00", blauw: "#1E4FD8", geel: "#F2C200", zwart: "#1A1A1A" };
-    var DISH = { wit: "#F4F4F4", geel: "#F2C200", oranje: "#F57C00" };
+    var SHIRT = { oranje: "#F57C00", blauw: "#1E4FD8", geel: "#F2C200", zwart: "#1A1A1A" }; // oude tekeningen
+    // Spelers: 4 kleuren in 2 vormen (rondje/driehoek), plus trainer (T) en keeper (K). Tekstkleur voor leesbaarheid.
+    var TEAM = {
+      rood:       { shape: "c", fill: "#E53935", ink: "#fff" },
+      lichtblauw: { shape: "c", fill: "#8FD3F0", ink: "#0b2230" },
+      geel:       { shape: "t", fill: "#F2D100", ink: "#1a1400" },
+      blauw:      { shape: "t", fill: "#1E88E5", ink: "#fff" },
+      trainer:    { shape: "t", fill: "#1A1A1A", ink: "#fff", letter: "T" },
+      keeper:     { shape: "t", fill: "#1A1A1A", ink: "#fff", letter: "K" }
+    };
+    var DISH = { wit: "#F4F4F4", geel: "#F2C200", oranje: "#F57C00", roze: "#E0409A" };
     var TOOLS = [
       { group: "Spelers", items: [
-        { t: "shirt", c: "oranje", label: "Speler oranje" }, { t: "shirt", c: "blauw", label: "Speler blauw" },
-        { t: "shirt", c: "geel", label: "Speler geel" }, { t: "shirt", c: "zwart", label: "Speler zwart" } ] },
+        { t: "p", c: "rood", label: "Speler rood (rondje)" }, { t: "p", c: "lichtblauw", label: "Speler lichtblauw (rondje)" },
+        { t: "p", c: "geel", label: "Speler geel (driehoek)" }, { t: "p", c: "blauw", label: "Speler blauw (driehoek)" },
+        { t: "p", c: "trainer", label: "Trainer" }, { t: "p", c: "keeper", label: "Keeper" } ] },
       { group: "Spullen", items: [
         { t: "ball", label: "Bal" }, { t: "cone", label: "Pion" },
-        { t: "dish", c: "wit", label: "Schijfje wit" }, { t: "dish", c: "geel", label: "Schijfje geel" }, { t: "dish", c: "oranje", label: "Schijfje oranje" },
-        { t: "goal", s: "L", label: "Groot doel" }, { t: "goal", s: "M", label: "Middel doel" }, { t: "goal", s: "S", label: "Klein doeltje" } ] },
+        { t: "dish", c: "wit", label: "Schijfje wit" }, { t: "dish", c: "geel", label: "Schijfje geel" },
+        { t: "dish", c: "oranje", label: "Schijfje oranje" }, { t: "dish", c: "roze", label: "Schijfje roze" },
+        { t: "goal", s: "L", label: "Groot doel" }, { t: "goal", s: "M", label: "Middel doel" }, { t: "goal", s: "S", label: "Klein doeltje" },
+        { t: "board", label: "Kaatsbord" } ] },
       { group: "Pijlen en lijnen", items: [
         { t: "arrow", k: "run", label: "Loopactie (stippel)" }, { t: "arrow", k: "pass", label: "Pass" },
         { t: "arrow", k: "dribble", label: "Dribbel" }, { t: "arrow", k: "shot", label: "Schot" },
         { t: "wall", label: "Muur / lijn" } ] },
-      { group: "Volgorde en markeren", items: [ { t: "num", label: "Nummer" }, { t: "zone", label: "Vak markeren" } ] }
+      { group: "Volgorde en markeren", items: [ { t: "num", label: "Nummer" }, { t: "zone", label: "Vak markeren" }, { t: "text", label: "Tekst (bv. 5P)" } ] }
     ];
     var st = null; // { field, items, tool, sel, drag, undo, onSave, num }
 
@@ -2835,7 +2852,7 @@
 
     function fieldSvg(){
       var f = FIELDS[st.field], w = f.w, h = f.h, s = "", n = 10, i;
-      var vertical = st.field === "staand";
+      var vertical = st.field === "staand" || st.field === "f8" || st.field === "f6";
       for (i = 0; i < n; i++){
         var c = i % 2 ? "#5DAE5F" : "#67B769";
         s += vertical ? '<rect x="0" y="' + (h / n * i) + '" width="' + w + '" height="' + (h / n + 1) + '" fill="' + c + '"/>'
@@ -2847,10 +2864,13 @@
         s += '<line x1="' + w / 2 + '" y1="' + m + '" x2="' + w / 2 + '" y2="' + (h - m) + '" ' + L + '/><circle cx="' + w / 2 + '" cy="' + h / 2 + '" r="90" ' + L + '/>' +
           '<rect x="' + m + '" y="' + (h / 2 - 200) + '" width="160" height="400" ' + L + '/><rect x="' + (w - m - 160) + '" y="' + (h / 2 - 200) + '" width="160" height="400" ' + L + '/>' +
           '<rect x="' + m + '" y="' + (h / 2 - 90) + '" width="55" height="180" ' + L + '/><rect x="' + (w - m - 55) + '" y="' + (h / 2 - 90) + '" width="55" height="180" ' + L + '/>';
-      } else if (st.field === "staand"){
-        s += '<line x1="' + m + '" y1="' + h / 2 + '" x2="' + (w - m) + '" y2="' + h / 2 + '" ' + L + '/><circle cx="' + w / 2 + '" cy="' + h / 2 + '" r="90" ' + L + '/>' +
-          '<rect x="' + (w / 2 - 200) + '" y="' + m + '" width="400" height="160" ' + L + '/><rect x="' + (w / 2 - 200) + '" y="' + (h - m - 160) + '" width="400" height="160" ' + L + '/>' +
-          '<rect x="' + (w / 2 - 90) + '" y="' + m + '" width="180" height="55" ' + L + '/><rect x="' + (w / 2 - 90) + '" y="' + (h - m - 55) + '" width="180" height="55" ' + L + '/>';
+      } else if (vertical){
+        // 11x11, 8x8 en 6x6 staand: zelfde opbouw, geschaald naar de veldmaat.
+        var cr = st.field === "staand" ? 90 : (st.field === "f8" ? 62 : 48);
+        var pbw = Math.round((w - 2 * m) * 0.62), pbh = Math.round(h * 0.155), gaw = Math.round((w - 2 * m) * 0.28), gah = Math.round(h * 0.052);
+        s += '<line x1="' + m + '" y1="' + h / 2 + '" x2="' + (w - m) + '" y2="' + h / 2 + '" ' + L + '/><circle cx="' + w / 2 + '" cy="' + h / 2 + '" r="' + cr + '" ' + L + '/>' +
+          '<rect x="' + (w / 2 - pbw / 2) + '" y="' + m + '" width="' + pbw + '" height="' + pbh + '" ' + L + '/><rect x="' + (w / 2 - pbw / 2) + '" y="' + (h - m - pbh) + '" width="' + pbw + '" height="' + pbh + '" ' + L + '/>' +
+          '<rect x="' + (w / 2 - gaw / 2) + '" y="' + m + '" width="' + gaw + '" height="' + gah + '" ' + L + '/><rect x="' + (w / 2 - gaw / 2) + '" y="' + (h - m - gah) + '" width="' + gaw + '" height="' + gah + '" ' + L + '/>';
       } else if (st.field === "half"){
         s += '<rect x="' + (w / 2 - 200) + '" y="' + m + '" width="400" height="160" ' + L + '/><rect x="' + (w / 2 - 90) + '" y="' + m + '" width="180" height="55" ' + L + '/>' +
           '<path d="M ' + (w / 2 - 90) + ' ' + (h - m) + ' A 90 90 0 0 1 ' + (w / 2 + 90) + ' ' + (h - m) + '" ' + L + '/>';
@@ -2873,6 +2893,16 @@
         case "shirt":
           return '<g' + a + hl + ' transform="translate(' + it.x + ' ' + it.y + ')"><circle r="16" fill="' + SHIRT[it.c] + '" stroke="#fff" stroke-width="3"/>' +
             (it.n ? '<text y="6" text-anchor="middle" font-family="Arial" font-weight="700" font-size="16" fill="#fff">' + esc(String(it.n)) + '</text>' : '') + '</g>';
+        case "p":
+          var tm = TEAM[it.c] || TEAM.rood, lab = tm.letter || (it.n ? String(it.n) : "");
+          var shape = tm.shape === "c" ? '<circle r="17" fill="' + tm.fill + '" stroke="#fff" stroke-width="2.5"/>'
+            : '<path d="M 0 -21 L 19 13 L -19 13 Z" fill="' + tm.fill + '" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/>';
+          return '<g' + a + hl + ' transform="translate(' + it.x + ' ' + it.y + ')">' + shape +
+            (lab ? '<text y="' + (tm.shape === "c" ? 6 : 9) + '" text-anchor="middle" font-family="Arial" font-weight="700" font-size="' + (lab.length > 1 ? 14 : 16) + '" fill="' + tm.ink + '">' + esc(lab) + '</text>' : '') + '</g>';
+        case "board":
+          return '<g' + a + hl + ' transform="translate(' + it.x + ' ' + it.y + ') rotate(' + (it.r || 0) + ')"><rect x="-36" y="-8" width="72" height="16" rx="2" fill="#3b3b3b" stroke="#fff" stroke-width="2.5"/></g>';
+        case "text":
+          return '<text' + a + hl + ' x="' + it.x + '" y="' + it.y + '" text-anchor="middle" font-family="Arial" font-weight="700" font-size="22" fill="#111" stroke="#fff" stroke-width="4" paint-order="stroke">' + esc(it.s) + '</text>';
         case "ball":
           return '<g' + a + hl + ' transform="translate(' + it.x + ' ' + it.y + ')"><circle r="9" fill="#fff" stroke="#111" stroke-width="2"/><circle r="3.5" fill="#111"/></g>';
         case "cone":
@@ -2909,8 +2939,9 @@
         st.items.map(function(it, i){ return it.t === "zone" ? "" : itemSvg(it, i); }).join("") + '</g>';
       el("drawSelBar").hidden = st.sel == null;
       var it = st.sel != null ? st.items[st.sel] : null;
-      el("drawRotate").hidden = !it || it.t !== "goal";
-      el("drawNumber").hidden = !it || it.t !== "shirt";
+      el("drawRotate").hidden = !it || (it.t !== "goal" && it.t !== "board");
+      el("drawNumber").hidden = !it || !((it.t === "p" && !TEAM[it.c].letter) || it.t === "shirt");
+      el("drawEditText").hidden = !it || it.t !== "text";
       Array.prototype.forEach.call(document.querySelectorAll("[data-draw-tool]"), function(b){
         b.classList.toggle("active", st.tool != null && b.getAttribute("data-draw-tool") === String(st.tool));
       });
@@ -2922,7 +2953,14 @@
     function toolDef(idx){ var flat = []; TOOLS.forEach(function(g){ flat = flat.concat(g.items); }); return flat[idx]; }
     function toolIcon(t){
       var s = '<svg viewBox="-20 -20 40 40" width="34" height="34" aria-hidden="true">';
-      if (t.t === "shirt") s += '<path d="M-10 -12 L-4 -14 Q0 -10 4 -14 L10 -12 L15 -5 L10 -2 L10 14 L-10 14 L-10 -2 L-15 -5 Z" fill="' + SHIRT[t.c] + '" stroke="#333" stroke-width="1"/>';
+      if (t.t === "p"){
+        var tm = TEAM[t.c];
+        s += tm.shape === "c" ? '<circle r="12" fill="' + tm.fill + '" stroke="#333" stroke-width="1"/>' : '<path d="M 0 -14 L 13 10 L -13 10 Z" fill="' + tm.fill + '" stroke="#333" stroke-width="1"/>';
+        if (tm.letter) s += '<text y="8" text-anchor="middle" font-size="12" font-weight="700" font-family="Arial" fill="#fff">' + tm.letter + '</text>';
+      }
+      else if (t.t === "board") s += '<rect x="-15" y="-5" width="30" height="10" rx="2" fill="#3b3b3b"/>';
+      else if (t.t === "text") s += '<text y="6" text-anchor="middle" font-size="15" font-weight="700" font-family="Arial" fill="#111">5P</text>';
+      else       if (t.t === "shirt") s += '<path d="M-10 -12 L-4 -14 Q0 -10 4 -14 L10 -12 L15 -5 L10 -2 L10 14 L-10 14 L-10 -2 L-15 -5 Z" fill="' + SHIRT[t.c] + '" stroke="#333" stroke-width="1"/>';
       else if (t.t === "ball") s += '<circle r="10" fill="#fff" stroke="#111" stroke-width="2"/><circle r="4" fill="#111"/>';
       else if (t.t === "cone") s += '<path d="M -9 10 L 0 -12 L 9 10 Z" fill="#F57C00"/>';
       else if (t.t === "dish") s += '<ellipse rx="13" ry="6" fill="' + DISH[t.c] + '" stroke="#555"/>';
@@ -2974,6 +3012,13 @@
           if (t.c) obj.c = t.c;
           if (t.s) obj.s = t.s;
           if (t.t === "num") obj.n = ++st.num;
+          // Spelers krijgen automatisch het volgende nummer binnen hun team (kleur).
+          if (t.t === "p" && !TEAM[t.c].letter) obj.n = 1 + st.items.reduce(function(mx, x){ return x.t === "p" && x.c === t.c ? Math.max(mx, x.n || 0) : mx; }, 0);
+          if (t.t === "text"){
+            var txt = window.prompt("Tekst op het veld", "5P");
+            if (!txt || !txt.trim()){ st.undo.pop(); return; }
+            obj.s = txt.trim().slice(0, 30);
+          }
           st.items.push(obj);
         }
         render(); evt.preventDefault(); return;
@@ -3047,7 +3092,23 @@
     el("drawRotate").addEventListener("click", function(){ var it = st.items[st.sel]; if (!it) return; snapshot(); it.r = ((it.r || 0) + 90) % 180; render(); });
     el("drawNumber").addEventListener("click", function(){
       var it = st.items[st.sel]; if (!it) return;
-      var n = (Number(it.n) || 0) + 1; snapshot(); it.n = n > 11 ? 0 : n; render();
+      var n = (Number(it.n) || 0) + 1; snapshot(); it.n = n > 20 ? 0 : n; render();
+    });
+    // Dupliceren: kopie iets verschoven, en direct geselecteerd (handig voor rijen pionnen).
+    function duplicate(){
+      var it = st.sel != null ? st.items[st.sel] : null; if (!it) return;
+      snapshot();
+      var c = JSON.parse(JSON.stringify(it));
+      if ("x" in c){ c.x += 24; c.y += 24; } else { c.x1 += 24; c.y1 += 24; c.x2 += 24; c.y2 += 24; }
+      if (c.t === "p" && !TEAM[c.c].letter) c.n = 1 + st.items.reduce(function(mx, x){ return x.t === "p" && x.c === c.c ? Math.max(mx, x.n || 0) : mx; }, 0);
+      if (c.t === "num") c.n = ++st.num;
+      st.items.push(c); st.sel = st.items.length - 1; render();
+    }
+    el("drawDup").addEventListener("click", duplicate);
+    el("drawEditText").addEventListener("click", function(){
+      var it = st.items[st.sel]; if (!it) return;
+      var txt = window.prompt("Tekst op het veld", it.s);
+      if (txt && txt.trim()){ snapshot(); it.s = txt.trim().slice(0, 30); render(); }
     });
     el("drawUndo").addEventListener("click", undo);
     el("drawCancel").addEventListener("click", close);
@@ -3064,6 +3125,7 @@
       if (e.key === "Delete" || e.key === "Backspace"){ removeSel(); e.preventDefault(); }
       else if (e.key === "Escape"){ if (st.tool != null){ st.tool = null; render(); } else { st.sel = null; render(); } e.stopPropagation(); }
       else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z"){ undo(); e.preventDefault(); }
+      else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "d"){ duplicate(); e.preventDefault(); }
     }, true);
     return { open: open };
   })();
