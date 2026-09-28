@@ -155,8 +155,11 @@ Zodra `git` beschikbaar is: overstappen op een gewone clone.
   bewaard als `zoom` in tekening_json). Tekenen gebeurt altijd op het hele veld. Geen aparte "kwart vak"-veldvorm (besluit).
 - Tekening zonder opgeslagen plaatje (alleen `tekening_json`) wordt door de app zelf getekend (`DrawTool.staticSvg`):
   tegels, "Bekijk hele training", invulvenster en afdruk. Opslaan in de tekentool maakt alsnog een JPEG.
-- 2026-09-28: training 20 sep (door Sofian "3e training" genoemd, kick-off meegeteld) ingevoerd door Claude vanuit de
-  planner-foto + evaluatieverslag: A Passeren (A1, A2), B Afwerken (B1, B2), C Beschermen/vrijmaken (C2), met
+- Blok 1: 13 sep = training 1 (Simon), 20 sep = training 2 (Kai), 27 sep = training 3 (Tommy). Kick-off 6 sep telt niet
+  (niet op de hoofdlocatie). Het traject in de app begint bij 27 sep; 13 en 20 sep blijven leeg (tenzij Sofian ze aanlevert
+  voor de vormenbank).
+- 2026-09-28: training 27 sep ingevoerd door Claude vanuit de planner-foto + evaluatieverslag "3e training" (Sofians
+  eigen test-A1/A2 op 27 sep op zijn verzoek overschreven; hun 2 tekening-jpg's staan nog los in de bucket): A Passeren (A1, A2), B Afwerken (B1, B2), C Beschermen/vrijmaken (C2), met
   nagetekende tekeningen (tekening_json), status gedeeld, eigenaar leeg, korte algemene evaluatie. Sofian past aan.
 - Tekentool: nog een keer op de actieve knop = stoppen met neerzetten. Spelers r=12.5 (was 17). ART gebruikt alleen
   pupillendoelen (5x2 m) en minidoelen (2x1 m); ~10 beeldpunten per meter (oude "L" groot doel wordt nog getekend).
