@@ -101,6 +101,21 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   Tabel `player_favorites` bestaat nog in de database maar wordt niet meer gebruikt.
 - Denkwijze bij ontwerp (Sofian): per knop afwegen wie hem gebruikt en hoe vaak; zelden gebruikt = naar Instellingen.
 
+## Demo (www.artsvs.nl/demo), gebouwd 2026-09-28 voor de pitch bij Ajax
+- `vercel.json` herschrijft /demo naar index.html; `DEMO` = pad is /demo. Inloggen gaat via het echte account; alleen de
+  (echte) hoofdtrainer mag de demo starten (`startDemo`), anderen zien "Alleen voor de hoofdtrainer".
+- Na inloggen wordt `sb` vervangen door `DemoDB.client(real)`: een nep-Supabase in het geheugen (select/insert/upsert/
+  update/delete + eq/order/single/maybeSingle, rpc set_attendance, storage met getekende poppetjes als foto,
+  manage-users alleen "list"). Auth (inloggen/uitloggen) blijft echt; wachtwoord wijzigen kan niet in de demo.
+  Er gaat dus NIETS naar de echte database; verversen = demo weer schoon. Seizoen/periodisering/logo komen wel uit
+  de echte app_settings (Branding.load vóór de wissel).
+- Verzonnen data (`DemoDB.seed`): 24 spelers, trainers Tim de Groot/Kevin Postma/Rick Verhoef, scouts Johan Laan/Erik
+  Stam, beoordelingen, aanwezigheid, en de training van 27 sep (`DEMO_VORMEN`, kopie van de echte 5 vormen) met
+  reflectie, tips/tops en een reactie van de hoofdtrainer. Geen echte kinderen of namen in de demo.
+- Rondleiding (`Tour`): 16 stappen, oplichtend onderdeel + ballon, Vorige/Volgende/pijltjestoetsen, Esc = stoppen.
+  Gele "DEMO"-pil bovenaan met knop "Rondleiding". Stappen zijn in `Tour` aan te passen (sel, title, text, go).
+- Wijzigt de app, controleer dan of de selectors van de rondleiding nog kloppen.
+
 ## Git zonder git
 De Command Line Developer Tools (en dus `git`) zijn nog niet geïnstalleerd. Tot die tijd:
 - `perl tools/gh.pl status` — verschil tussen lokale bestanden en GitHub `main`.
