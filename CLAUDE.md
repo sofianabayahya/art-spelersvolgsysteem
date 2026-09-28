@@ -121,8 +121,24 @@ Zodra `git` beschikbaar is: overstappen op een gewone clone.
   gekende). Voortgang per gebruiker in localStorage `art-namen-<userId>`; gekend = 3x goed over >= 2 dagen.
 
 ## Coachdashboard (tabblad Training, fase 1 gebouwd 2026-09-28)
-- Tabbladen: Spelers · Training · Rapport. Training = datumkeuze + Voorbereiden / Aanwezig / Evaluatie (oude panelen
-  absenties en evaluatie zijn sub-panelen; hun eigen datumkeuze is verborgen, state.trainingDate stuurt ze aan).
+- Tabbladen: Spelers · Aanwezig · Training · Rapport (scout: alleen Spelers). Aanwezig is een eigen tabblad (veld,
+  telefoon) met eigen datumkeuze en telling "x aanwezig · y afwezig". Training = datumkeuze + Voorbereiden / Evaluatie
+  (paneel evaluatie is sub-paneel; zijn datumkeuze is verborgen, state.trainingDate stuurt het aan).
+- Voorbereiden = weekplan: "Jouw taak" (eigen onderdeel, vormen, deadline), "De training" (per onderdeel eigenaar +
+  status per vorm, "x van 5 gedeeld" / "✓ Compleet" als A1 A2 B1 B2 C2 gedeeld zijn; hoofdtrainer krijgt een
+  WhatsApp-knop "Herinner" met ingevuld bericht), knop "Bekijk hele training" (scherm, Ajax-opbouw, alleen lezen)
+  en Downloaden. Rolverdeling alleen voor de hoofdtrainer, plus "Rooster maken": rollen voor de eerste training van
+  een blok kiezen, daarna schuift iedereen per training één rol door; toernooien tellen niet mee; trainingen die al
+  geweest zijn blijven ongemoeid; deadline = x dagen vóór de training. Opslaan = rijen in training_plans (geen schema).
+- Alle trainers zien de hele training (en elkaars reflecties); alleen de eigenaar (en hoofdtrainer) bewerkt.
+- Ajax-opbouw (Sofian): vorm 1 is droog, zonder weerstand (1v0, bewegingsvariaties); vorm 2 is de contextvorm met
+  weerstand (aantallen uit de periodisering, bv. 2v1 of 3v3), x2.2 = contextvariatie (welke regel/ruimte verandert).
+- Kleine tekeningen (thumbnail) bij elke vorm, ook in Evaluatie; eigen vormen staan bovenaan.
+- Besluiten 2026-09-28 leeromgeving: reactie van de hoofdtrainer op een reflectie is alleen zichtbaar voor die trainer;
+  GEEN persoonlijk leerdoel per blok; GEEN "zien hoe hij groeit"-overzicht. WEL een vormenbank (fase 3).
+  Plan: fase 2 = één evaluatie per vorm incl. reflectie + reactie hoofdtrainer, oude evaluatieformulier weg
+  (schemawijziging, eerst vragen); fase 3 = vormenbank; fase 4 = scout: zoeken op hesjenummer, "vandaag trainen ze op",
+  oude uitgebreide scoutformulier opruimen.
 - Tabellen: `training_plans` (per datum: hoofd_a, hoofd_b, assistent, deadline), `oefenvormen` (datum, onderdeel A/B/C,
   volgnr 1/2, eigenaar, vaste velden, tekening_path, status concept/gedeeld, eval_*), `oefenvorm_feedback` (tip/top).
   Bucket `training-images` (privé). Onderdeel A = hoofd_a, B = hoofd_b, C = assistent (alleen C.2).

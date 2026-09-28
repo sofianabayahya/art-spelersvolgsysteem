@@ -425,6 +425,42 @@
   .tr-fb-add{ display:flex; gap:6px; margin-top:8px; }
   .tr-fb-add select, .tr-fb-add input{ font:16px "Barlow",sans-serif; padding:8px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--ink); }
   .tr-fb-add input{ flex:1; min-width:0; }
+  /* Weekplan: jouw taak, status van de training, hele training bekijken, rooster */
+  .tr-thumb{ width:58px; height:40px; border-radius:6px; object-fit:cover; background:#fff; border:1px solid var(--border); flex:0 0 auto; }
+  .tr-card.tr-mine{ border:2px solid var(--accent); }
+  .tr-vorm.tr-mine{ border-color:var(--accent); }
+  .tr-status{ display:flex; align-items:center; gap:8px; font-weight:700; }
+  .tr-status.ok{ color:var(--good); }
+  .tr-orow{ display:flex; align-items:center; gap:10px; padding:8px 0; border-top:1px solid var(--border); }
+  .tr-orow:first-of-type{ border-top:none; }
+  .tr-orow .tr-letter{ flex:0 0 auto; }
+  .tr-orow-main{ flex:1; min-width:0; font-size:14px; }
+  .tr-orow-main small{ display:block; color:var(--ink-muted); font-size:12.5px; }
+  .tr-orow-pills{ display:flex; flex-wrap:wrap; gap:4px; margin-top:3px; }
+  .tr-remind{ flex:0 0 auto; }
+  .tr-orow-pills .pill{ border:none; cursor:pointer; font-family:inherit; }
+  .tv-sheet{ max-width:1100px; }
+  @media (min-width:600px){ #tvOverlay{ align-items:center; } .tv-sheet{ border-radius:20px; max-height:92vh; } }
+  .tv-meta{ font-size:13px; color:var(--ink-muted); margin:-6px 0 12px; }
+  .tv-onderdeel{ border-top:2px solid var(--border); padding:12px 0; }
+  .tv-onderdeel h4{ display:flex; align-items:center; gap:8px; font:700 19px "Barlow Condensed",sans-serif; margin:0 0 8px; flex-wrap:wrap; }
+  .tv-onderdeel h4 small{ font:600 13px "Barlow",sans-serif; color:var(--ink-muted); }
+  .tv-delen{ display:grid; grid-template-columns:1fr; gap:10px; }
+  @media (min-width:800px){ .tv-delen{ grid-template-columns:1fr 1fr; } }
+  .tv-deel{ background:var(--surface-alt); border:1px solid var(--border); border-radius:12px; padding:10px 12px; font-size:14px; }
+  .tv-deel-h{ font-weight:700; margin-bottom:6px; display:flex; justify-content:space-between; gap:6px; flex-wrap:wrap; }
+  .tv-deel img{ width:100%; max-height:300px; object-fit:contain; background:#fff; border-radius:8px; display:block; margin-bottom:8px; }
+  .tv-b{ margin:6px 0; }
+  .tv-b b{ display:block; font-size:11.5px; text-transform:uppercase; letter-spacing:.4px; color:var(--ink-muted); }
+  .tv-empty{ color:var(--ink-muted); font-style:italic; }
+  .ro-order{ display:flex; flex-direction:column; gap:8px; }
+  .ro-order label{ display:flex; align-items:center; gap:10px; font-weight:600; }
+  .ro-order label span{ min-width:130px; }
+  .ro-order select{ flex:1; font:16px "Barlow",sans-serif; padding:8px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--ink); }
+  .ro-preview{ font-size:13.5px; margin-top:10px; border-top:1px solid var(--border); }
+  .ro-preview div{ padding:6px 0; border-bottom:1px solid var(--border); display:flex; gap:8px; }
+  .ro-preview div b{ min-width:62px; }
+  .ro-preview .past{ color:var(--ink-muted); }
   /* Tekentool */
   #drawOverlay{ z-index:60; align-items:stretch; padding:0; }
   .draw-app{ background:var(--surface); width:100%; max-width:1400px; margin:0 auto; display:flex; flex-direction:column; height:100%; }
@@ -809,7 +845,6 @@
     </div>
     <div class="ng-tabs tr-tabs" role="tablist">
       <button type="button" data-tr-sub="plan">Voorbereiden</button>
-      <button type="button" data-tr-sub="aanwezig">Aanwezig</button>
       <button type="button" data-tr-sub="evaluatie">Evaluatie</button>
     </div>
   </section>
@@ -876,6 +911,10 @@
   <button class="tab-btn active" data-tab="spelers">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 4l2 2h4l2-2 3 3-2 3v10a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V10L5 7z" stroke-linejoin="round"/></svg>
     <span class="tab-label">Spelers</span>
+  </button>
+  <button class="tab-btn" data-tab="aanwezig">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20c.8-3.5 3.2-5.5 6-5.5s5.2 2 6 5.5M15 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span class="tab-label">Aanwezig</span>
   </button>
   <button class="tab-btn" data-tab="training">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9h16M8 3v4M16 3v4M9 14l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -991,6 +1030,46 @@
     <div class="hint" id="oefHint"></div>
     <div class="oef-actions" id="oefActions"></div>
     <div class="oef-feedback" id="oefFeedback"></div>
+  </div>
+</div>
+
+<div class="overlay" id="tvOverlay" hidden>
+  <div class="sheet tv-sheet">
+    <div class="sheet-head">
+      <h3 id="tvTitle">Training</h3>
+      <button class="icon-btn" id="closeTv" aria-label="Sluiten">&times;</button>
+    </div>
+    <div class="tv-meta" id="tvMeta"></div>
+    <div id="tvBody"></div>
+    <button type="button" class="btn ghost block" id="tvPrint" style="margin-top:10px;">Downloaden (afdrukken of PDF)</button>
+  </div>
+</div>
+
+<div class="overlay" id="rosterOverlay" hidden>
+  <div class="sheet">
+    <div class="sheet-head">
+      <h3>Rooster maken</h3>
+      <button class="icon-btn" id="closeRoster" aria-label="Sluiten">&times;</button>
+    </div>
+    <div class="tr-note" style="margin-bottom:12px;">Kies wie in de eerste training van het blok welke rol heeft. Daarna schuiven de rollen elke training één plek door, zodat iedereen elke rol krijgt. Per week kun je daarna nog wisselen.</div>
+    <div class="field"><label for="roBlok">Blok</label><select id="roBlok"></select></div>
+    <div class="ro-order">
+      <label><span>Hoofdtrainer A</span><select id="roA"></select></label>
+      <label><span>Hoofdtrainer B</span><select id="roB"></select></label>
+      <label><span>Assistent</span><select id="roC"></select></label>
+    </div>
+    <div class="field" style="margin-top:12px;"><label for="roDeadline">Oefenvormen delen</label>
+      <select id="roDeadline">
+        <option value="">Geen deadline</option>
+        <option value="1">1 dag voor de training</option>
+        <option value="2" selected>2 dagen voor de training</option>
+        <option value="3">3 dagen voor de training</option>
+        <option value="4">4 dagen voor de training</option>
+      </select>
+    </div>
+    <div class="ro-preview" id="roPreview"></div>
+    <div class="hint" id="roHint"></div>
+    <button type="button" class="btn primary block" id="roSave" style="margin-top:12px;">Rooster opslaan</button>
   </div>
 </div>
 
@@ -1635,6 +1714,14 @@
         return loadTraining();
       });
     }
+    // Rooster: meerdere trainingen tegelijk (rolverdeling + deadline).
+    function savePlans(rows){
+      var now = new Date().toISOString();
+      return sb.from("training_plans").upsert(rows.map(function(r){ return Object.assign({ updated_at: now }, r); })).then(function(res){
+        if (res.error) throw res.error;
+        return loadTraining();
+      });
+    }
     function getOefs(d){ return oefs.filter(function(o){ return o.training_date === d; }); }
     function getOef(d, onderdeel, volgnr){ return oefs.find(function(o){ return o.training_date === d && o.onderdeel === onderdeel && o.volgnr === volgnr; }) || null; }
     function saveOef(row){
@@ -1951,7 +2038,7 @@
     }
 
     return {
-      getPlan: getPlan, savePlan: savePlan, getOefs: getOefs, getOef: getOef, saveOef: saveOef, getFeedback: getFeedback,
+      getPlan: getPlan, savePlan: savePlan, savePlans: savePlans, getOefs: getOefs, getOef: getOef, saveOef: saveOef, getFeedback: getFeedback,
       addFeedback: addFeedback, deleteFeedback: deleteFeedback, uploadTekening: uploadTekening, getTekeningUrl: getTekeningUrl, onTraining: onTraining,
       init: init, onPlayers: onPlayers, onScores: onScores, onSettings: onSettings, onEvals: onEvals, onScoutReports: onScoutReports, onModeReady: onModeReady,
       getPlayers: getPlayers, getScores: getScores, getCancelled: getCancelled, getEvaluations: getEvaluations, getScoutReports: getScoutReports, getMode: getMode,
@@ -2129,7 +2216,9 @@
   /* ---------- tabs ---------- */
   function switchTab(tab){
     state.tab = tab;
-    ["spelers","overzicht","training","plan","absenties","evaluatie","instellingen"].forEach(function(t){ $("panel-" + t).hidden = t !== tab; });
+    // Tabblad Aanwezig toont het paneel "absenties"; Training beheert zelf zijn sub-panelen.
+    var panel = tab === "aanwezig" ? "absenties" : tab;
+    ["spelers","overzicht","training","plan","absenties","evaluatie","instellingen"].forEach(function(t){ $("panel-" + t).hidden = t !== panel; });
     Array.prototype.forEach.call(document.querySelectorAll(".tab-btn"), function(btn){
       btn.classList.toggle("active", btn.getAttribute("data-tab") === tab);
     });
@@ -3159,7 +3248,7 @@
     }
     if (!state.trainingSub){
       var today = todayISO();
-      state.trainingSub = state.trainingDate === today ? "aanwezig" : (state.trainingDate < today ? "evaluatie" : "plan");
+      state.trainingSub = state.trainingDate < today ? "evaluatie" : "plan";
     }
   }
 
@@ -3177,22 +3266,18 @@
       }).join("");
     }
     pick.value = state.trainingDate;
-    state.absDate = state.trainingDate;
     state.evalDate = state.trainingDate;
     Array.prototype.forEach.call(document.querySelectorAll("[data-tr-sub]"), function(b){ b.classList.toggle("active", b.getAttribute("data-tr-sub") === state.trainingSub); });
     $("panel-plan").hidden = state.trainingSub !== "plan";
-    $("panel-absenties").hidden = state.trainingSub !== "aanwezig";
     $("panel-evaluatie").hidden = state.trainingSub !== "evaluatie";
     if (state.trainingSub === "plan") renderPlan();
-    else if (state.trainingSub === "aanwezig") renderAbsenties();
     else { renderOefEval(); renderEvaluatie(); }
   }
   $("trainingPick").addEventListener("change", function(){ state.trainingDate = this.value; state.trainingSub = null; trainingDefaults(); renderTraining(); });
   Array.prototype.forEach.call(document.querySelectorAll("[data-tr-sub]"), function(b){
     b.addEventListener("click", function(){ state.trainingSub = b.getAttribute("data-tr-sub"); renderTraining(); });
   });
-  // De oude datumkeuzes in Aanwezig en Evaluatie zijn vervangen door die van Training.
-  $("trainingDateSelect").closest(".field").hidden = true;
+  // De oude datumkeuze in Evaluatie is vervangen door die van Training. Aanwezig is een eigen tabblad met eigen datum.
   $("evalDateSelect").closest(".field").hidden = true;
 
   function vormPill(row, d){
@@ -3207,54 +3292,121 @@
     var band = row.eval_terug === "ja" ? "good" : (row.eval_terug === "deels" ? "mid" : "low");
     return ' <span class="pill ' + band + '">Vaardigheid: ' + row.eval_terug + '</span>';
   }
+  // Ajax-opbouw: vorm 1 is droog (1v0, zonder weerstand, bewegingsvariaties), vorm 2 is de contextvorm met weerstand.
+  function vormenVan(o){ return o === "C" ? [2] : [1, 2]; }
+  function vormSub(v){ return v === 1 ? "droog" : "context&shy;vorm"; }
+  function vormOwner(d, o, row){
+    if (row && row.eigenaar_id) return row.eigenaar_naam || profNaam(row.eigenaar_id);
+    var id = (Store.getPlan(d) || {})[ROLE_FIELD[o]];
+    return id ? profNaam(id) : "";
+  }
+  // Is de training compleet? Alle vormen (A1, A2, B1, B2, C2) gedeeld.
+  function trainingStatus(d){
+    var per = trainingPeriod(d);
+    if (per && per.toernooi) return null;
+    var total = 0, klaar = 0, open = {};
+    ["A", "B", "C"].forEach(function(o){
+      vormenVan(o).forEach(function(v){
+        total++;
+        var r = Store.getOef(d, o, v);
+        if (r && r.status === "gedeeld") klaar++; else (open[o] = open[o] || []).push(o + v);
+      });
+    });
+    return { total: total, klaar: klaar, open: open, compleet: klaar === total };
+  }
+  function myOnderdeel(d){
+    var plan = Store.getPlan(d) || {}, me = myUserId();
+    return ["A", "B", "C"].filter(function(o){ return plan[ROLE_FIELD[o]] === me; })[0] || null;
+  }
+  function addDaysISO(d, n){
+    var p = d.split("-"), x = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]) + n);
+    return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0");
+  }
   function vormButton(d, o, v, mode){
     var row = Store.getOef(d, o, v);
     var fb = row ? Store.getFeedback(row.id).length : 0;
-    var sum = row ? (mode === "evaluatie" ? (row.eval_volgende || row.eval_groep1 || "") : (row.organisatie || row.regels || "")) : "";
-    return '<button type="button" class="tr-vorm" data-vorm="' + o + '|' + v + '" data-mode="' + mode + '">' +
-      '<span class="tr-vorm-id">' + o + v + '<small>' + (v === 1 ? "bewegings&shy;variaties" : "context&shy;vorm") + '</small></span>' +
+    var sum = row ? (mode === "evaluatie" ? (row.eval_volgende || row.eval_groep1 || "") : (row.variatie_1 || row.organisatie || row.regels || "")) : "";
+    var mine = row ? row.eigenaar_id === myUserId() : (Store.getPlan(d) || {})[ROLE_FIELD[o]] === myUserId();
+    var owner = vormOwner(d, o, row);
+    return '<button type="button" class="tr-vorm' + (mine ? " tr-mine" : "") + '" data-vorm="' + o + '|' + v + '" data-mode="' + mode + '">' +
+      '<span class="tr-vorm-id">' + o + v + '<small>' + vormSub(v) + '</small></span>' +
       '<span class="tr-vorm-body"><span class="tr-vorm-top">' +
       (mode === "evaluatie" ? (row && row.eval_terug ? terugPill(row) : '<span class="pill none">Nog niet geëvalueerd</span>') : vormPill(row, d) + (fb ? ' <span class="pill none">' + fb + ' feedback</span>' : '')) +
+      (mode === "evaluatie" && owner ? ' <span class="pill none">' + (mine ? "Jouw vorm" : esc(owner)) + '</span>' : '') +
       '</span>' + (sum ? '<span class="tr-vorm-sum">' + esc(sum.length > 90 ? sum.slice(0, 90) + "…" : sum) + '</span>' : '') + '</span>' +
+      (row && row.tekening_path ? '<img class="tr-thumb" alt="" data-tek-path="' + esc(row.tekening_path) + '">' : '') +
       '<span class="ng-go">&rsaquo;</span></button>';
   }
+  // Kleine tekeningen invullen (afgeschermde opslag: tijdelijke link per tekening).
+  function fillTekeningen(wrap){
+    Array.prototype.forEach.call(wrap.querySelectorAll("img[data-tek-path]"), function(img){
+      Store.getTekeningUrl(img.getAttribute("data-tek-path")).then(function(u){ img.src = u; }, function(){ img.remove(); });
+    });
+  }
 
+  /* Voorbereiden = weekplan: bovenaan jouw taak, daaronder de hele training met status, voor de hoofdtrainer de rolverdeling. */
   function renderPlan(){
-    var d = state.trainingDate, per = trainingPeriod(d), plan = Store.getPlan(d) || {}, isHoofd = Auth.isHoofdtrainer();
-    var staff = staffProfiles(), html = "";
-    if (per && per.toernooi){
+    var d = state.trainingDate, per = trainingPeriod(d) || {}, plan = Store.getPlan(d) || {}, isHoofd = Auth.isHoofdtrainer();
+    var st = trainingStatus(d), mine = myOnderdeel(d), html = "";
+    var deadlineTxt = plan.deadline ? formatDateShort(plan.deadline) : "";
+    if (per.toernooi){
       html += '<div class="card tr-card"><div class="tr-card-h">' + esc(per.toernooi) + '</div><div class="tr-note">Geen oefenvormen voor te bereiden.</div></div>';
-    }
-    function roleRow(o){
-      var f = ROLE_FIELD[o], cur = plan[f] || "";
-      var control = isHoofd
-        ? '<select data-role-field="' + f + '"><option value="">Nog niet ingedeeld</option>' + staff.map(function(p){
-            return '<option value="' + p.id + '"' + (p.id === cur ? " selected" : "") + '>' + esc(p.naam) + '</option>'; }).join("") + '</select>'
-        : '<b>' + (cur ? esc(profNaam(cur)) : "Nog niet ingedeeld") + '</b>';
-      return '<div class="tr-role"><span>' + ROLE_LABEL[o] + (per && per[o] ? ' <small>' + o + ' · ' + esc(per[o].v) + '</small>' : '') + '</span>' + control + '</div>';
-    }
-    var deadlineTxt = plan.deadline ? formatDateShort(plan.deadline) + " " + plan.deadline.slice(0, 4) : "geen deadline";
-    html += '<div class="card tr-card"><div class="tr-card-h">Rolverdeling</div>' +
-      roleRow("A") + roleRow("B") + roleRow("C") +
-      '<div class="tr-role"><span>Oefenvormen delen vóór</span>' +
-      (isHoofd ? '<input type="date" id="planDeadline" value="' + (plan.deadline || "") + '">' : '<b>' + esc(deadlineTxt) + '</b>') + '</div></div>';
-    if (!per || !per.toernooi){
+    } else {
+      // 1. Jouw taak
+      if (mine){
+        var pm = per[mine] || {};
+        html += '<div class="card tr-card tr-mine"><div class="tr-card-h">Jouw taak <small>' + ROLE_LABEL[mine] + '</small></div>' +
+          '<div class="tr-note"><b>' + esc(pm.v || ("Onderdeel " + mine)) + '</b>' + (pm.a ? ' · contextvorm ' + esc(pm.a) : '') +
+          (deadlineTxt ? ' · delen vóór <b>' + esc(deadlineTxt) + '</b>' : '') + '</div>' +
+          vormenVan(mine).map(function(v){ return vormButton(d, mine, v, "plan"); }).join("") + '</div>';
+      } else if (!isHoofd){
+        html += '<div class="card tr-card"><div class="tr-note">Je bent voor deze training niet ingedeeld. Je kunt de training wel bekijken en tips en tops geven.</div></div>';
+      }
+      // 2. De training: per onderdeel wie, welke vaardigheid en hoe ver.
+      html += '<div class="card tr-card"><div class="tr-card-h">De training' +
+        (st.compleet ? ' <span class="tr-status ok" style="margin-left:auto;">&#10003; Compleet</span>'
+                     : ' <small style="margin-left:auto;">' + st.klaar + ' van ' + st.total + ' gedeeld</small>') + '</div>';
       ["A", "B", "C"].forEach(function(o){
-        var p = per && per[o], owner = plan[ROLE_FIELD[o]];
-        html += '<div class="card tr-card"><div class="tr-card-h"><span class="tr-letter">' + o + '</span>' +
-          (p ? esc(p.v) + ' <small>' + esc(p.a) + '</small>' : 'Onderdeel ' + o) + '</div>' +
-          '<div class="tr-note">' + (owner ? esc(profNaam(owner)) : "Nog geen trainer ingedeeld") + (o === "C" ? " · alleen C2 (contextvorm)" : "") + '</div>' +
-          (o === "C" ? [2] : [1, 2]).map(function(v){ return vormButton(d, o, v, "plan"); }).join("") + '</div>';
+        var p = per[o] || {}, ownerId = plan[ROLE_FIELD[o]], owner = ownerId ? profNaam(ownerId) : "";
+        var pills = vormenVan(o).map(function(v){
+          var r = Store.getOef(d, o, v), cls = !r ? "none" : (r.status === "gedeeld" ? "good" : "mid");
+          var txt = !r ? "leeg" : (r.status === "gedeeld" ? "&#10003;" : "concept");
+          return '<button type="button" class="pill ' + cls + '" data-vorm="' + o + '|' + v + '" data-mode="plan">' + o + v + ' ' + txt + '</button>';
+        }).join("");
+        var remind = "";
+        if (isHoofd && owner && st.open[o] && d >= todayISO() && ownerId !== myUserId()){
+          var msg = "Hoi " + owner.split(" ")[0] + ", wil je " + st.open[o].join(" en ") + (p.v ? " (" + p.v + ")" : "") +
+            " voor de training van " + formatDateShort(d) + " nog delen in de ART-app?" + (deadlineTxt ? " Deadline: " + deadlineTxt + "." : "") + " https://www.artsvs.nl";
+          remind = '<a class="btn ghost small tr-remind" target="_blank" rel="noopener" href="https://wa.me/?text=' + encodeURIComponent(msg) + '">Herinner</a>';
+        }
+        html += '<div class="tr-orow"><span class="tr-letter">' + o + '</span><div class="tr-orow-main">' + esc(p.v || ("Onderdeel " + o)) +
+          '<small>' + (owner ? esc(owner) : "Nog niet ingedeeld") + ' · ' + ROLE_LABEL[o].toLowerCase() + '</small>' +
+          '<div class="tr-orow-pills">' + pills + '</div></div>' + remind + '</div>';
       });
+      html += '<div class="btn-row"><button type="button" class="btn primary" id="viewTrainingBtn">Bekijk hele training</button>' +
+        '<button type="button" class="btn ghost" id="printTrainingBtn">Downloaden</button></div></div>';
+    }
+    // 3. Rolverdeling: alleen de hoofdtrainer past aan (per week, of in één keer met het rooster).
+    if (isHoofd){
+      var staff = staffProfiles();
+      html += '<div class="card tr-card"><div class="tr-card-h">Rolverdeling</div>' +
+        ["A", "B", "C"].map(function(o){
+          var f = ROLE_FIELD[o], cur = plan[f] || "";
+          return '<div class="tr-role"><span>' + ROLE_LABEL[o] + '</span><select data-role-field="' + f + '"><option value="">Nog niet ingedeeld</option>' +
+            staff.map(function(p){ return '<option value="' + p.id + '"' + (p.id === cur ? " selected" : "") + '>' + esc(p.naam) + '</option>'; }).join("") + '</select></div>';
+        }).join("") +
+        '<div class="tr-role"><span>Oefenvormen delen vóór</span><input type="date" id="planDeadline" value="' + (plan.deadline || "") + '"></div>' +
+        '<button type="button" class="btn ghost block" id="rosterBtn">Rooster maken voor het hele blok</button></div>';
     }
     if (PERIODISERING.regels && PERIODISERING.regels.length){
       html += '<details class="card tr-card tr-rules"><summary>Afspraken Ajax (' + PERIODISERING.regels.length + ')</summary><ul>' +
         PERIODISERING.regels.map(function(r){ return '<li>' + esc(r) + '</li>'; }).join("") + '</ul></details>';
     }
-    html += '<button type="button" class="btn ghost block" id="printTrainingBtn">Training downloaden (afdrukken of PDF)</button>';
     var wrap = $("planWrap");
     wrap.innerHTML = html;
-    $("printTrainingBtn").addEventListener("click", function(){ printTraining(d); });
+    if ($("printTrainingBtn")) $("printTrainingBtn").addEventListener("click", function(){ printTraining(d); });
+    if ($("viewTrainingBtn")) $("viewTrainingBtn").addEventListener("click", function(){ openTrainingView(d); });
+    if ($("rosterBtn")) $("rosterBtn").addEventListener("click", function(){ Roster.open(d); });
     Array.prototype.forEach.call(wrap.querySelectorAll("[data-role-field]"), function(sel){
       sel.addEventListener("change", function(){
         var patch = {}; patch[sel.getAttribute("data-role-field")] = sel.value || null;
@@ -3266,6 +3418,120 @@
     });
     bindVormButtons(wrap, d);
   }
+
+  /* Hele training bekijken op het scherm: zelfde opbouw als de Ajax-planner (per thema deel 1 en deel 2).
+     Laptop: twee kolommen naast elkaar; telefoon: onder elkaar. Alleen lezen. */
+  function openTrainingView(d){
+    var per = trainingPeriod(d) || {}, plan = Store.getPlan(d) || {};
+    var nl = function(t){ return esc(t || "").replace(/\n/g, "<br>"); };
+    $("tvTitle").textContent = "Training " + formatDateShort(d) + " " + d.slice(0, 4);
+    $("tvMeta").innerHTML = ["A", "B", "C"].map(function(o){ var id = plan[ROLE_FIELD[o]]; return ROLE_LABEL[o] + ": <b>" + (id ? esc(profNaam(id)) : "–") + "</b>"; }).join(" &middot; ");
+    function deel(o, v){
+      var r = Store.getOef(d, o, v), code = o + v;
+      var head = '<div class="tv-deel-h"><span>' + code + ' · ' + (v === 1 ? "deel 1 · droog, bewegingsvariaties" : "deel 2 · contextvorm") + '</span>' + vormPill(r, d) + '</div>';
+      if (!r) return '<div class="tv-deel">' + head + '<div class="tv-empty">Nog niet ingevuld.</div></div>';
+      var b = function(k, t){ return t ? '<div class="tv-b"><b>' + k + '</b>' + nl(t) + '</div>' : ''; };
+      return '<div class="tv-deel">' + head +
+        (r.tekening_path ? '<img alt="Tekening ' + code + '" data-tek-path="' + esc(r.tekening_path) + '">' : '') +
+        b("Aantallen", r.aantallen) +
+        b(v === 1 ? code + ".1 · bewegingsvariaties" : code + ".1 · de vorm", r.variatie_1) +
+        b(v === 1 ? code + ".2 · bewegingsvariaties" : code + ".2 · contextvariatie", r.variatie_2) +
+        b("Organisatie en ruimte", r.organisatie) + b("Regels", r.regels) + b("Wedstrijdelement", r.wedstrijdelement) +
+        b("Aanpassing jongste lichting", r.aanpassing_jong) + b("Aanpassing oudste lichting", r.aanpassing_oud) +
+        b("Als het niet loopt", r.als_niet_loopt) + b("Coachaccenten", r.coachaccenten) + '</div>';
+    }
+    var body = per.toernooi ? '<div class="tr-note">' + esc(per.toernooi) + '</div>' :
+      ["A", "B", "C"].map(function(o){
+        var p = per[o] || {};
+        return '<div class="tv-onderdeel"><h4><span class="tr-letter">' + o + '</span>' + esc(p.v || ("Onderdeel " + o)) +
+          (p.a ? ' <small>contextvorm ' + esc(p.a) + '</small>' : '') + '</h4>' +
+          '<div class="tv-delen">' + vormenVan(o).map(function(v){ return deel(o, v); }).join("") + '</div></div>';
+      }).join("");
+    if (PERIODISERING.regels && PERIODISERING.regels.length){
+      body += '<details class="tr-rules" style="margin-top:8px;"><summary>Afspraken Ajax</summary><ul>' +
+        PERIODISERING.regels.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join("") + '</ul></details>';
+    }
+    $("tvBody").innerHTML = body;
+    fillTekeningen($("tvBody"));
+    $("tvPrint").onclick = function(){ printTraining(d); };
+    $("tvOverlay").hidden = false;
+  }
+  $("closeTv").addEventListener("click", function(){ $("tvOverlay").hidden = true; });
+  $("tvOverlay").addEventListener("click", function(e){ if (e.target === $("tvOverlay")) $("tvOverlay").hidden = true; });
+  document.addEventListener("keydown", function(e){
+    if (e.key !== "Escape" || !$("confirmOverlay").hidden) return;
+    if (!$("rosterOverlay").hidden) $("rosterOverlay").hidden = true;
+    else if (!$("tvOverlay").hidden && $("oefOverlay").hidden) $("tvOverlay").hidden = true;
+  });
+
+  /* Rooster: kies de rollen voor de eerste training van een blok; daarna schuift iedereen elke training één rol door
+     (A → assistent → B → A …), zodat iedereen elke rol krijgt. Toernooien tellen niet mee. Trainingen die al geweest
+     zijn blijven zoals ze zijn. Per week kan de hoofdtrainer daarna nog wisselen. */
+  var Roster = (function(){
+    function datesOf(blok){
+      return TRAINING_DATES.filter(function(t){ return t.blok === blok && !(trainingPeriod(t.date) || {}).toernooi; }).map(function(t){ return t.date; });
+    }
+    function blok(){ return Number($("roBlok").value); }
+    function order(){ return [$("roA").value, $("roB").value, $("roC").value]; }
+    function rows(){
+      var o = order(), n = $("roDeadline").value;
+      return datesOf(blok()).map(function(d, i){
+        return { training_date: d, hoofd_a: o[i % 3] || null, hoofd_b: o[(i + 1) % 3] || null, assistent: o[(i + 2) % 3] || null,
+          deadline: n ? addDaysISO(d, -Number(n)) : null };
+      });
+    }
+    function fillStaff(){
+      var opts = '<option value="">Kies…</option>' + staffProfiles().map(function(p){ return '<option value="' + p.id + '">' + esc(p.naam) + '</option>'; }).join("");
+      ["roA", "roB", "roC"].forEach(function(id){ var cur = $(id).value; $(id).innerHTML = opts; $(id).value = cur; });
+    }
+    function preFill(){
+      var first = datesOf(blok())[0], p = first ? (Store.getPlan(first) || {}) : {};
+      $("roA").value = p.hoofd_a || ""; $("roB").value = p.hoofd_b || ""; $("roC").value = p.assistent || "";
+    }
+    function preview(){
+      var today = todayISO(), o = order();
+      var nm = function(id){ return id ? esc(profNaam(id).split(" ")[0]) : "?"; };
+      $("roPreview").innerHTML = rows().map(function(r){
+        var past = r.training_date < today;
+        return '<div class="' + (past ? "past" : "") + '"><b>' + esc(formatDateShort(r.training_date)) + '</b><span>' +
+          (past ? "al geweest, blijft zoals het is" : "A " + nm(r.hoofd_a) + " · B " + nm(r.hoofd_b) + " · assistent " + nm(r.assistent)) + '</span></div>';
+      }).join("") || '<div>Geen trainingen in dit blok.</div>';
+      $("roHint").textContent = o.every(Boolean) && (o[0] === o[1] || o[0] === o[2] || o[1] === o[2]) ? "Kies drie verschillende trainers." : "";
+    }
+    function open(d){
+      $("roBlok").innerHTML = BLOKKEN.map(function(b){ return '<option value="' + b.blok + '">' + esc(blokLabel(b.blok)) + '</option>'; }).join("");
+      var t = TRAINING_DATES.find(function(x){ return x.date === d; });
+      $("roBlok").value = String(t ? t.blok : currentBlok());
+      fillStaff(); preFill(); preview();
+      $("rosterOverlay").hidden = false;
+    }
+    function close(){ $("rosterOverlay").hidden = true; }
+    function save(){
+      var o = order();
+      if (!o.every(Boolean)){ $("roHint").textContent = "Kies voor alle drie de rollen een trainer."; return; }
+      if (o[0] === o[1] || o[0] === o[2] || o[1] === o[2]){ $("roHint").textContent = "Kies drie verschillende trainers."; return; }
+      var today = todayISO(), todo = rows().filter(function(r){ return r.training_date >= today; });
+      if (!todo.length){ $("roHint").textContent = "Alle trainingen van dit blok zijn al geweest."; return; }
+      var changed = todo.filter(function(r){ var p = Store.getPlan(r.training_date); return p && (p.hoofd_a || p.hoofd_b || p.assistent); });
+      var go = changed.length ? confirmDialog({
+        title: "Rolverdeling overschrijven?",
+        messageHtml: changed.length + (changed.length === 1 ? " training heeft" : " trainingen hebben") + " al een rolverdeling. Die wordt vervangen door het rooster. Oefenvormen die al gemaakt zijn blijven bestaan.",
+        confirmLabel: "Rooster opslaan", danger: false
+      }) : Promise.resolve(true);
+      go.then(function(ok){
+        if (!ok) return;
+        var btn = $("roSave"); btn.disabled = true;
+        Store.savePlans(todo).then(function(){ showToast("Rooster opgeslagen voor " + todo.length + (todo.length === 1 ? " training" : " trainingen")); close(); })
+          .catch(function(err){ console.error(err); showToast(navigator.onLine === false ? "Geen internet: rooster niet opgeslagen." : "Opslaan mislukt, probeer opnieuw"); })
+          .then(function(){ btn.disabled = false; });
+      });
+    }
+    $("roBlok").addEventListener("change", function(){ preFill(); preview(); });
+    ["roA", "roB", "roC", "roDeadline"].forEach(function(id){ $(id).addEventListener("change", preview); });
+    $("roSave").addEventListener("click", save);
+    $("closeRoster").addEventListener("click", close);
+    return { open: open };
+  })();
 
   // Training downloaden: afdruk/PDF in de vorm van de Ajax Training planner (per thema: deel 1 en deel 2).
   function printTraining(d){
@@ -3321,7 +3587,10 @@
     }
     wrap.innerHTML = '<div class="card tr-card"><div class="tr-card-h">Oefenvormen evalueren</div>' +
       '<div class="tr-note">Per oefenvorm: kwam de doelvaardigheid terug, hoe ging het bij groep 1, wat heb je aangepast en hoe ging het bij groep 2?</div>' +
-      rows.slice().sort(function(a, b){ return (a.onderdeel + a.volgnr).localeCompare(b.onderdeel + b.volgnr); })
+      rows.slice().sort(function(a, b){
+        var me = myUserId(), ma = a.eigenaar_id === me ? 0 : 1, mb = b.eigenaar_id === me ? 0 : 1; // eigen vormen eerst
+        return ma - mb || (a.onderdeel + a.volgnr).localeCompare(b.onderdeel + b.volgnr);
+      })
         .map(function(r){ return vormButton(d, r.onderdeel, r.volgnr, "evaluatie"); }).join("") + '</div>';
     bindVormButtons(wrap, d);
   }
@@ -3332,6 +3601,7 @@
         openOef(d, parts[0], Number(parts[1]), b.getAttribute("data-mode"));
       });
     });
+    fillTekeningen(wrap);
   }
 
   /* Oefenvorm-venster: voorbereiden of evalueren. Bewerken: eigenaar (of ingedeelde trainer) en hoofdtrainer. */
@@ -3349,7 +3619,8 @@
     var row = Store.getOef(d, o, v), per = trainingPeriod(d) || {}, p = per[o] || {};
     var editable = canEditOef(d, o, row);
     oefState = { d: d, o: o, v: v, mode: mode, row: row, terug: row ? row.eval_terug : null, newBlob: null, removeTek: false, editable: editable, tekJson: row ? row.tekening_json : null };
-    $("oefTitle").textContent = (mode === "evaluatie" ? "Evaluatie " : "") + o + v + (v === 1 ? " · bewegingsvariaties" : " · contextvorm") + " · " + formatDateShort(d);
+    $("oefTitle").textContent = (mode === "evaluatie" ? "Evaluatie " : "") + o + v + (v === 1 ? " · droog" : " · contextvorm") + " · " + formatDateShort(d);
+    $("oAantallen").placeholder = v === 1 ? "1v0 (droog, zonder weerstand)" : "bv. 2v1 of 3v2";
     var owner = row && row.eigenaar_id ? (row.eigenaar_naam || profNaam(row.eigenaar_id)) : ((Store.getPlan(d) || {})[ROLE_FIELD[o]] ? profNaam((Store.getPlan(d) || {})[ROLE_FIELD[o]]) : "");
     $("oefMeta").innerHTML = (p.v ? '<span class="pill none">Periodisering: ' + esc(p.v) + ' · ' + esc(p.a) + '</span> ' : '') +
       (owner ? '<span class="pill none">Eigenaar: ' + esc(owner) + '</span> ' : '') + vormPill(row, d) +
@@ -3357,7 +3628,7 @@
     Object.keys(OEF_FIELDS).forEach(function(id){
       var col = OEF_FIELDS[id], val = row ? (row[col] || "") : "";
       if (!row && col === "vaardigheid") val = p.v || "";
-      if (!row && col === "aantallen") val = p.a || "";
+      if (!row && col === "aantallen") val = v === 1 ? "1v0 · droog, zonder weerstand" : (p.a || "");
       $(id).value = val;
       $(id).disabled = !editable;
     });
@@ -3367,8 +3638,8 @@
     });
     // Ajax-opbouw: deel 1 = bewegingsvariaties (x1.1 en x1.2, max 6 min), deel 2 = contextvorm (x2.1 en x2.2, max 8 min).
     var code = o + v;
-    $("oVar1Label").textContent = v === 1 ? code + ".1 · bewegingsvariaties (max 6 min)" : code + ".1 · beschrijving van de vorm (max 8 min)";
-    $("oVar2Label").textContent = v === 1 ? code + ".2 · bewegingsvariaties (max 6 min)" : code + ".2 · contextvariatie (max 8 min)";
+    $("oVar1Label").textContent = v === 1 ? code + ".1 · bewegingsvariaties, droog (max 6 min)" : code + ".1 · de vorm met weerstand (max 8 min)";
+    $("oVar2Label").textContent = v === 1 ? code + ".2 · bewegingsvariaties, droog (max 6 min)" : code + ".2 · contextvariatie: welke regel of ruimte verandert (max 8 min)";
     $("oVar1").placeholder = v === 1 ? "1. binnenkantvoet pass\n2. buitenkantvoet pass\n3. trainer bepaalt" : "Wie doet wat, hoe wordt er gescoord…";
     $("oVar2").placeholder = v === 1 ? "1. wreef pass\n2. punt pass\n3. trainer bepaalt" : "1. pass andere helft telt\n2. 2x raken scoren = 5p";
     $("oefPlanFields").hidden = mode !== "plan";
@@ -3695,7 +3966,8 @@
     btn.classList.toggle("primary", isCancelled);
     btn.classList.toggle("ghost", !isCancelled);
     var players = filteredPlayers();
-    $("absentiesCount").textContent = players.length + (players.length === 1 ? " speler" : " spelers");
+    var afw = players.filter(function(p){ var a = (p.attendance || {})[state.absDate]; return a && a.afwezig; }).length;
+    $("absentiesCount").textContent = isCancelled ? "" : (players.length - afw) + " aanwezig" + (afw ? " · " + afw + " afwezig" : "");
     var list = $("absentiesList");
     var dlWrap = $("absDownloadWrap");
     if (isCancelled){
@@ -4782,7 +5054,7 @@
   function tabAllowedForRole(tab, role, isHoofd){
     if (isHoofd) return true;
     if (tab === "spelers") return true;
-    if (tab === "training") return role === "trainer";
+    if (tab === "training" || tab === "aanwezig") return role === "trainer";
     return false; // overzicht, instellingen: alleen hoofdtrainer
   }
 
@@ -4818,6 +5090,7 @@
     if (state.tab === "spelers") renderSpelers();
     else if (state.tab === "overzicht") renderOverzicht();
     else if (state.tab === "training") renderTraining();
+    else if (state.tab === "aanwezig") renderAbsenties();
     else if (state.tab === "instellingen") renderInstellingen();
   }
 
@@ -4961,6 +5234,7 @@
   (function(){
     var CLOSERS = { playerCardOverlay: "closePlayerCard", nameGameOverlay: "closeNameGame", scoreOverlay: "closeScoreSheet",
       evalOverlay: "closeEvalSheet", scoutOverlay: "closeScoutSheet", pwOverlay: "closePwSheet", oefOverlay: "closeOefSheet",
+      tvOverlay: "closeTv", rosterOverlay: "closeRoster",
       playerOverlay: "closePlayerSheet", fotoLightbox: "closeFotoLightbox", drawOverlay: "drawCancel" };
     var open = [], pushed = false, ignorePop = false;
     function sync(){
