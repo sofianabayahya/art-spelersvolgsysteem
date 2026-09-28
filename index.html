@@ -318,6 +318,21 @@
     .pa-table td{ padding:1.6mm 2mm; border:1px solid #999; text-align:center; }
     .pa-table td:first-child{ text-align:left; }
     .pa-table td.c{ font-weight:700; font-size:12pt; }
+    .tp-head{ display:flex; justify-content:space-between; align-items:center; gap:4mm; border:2px solid #000; padding:2mm 3mm; font-size:11pt; }
+    .tp-title{ background:#000; color:#fff; font:700 16pt "Barlow Condensed",Arial,sans-serif; padding:1mm 4mm; }
+    .tp-rol{ font-size:10pt; margin:2mm 0 3mm; }
+    .tp-table{ width:100%; border-collapse:collapse; font-size:9.5pt; }
+    .tp-table th{ background:#000; color:#fff; padding:2mm; text-align:left; }
+    .tp-table th small{ font-weight:400; }
+    .tp-table td{ border:1px solid #999; padding:2mm; vertical-align:top; background:#f3f3f3; page-break-inside:avoid; }
+    .tp-table td img{ width:100%; max-height:62mm; object-fit:contain; display:block; margin-bottom:2mm; }
+    .tp-thema{ width:32mm; }
+    .tp-thema span{ color:#444; }
+    .tp-b{ margin-top:1.5mm; }
+    .tp-k{ font-weight:700; }
+    .tp-empty{ color:#888; text-align:center; }
+    .tp-toernooi{ font-size:20pt; margin:10mm 0; }
+    .tp-regels{ font-size:8.5pt; margin-top:4mm; padding-left:5mm; }
   }
 
   .season-chips{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
@@ -392,7 +407,8 @@
   .tr-role select, .tr-role input{ font:600 16px "Barlow",sans-serif; padding:6px 8px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--ink); max-width:55%; }
   .tr-vorm{ display:flex; align-items:center; gap:10px; width:100%; text-align:left; font:inherit; color:var(--ink); cursor:pointer;
     background:var(--surface-alt); border:1px solid var(--border); border-radius:12px; padding:10px 12px; }
-  .tr-vorm-id{ font:700 20px "Barlow Condensed",sans-serif; min-width:34px; }
+  .tr-vorm-id{ font:700 22px "Barlow Condensed",sans-serif; min-width:64px; display:flex; flex-direction:column; line-height:1; }
+  .tr-vorm-id small{ font:600 10.5px "Barlow",sans-serif; color:var(--ink-muted); margin-top:3px; }
   .tr-vorm-body{ flex:1; min-width:0; display:flex; flex-direction:column; gap:4px; }
   .tr-vorm-top{ display:flex; flex-wrap:wrap; gap:4px; }
   .tr-vorm-sum{ font-size:13px; color:var(--ink-muted); }
@@ -409,6 +425,33 @@
   .tr-fb-add{ display:flex; gap:6px; margin-top:8px; }
   .tr-fb-add select, .tr-fb-add input{ font:16px "Barlow",sans-serif; padding:8px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--ink); }
   .tr-fb-add input{ flex:1; min-width:0; }
+  /* Tekentool */
+  #drawOverlay{ z-index:60; align-items:stretch; padding:0; }
+  .draw-app{ background:var(--surface); width:100%; max-width:1400px; margin:0 auto; display:flex; flex-direction:column; height:100%; }
+  @media (min-width:900px){ #drawOverlay{ padding:24px; align-items:center; } .draw-app{ height:92vh; border-radius:18px; overflow:hidden; } }
+  .draw-top{ display:flex; align-items:center; gap:10px; padding:10px 14px; padding-top:calc(10px + env(safe-area-inset-top,0px)); border-bottom:1px solid var(--border); }
+  .draw-title{ font:700 19px "Barlow Condensed",sans-serif; flex:1; }
+  .draw-top-act{ display:flex; gap:8px; }
+  .draw-body{ flex:1; min-height:0; display:flex; }
+  .draw-tools{ width:300px; flex:0 0 auto; overflow-y:auto; padding:12px 14px; border-right:1px solid var(--border); display:flex; flex-direction:column; gap:12px; }
+  .draw-group-h{ font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:var(--ink-muted); margin-bottom:6px; }
+  .draw-grid{ display:grid; grid-template-columns:repeat(5, 1fr); gap:6px; }
+  .draw-tool{ aspect-ratio:1 / 1; border-radius:10px; border:1px solid var(--border); background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; }
+  .draw-tool.active{ outline:3px solid var(--accent); outline-offset:1px; }
+  .draw-select{ font:600 14px "Barlow",sans-serif; padding:9px; border-radius:10px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); cursor:pointer; }
+  .draw-fields{ display:flex; flex-wrap:wrap; gap:6px; }
+  .draw-fields button, .draw-clear{ font:600 13px "Barlow",sans-serif; padding:7px 10px; border-radius:999px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); cursor:pointer; }
+  .draw-fields button.active{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
+  .draw-clear{ color:var(--low); align-self:flex-start; }
+  .draw-stage{ flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:12px; background:#3f8a41; position:relative; }
+  #drawSvg{ width:100%; height:100%; max-height:calc(100% - 40px); touch-action:none; user-select:none; cursor:crosshair; }
+  .draw-hint{ color:#fff; font-size:13px; opacity:.9; }
+  .draw-selbar{ display:flex; gap:8px; background:var(--surface); padding:6px; border-radius:12px; box-shadow:var(--shadow); }
+  @media (max-width:899px){
+    .draw-body{ flex-direction:column; }
+    .draw-tools{ width:auto; max-height:40%; border-right:none; border-bottom:1px solid var(--border); }
+    .draw-grid{ grid-template-columns:repeat(8, 1fr); }
+  }
   /* Instellingen: uitklapbare groepen */
   .set-group{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:10px; }
   .set-group > summary{
@@ -904,6 +947,8 @@
     <div id="oefPlanFields">
       <div class="field"><label for="oVaardigheid">Doelvaardigheid</label><input type="text" id="oVaardigheid"></div>
       <div class="field"><label for="oAantallen">Aantallen</label><input type="text" id="oAantallen" placeholder="bv. 4v4 of 5v5"></div>
+      <div class="field"><label for="oVar1" id="oVar1Label">Ronde 1</label><textarea id="oVar1"></textarea></div>
+      <div class="field"><label for="oVar2" id="oVar2Label">Ronde 2</label><textarea id="oVar2"></textarea></div>
       <div class="field"><label for="oOrganisatie">Organisatie en ruimte</label><textarea id="oOrganisatie" placeholder="Veldgrootte, pionnen, goals, hoe start het, wie draait door…"></textarea></div>
       <div class="field"><label for="oRegels">Regels</label><textarea id="oRegels"></textarea></div>
       <div class="field"><label for="oWedstrijd">Wedstrijdelement</label><input type="text" id="oWedstrijd" placeholder="bv. rood tegen geel, punten tellen, wie wint…"></div>
@@ -918,7 +963,8 @@
         <div class="oef-tek" id="oTekWrap"></div>
         <input type="file" id="oTekInput" accept="image/*" hidden>
         <div class="btn-row" style="margin-top:6px;">
-          <button type="button" class="btn ghost small" id="oTekBtn">Tekening of screenshot toevoegen</button>
+          <button type="button" class="btn primary small" id="oDrawBtn">Tekenen</button>
+          <button type="button" class="btn ghost small" id="oTekBtn">Afbeelding uploaden</button>
           <button type="button" class="btn ghost small" id="oTekDel" hidden>Tekening verwijderen</button>
         </div>
       </div>
@@ -944,6 +990,31 @@
     <div class="hint" id="oefHint"></div>
     <div class="oef-actions" id="oefActions"></div>
     <div class="oef-feedback" id="oefFeedback"></div>
+  </div>
+</div>
+
+<div class="overlay" id="drawOverlay" hidden>
+  <div class="draw-app" role="dialog" aria-modal="true" aria-label="Tekentool">
+    <div class="draw-top">
+      <button type="button" class="btn ghost small" id="drawCancel">Annuleren</button>
+      <b class="draw-title">Tekentool</b>
+      <div class="draw-top-act">
+        <button type="button" class="btn ghost small" id="drawUndo" title="Ongedaan maken (Ctrl/Cmd+Z)">Ongedaan maken</button>
+        <button type="button" class="btn primary small" id="drawSave">Opslaan</button>
+      </div>
+    </div>
+    <div class="draw-body">
+      <aside class="draw-tools" id="drawTools"></aside>
+      <div class="draw-stage">
+        <div class="draw-hint" id="drawHint"></div>
+        <svg id="drawSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 680" role="img" aria-label="Veld"></svg>
+        <div class="draw-selbar" id="drawSelBar" hidden>
+          <button type="button" class="btn ghost small" id="drawNumber">Rugnummer +1</button>
+          <button type="button" class="btn ghost small" id="drawRotate">Draaien</button>
+          <button type="button" class="btn ghost small" id="drawDelete" style="color:var(--low); border-color:var(--low-soft);">Verwijderen</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -2073,8 +2144,10 @@
   function renderSpelers(){
     var players = filteredPlayers();
     $("spelersCount").textContent = players.length + (players.length === 1 ? " speler" : " spelers");
-    $("ngEntry").hidden = !players.length;
-    if (players.length) $("ngEntrySub").textContent = NameGame.entryText();
+    // Namen oefenen: alleen voor trainers en de hoofdtrainer (scouts komen vaak maar één keer).
+    var mayPractice = Auth.isHoofdtrainer() || Auth.myRole() === "trainer";
+    $("ngEntry").hidden = !players.length || !mayPractice;
+    if (players.length && mayPractice) $("ngEntrySub").textContent = NameGame.entryText();
     var rates = canRate();
     $("rateBar").hidden = !rates || !players.length;
     $("spelersCount").hidden = !$("rateBar").hidden; // voortgang toont het aantal al
@@ -2722,6 +2795,279 @@
     }).then(function(){ btn.disabled = false; });
   });
 
+  /* ---------- Tekentool (oefenvorm tekenen) ----------
+     Naar voorbeeld van de KNVB-tekentool: een veld, spullen neerzetten, pijlen, nummers en een gemarkeerd vak.
+     Gemaakt voor de laptop (muis), werkt ook met een vinger. Opslaan = JPEG voor de oefenvorm + de tekening
+     als gegevens (tekening_json), zodat je hem later weer kunt aanpassen. Niets beweegt (geen animatie). */
+  var DrawTool = (function(){
+    var FIELDS = {
+      liggend: { w: 1050, h: 680, label: "Heel veld" },
+      staand:  { w: 680, h: 1050, label: "Heel veld staand" },
+      half:    { w: 680, h: 525, label: "Half veld" },
+      vak:     { w: 800, h: 560, label: "Vak" }
+    };
+    var SHIRT = { oranje: "#F57C00", blauw: "#1E4FD8", geel: "#F2C200", zwart: "#1A1A1A" };
+    var DISH = { wit: "#F4F4F4", geel: "#F2C200", oranje: "#F57C00" };
+    var TOOLS = [
+      { group: "Spelers", items: [
+        { t: "shirt", c: "oranje", label: "Speler oranje" }, { t: "shirt", c: "blauw", label: "Speler blauw" },
+        { t: "shirt", c: "geel", label: "Speler geel" }, { t: "shirt", c: "zwart", label: "Speler zwart" } ] },
+      { group: "Spullen", items: [
+        { t: "ball", label: "Bal" }, { t: "cone", label: "Pion" },
+        { t: "dish", c: "wit", label: "Schijfje wit" }, { t: "dish", c: "geel", label: "Schijfje geel" }, { t: "dish", c: "oranje", label: "Schijfje oranje" },
+        { t: "goal", s: "L", label: "Groot doel" }, { t: "goal", s: "M", label: "Middel doel" }, { t: "goal", s: "S", label: "Klein doeltje" } ] },
+      { group: "Pijlen en lijnen", items: [
+        { t: "arrow", k: "run", label: "Loopactie (stippel)" }, { t: "arrow", k: "pass", label: "Pass" },
+        { t: "arrow", k: "dribble", label: "Dribbel" }, { t: "arrow", k: "shot", label: "Schot" },
+        { t: "wall", label: "Muur / lijn" } ] },
+      { group: "Volgorde en markeren", items: [ { t: "num", label: "Nummer" }, { t: "zone", label: "Vak markeren" } ] }
+    ];
+    var st = null; // { field, items, tool, sel, drag, undo, onSave, num }
+
+    function el(id){ return document.getElementById(id); }
+    function svgPt(evt){
+      var svg = el("drawSvg"), pt = svg.createSVGPoint();
+      pt.x = evt.clientX; pt.y = evt.clientY;
+      var p = pt.matrixTransform(svg.getScreenCTM().inverse());
+      return { x: Math.round(p.x), y: Math.round(p.y) };
+    }
+    function snapshot(){ st.undo.push(JSON.stringify({ field: st.field, items: st.items })); if (st.undo.length > 60) st.undo.shift(); }
+
+    function fieldSvg(){
+      var f = FIELDS[st.field], w = f.w, h = f.h, s = "", n = 10, i;
+      var vertical = st.field === "staand";
+      for (i = 0; i < n; i++){
+        var c = i % 2 ? "#5DAE5F" : "#67B769";
+        s += vertical ? '<rect x="0" y="' + (h / n * i) + '" width="' + w + '" height="' + (h / n + 1) + '" fill="' + c + '"/>'
+                      : '<rect x="' + (w / n * i) + '" y="0" width="' + (w / n + 1) + '" height="' + h + '" fill="' + c + '"/>';
+      }
+      var L = 'stroke="#fff" stroke-width="3" fill="none" opacity=".9"', m = 20;
+      s += '<rect x="' + m + '" y="' + m + '" width="' + (w - 2 * m) + '" height="' + (h - 2 * m) + '" ' + L + '/>';
+      if (st.field === "liggend"){
+        s += '<line x1="' + w / 2 + '" y1="' + m + '" x2="' + w / 2 + '" y2="' + (h - m) + '" ' + L + '/><circle cx="' + w / 2 + '" cy="' + h / 2 + '" r="90" ' + L + '/>' +
+          '<rect x="' + m + '" y="' + (h / 2 - 200) + '" width="160" height="400" ' + L + '/><rect x="' + (w - m - 160) + '" y="' + (h / 2 - 200) + '" width="160" height="400" ' + L + '/>' +
+          '<rect x="' + m + '" y="' + (h / 2 - 90) + '" width="55" height="180" ' + L + '/><rect x="' + (w - m - 55) + '" y="' + (h / 2 - 90) + '" width="55" height="180" ' + L + '/>';
+      } else if (st.field === "staand"){
+        s += '<line x1="' + m + '" y1="' + h / 2 + '" x2="' + (w - m) + '" y2="' + h / 2 + '" ' + L + '/><circle cx="' + w / 2 + '" cy="' + h / 2 + '" r="90" ' + L + '/>' +
+          '<rect x="' + (w / 2 - 200) + '" y="' + m + '" width="400" height="160" ' + L + '/><rect x="' + (w / 2 - 200) + '" y="' + (h - m - 160) + '" width="400" height="160" ' + L + '/>' +
+          '<rect x="' + (w / 2 - 90) + '" y="' + m + '" width="180" height="55" ' + L + '/><rect x="' + (w / 2 - 90) + '" y="' + (h - m - 55) + '" width="180" height="55" ' + L + '/>';
+      } else if (st.field === "half"){
+        s += '<rect x="' + (w / 2 - 200) + '" y="' + m + '" width="400" height="160" ' + L + '/><rect x="' + (w / 2 - 90) + '" y="' + m + '" width="180" height="55" ' + L + '/>' +
+          '<path d="M ' + (w / 2 - 90) + ' ' + (h - m) + ' A 90 90 0 0 1 ' + (w / 2 + 90) + ' ' + (h - m) + '" ' + L + '/>';
+      }
+      return s;
+    }
+    function wavy(x1, y1, x2, y2){
+      var dx = x2 - x1, dy = y2 - y1, len = Math.sqrt(dx * dx + dy * dy) || 1, ux = dx / len, uy = dy / len, px = -uy, py = ux;
+      var steps = Math.max(4, Math.floor((len - 22) / 7)), d = "M " + x1 + " " + y1, i;
+      for (i = 1; i <= steps; i++){
+        var t = (len - 22) * i / steps, off = Math.sin(i * Math.PI / 2) * 7;
+        d += " L " + (x1 + ux * t + px * off).toFixed(1) + " " + (y1 + uy * t + py * off).toFixed(1);
+      }
+      return d + " L " + x2 + " " + y2;
+    }
+    function itemSvg(it, i){
+      var a = ' data-i="' + i + '"', sel = st.sel === i;
+      var hl = sel ? ' filter="url(#drawSel)"' : '';
+      switch (it.t){
+        case "shirt":
+          return '<g' + a + hl + ' transform="translate(' + it.x + ' ' + it.y + ')"><circle r="16" fill="' + SHIRT[it.c] + '" stroke="#fff" stroke-width="3"/>' +
+            (it.n ? '<text y="6" text-anchor="middle" font-family="Arial" font-weight="700" font-size="16" fill="#fff">' + esc(String(it.n)) + '</text>' : '') + '</g>';
+        case "ball":
+          return '<g' + a + hl + ' transform="translate(' + it.x + ' ' + it.y + ')"><circle r="9" fill="#fff" stroke="#111" stroke-width="2"/><circle r="3.5" fill="#111"/></g>';
+        case "cone":
+          return '<g' + a + hl + ' transform="translate(' + it.x + ' ' + it.y + ')"><path d="M -11 10 L 0 -13 L 11 10 Z" fill="#F57C00" stroke="#8a3d00" stroke-width="1.5"/><rect x="-14" y="9" width="28" height="4" rx="2" fill="#F57C00"/></g>';
+        case "dish":
+          return '<g' + a + hl + ' transform="translate(' + it.x + ' ' + it.y + ')"><ellipse rx="12" ry="6" fill="' + DISH[it.c] + '" stroke="#555" stroke-width="1.2"/></g>';
+        case "goal":
+          var gw = it.s === "L" ? 120 : (it.s === "M" ? 70 : 36), gh = it.s === "L" ? 26 : (it.s === "M" ? 18 : 12);
+          return '<g' + a + hl + ' transform="translate(' + it.x + ' ' + it.y + ') rotate(' + (it.r || 0) + ')"><rect x="' + (-gw / 2) + '" y="' + (-gh / 2) + '" width="' + gw + '" height="' + gh + '" fill="url(#drawNet)" stroke="#fff" stroke-width="3"/></g>';
+        case "num":
+          return '<g' + a + hl + ' transform="translate(' + it.x + ' ' + it.y + ')"><circle r="14" fill="#fff" stroke="#111" stroke-width="2.5"/><text y="5.5" text-anchor="middle" font-family="Arial" font-weight="700" font-size="16" fill="#111">' + it.n + '</text></g>';
+        case "zone":
+          var zx = Math.min(it.x1, it.x2), zy = Math.min(it.y1, it.y2);
+          return '<rect' + a + hl + ' x="' + zx + '" y="' + zy + '" width="' + Math.abs(it.x2 - it.x1) + '" height="' + Math.abs(it.y2 - it.y1) + '" fill="rgba(245,124,0,.18)" stroke="#F57C00" stroke-width="3" stroke-dasharray="10 7"/>';
+        case "wall":
+          return '<line' + a + hl + ' x1="' + it.x1 + '" y1="' + it.y1 + '" x2="' + it.x2 + '" y2="' + it.y2 + '" stroke="#111" stroke-width="8" stroke-linecap="round"/>';
+        case "arrow":
+          var common = ' stroke="#111" fill="none" marker-end="url(#drawHead)"';
+          if (it.k === "dribble") return '<path' + a + hl + ' d="' + wavy(it.x1, it.y1, it.x2, it.y2) + '" stroke-width="3"' + common + '/>';
+          return '<line' + a + hl + ' x1="' + it.x1 + '" y1="' + it.y1 + '" x2="' + it.x2 + '" y2="' + it.y2 + '"' + common +
+            ' stroke-width="' + (it.k === "shot" ? 6 : 3) + '"' + (it.k === "run" ? ' stroke-dasharray="10 8"' : '') + '/>';
+      }
+      return "";
+    }
+    function render(){
+      var f = FIELDS[st.field], svg = el("drawSvg");
+      svg.setAttribute("viewBox", "0 0 " + f.w + " " + f.h);
+      svg.innerHTML = '<defs><pattern id="drawNet" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#e9e9e9"/><path d="M0 0 L6 6 M6 0 L0 6" stroke="#9a9a9a" stroke-width="1"/></pattern>' +
+        '<marker id="drawHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#111"/></marker>' +
+        '<filter id="drawSel" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#00E5FF" flood-opacity="1"/></filter></defs>' +
+        '<g>' + fieldSvg() + '</g><g>' +
+        // Vakken onderop, daarna de rest (volgorde in de lijst blijft gelijk, dus data-i klopt).
+        st.items.map(function(it, i){ return it.t === "zone" ? itemSvg(it, i) : ""; }).join("") +
+        st.items.map(function(it, i){ return it.t === "zone" ? "" : itemSvg(it, i); }).join("") + '</g>';
+      el("drawSelBar").hidden = st.sel == null;
+      var it = st.sel != null ? st.items[st.sel] : null;
+      el("drawRotate").hidden = !it || it.t !== "goal";
+      el("drawNumber").hidden = !it || it.t !== "shirt";
+      Array.prototype.forEach.call(document.querySelectorAll("[data-draw-tool]"), function(b){
+        b.classList.toggle("active", st.tool != null && b.getAttribute("data-draw-tool") === String(st.tool));
+      });
+      Array.prototype.forEach.call(document.querySelectorAll("[data-draw-field]"), function(b){ b.classList.toggle("active", b.getAttribute("data-draw-field") === st.field); });
+      el("drawHint").textContent = st.tool != null
+        ? (/arrow|wall|zone/.test(toolDef(st.tool).t) ? "Sleep over het veld om te tekenen." : "Klik op het veld om neer te zetten. Esc of \"Selecteren\" om te stoppen.")
+        : "Klik iets aan om het te verplaatsen, te draaien of te verwijderen.";
+    }
+    function toolDef(idx){ var flat = []; TOOLS.forEach(function(g){ flat = flat.concat(g.items); }); return flat[idx]; }
+    function toolIcon(t){
+      var s = '<svg viewBox="-20 -20 40 40" width="34" height="34" aria-hidden="true">';
+      if (t.t === "shirt") s += '<path d="M-10 -12 L-4 -14 Q0 -10 4 -14 L10 -12 L15 -5 L10 -2 L10 14 L-10 14 L-10 -2 L-15 -5 Z" fill="' + SHIRT[t.c] + '" stroke="#333" stroke-width="1"/>';
+      else if (t.t === "ball") s += '<circle r="10" fill="#fff" stroke="#111" stroke-width="2"/><circle r="4" fill="#111"/>';
+      else if (t.t === "cone") s += '<path d="M -9 10 L 0 -12 L 9 10 Z" fill="#F57C00"/>';
+      else if (t.t === "dish") s += '<ellipse rx="13" ry="6" fill="' + DISH[t.c] + '" stroke="#555"/>';
+      else if (t.t === "goal"){ var gw = t.s === "L" ? 34 : (t.s === "M" ? 24 : 14); s += '<rect x="' + (-gw / 2) + '" y="-6" width="' + gw + '" height="12" fill="#ddd" stroke="#777"/>'; }
+      else if (t.t === "arrow"){
+        s += t.k === "dribble" ? '<path d="M0 14 L3 10 L-3 6 L3 2 L-3 -2 L0 -6" stroke="#111" stroke-width="2" fill="none"/>' :
+          '<line x1="0" y1="14" x2="0" y2="-6" stroke="#111" stroke-width="' + (t.k === "shot" ? 4 : 2) + '"' + (t.k === "run" ? ' stroke-dasharray="3 3"' : '') + '/>';
+        s += '<path d="M-5 -6 L0 -14 L5 -6 Z" fill="#111"/>';
+      }
+      else if (t.t === "wall") s += '<line x1="-12" y1="10" x2="12" y2="-10" stroke="#111" stroke-width="5" stroke-linecap="round"/>';
+      else if (t.t === "num") s += '<circle r="12" fill="#fff" stroke="#111" stroke-width="2"/><text y="4" text-anchor="middle" font-size="11" font-weight="700" font-family="Arial">123</text>';
+      else if (t.t === "zone") s += '<rect x="-12" y="-10" width="24" height="20" fill="rgba(245,124,0,.2)" stroke="#F57C00" stroke-width="2" stroke-dasharray="4 3"/>';
+      return s + '</svg>';
+    }
+    function buildTools(){
+      var idx = 0;
+      el("drawTools").innerHTML =
+        '<button type="button" class="draw-select" data-draw-select>Selecteren</button>' +
+        TOOLS.map(function(g){
+          return '<div class="draw-group"><div class="draw-group-h">' + g.group + '</div><div class="draw-grid">' +
+            g.items.map(function(t){ var h = '<button type="button" class="draw-tool" data-draw-tool="' + idx + '" title="' + t.label + '" aria-label="' + t.label + '">' + toolIcon(t) + '</button>'; idx++; return h; }).join("") +
+            '</div></div>';
+        }).join("") +
+        '<div class="draw-group"><div class="draw-group-h">Veldvorm</div><div class="draw-fields">' +
+        Object.keys(FIELDS).map(function(k){ return '<button type="button" data-draw-field="' + k + '">' + FIELDS[k].label + '</button>'; }).join("") + '</div></div>' +
+        '<button type="button" class="draw-clear" id="drawClear">Alles wissen</button>';
+      Array.prototype.forEach.call(document.querySelectorAll("[data-draw-tool]"), function(b){
+        b.addEventListener("click", function(){ st.tool = Number(b.getAttribute("data-draw-tool")); st.sel = null; render(); });
+      });
+      document.querySelector("[data-draw-select]").addEventListener("click", function(){ st.tool = null; render(); });
+      Array.prototype.forEach.call(document.querySelectorAll("[data-draw-field]"), function(b){
+        b.addEventListener("click", function(){ snapshot(); st.field = b.getAttribute("data-draw-field"); st.sel = null; render(); });
+      });
+      el("drawClear").addEventListener("click", function(){ if (!st.items.length) return; snapshot(); st.items = []; st.sel = null; st.num = 0; render(); });
+    }
+
+    function onDown(evt){
+      if (!st) return;
+      var p = svgPt(evt), target = evt.target.closest("[data-i]");
+      if (st.tool != null){
+        var t = toolDef(st.tool);
+        snapshot();
+        if (/arrow|wall|zone/.test(t.t)){
+          var it = t.t === "arrow" ? { t: "arrow", k: t.k, x1: p.x, y1: p.y, x2: p.x, y2: p.y } : { t: t.t, x1: p.x, y1: p.y, x2: p.x, y2: p.y };
+          st.items.push(it);
+          st.drag = { mode: "draw", i: st.items.length - 1 };
+        } else {
+          var obj = { t: t.t, x: p.x, y: p.y };
+          if (t.c) obj.c = t.c;
+          if (t.s) obj.s = t.s;
+          if (t.t === "num") obj.n = ++st.num;
+          st.items.push(obj);
+        }
+        render(); evt.preventDefault(); return;
+      }
+      if (target){
+        var i = Number(target.getAttribute("data-i"));
+        st.sel = i; snapshot();
+        st.drag = { mode: "move", i: i, last: p, moved: false };
+        render(); evt.preventDefault();
+      } else { st.sel = null; render(); }
+    }
+    function onMove(evt){
+      if (!st || !st.drag) return;
+      var p = svgPt(evt), it = st.items[st.drag.i];
+      if (st.drag.mode === "draw"){ it.x2 = p.x; it.y2 = p.y; }
+      else {
+        var dx = p.x - st.drag.last.x, dy = p.y - st.drag.last.y;
+        if ("x" in it){ it.x += dx; it.y += dy; } else { it.x1 += dx; it.y1 += dy; it.x2 += dx; it.y2 += dy; }
+        st.drag.last = p; st.drag.moved = true;
+      }
+      render(); evt.preventDefault();
+    }
+    function onUp(){
+      if (!st || !st.drag) return;
+      var it = st.items[st.drag.i];
+      // Te kort getrokken lijnen/vakken (per ongeluk klikken) weer weghalen.
+      if (st.drag.mode === "draw" && Math.abs(it.x2 - it.x1) + Math.abs(it.y2 - it.y1) < 12){ st.items.splice(st.drag.i, 1); st.undo.pop(); }
+      if (st.drag.mode === "move" && !st.drag.moved) st.undo.pop();
+      st.drag = null; render();
+    }
+    function removeSel(){ if (st.sel == null) return; snapshot(); st.items.splice(st.sel, 1); st.sel = null; render(); }
+    function undo(){ var s = st.undo.pop(); if (!s) return; var o = JSON.parse(s); st.field = o.field; st.items = o.items; st.sel = null; render(); }
+
+    // Tekening als JPEG: de SVG op een canvas zetten (2x zo scherp) en wit uitvullen.
+    function toBlob(){
+      var keepSel = st.sel; st.sel = null; st.tool = null; render();
+      var svg = el("drawSvg"), f = FIELDS[st.field];
+      var xml = new XMLSerializer().serializeToString(svg);
+      if (xml.indexOf('xmlns="http://www.w3.org/2000/svg"') === -1) xml = xml.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"');
+      xml = xml.replace("<svg", '<svg width="' + f.w + '" height="' + f.h + '"');
+      return new Promise(function(resolve, reject){
+        var img = new Image();
+        img.onload = function(){
+          var c = document.createElement("canvas"), k = Math.min(2, 1600 / Math.max(f.w, f.h));
+          c.width = Math.round(f.w * k); c.height = Math.round(f.h * k);
+          var ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+          ctx.drawImage(img, 0, 0, c.width, c.height);
+          c.toBlob(function(b){ st.sel = keepSel; b ? resolve(b) : reject(new Error("Opslaan mislukt")); }, "image/jpeg", 0.88);
+        };
+        img.onerror = function(){ reject(new Error("Tekening kon niet worden omgezet")); };
+        img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(xml);
+      });
+    }
+
+    function open(initial, onSave){
+      st = { field: (initial && FIELDS[initial.field]) ? initial.field : "liggend", items: initial && initial.items ? JSON.parse(JSON.stringify(initial.items)) : [],
+             tool: null, sel: null, drag: null, undo: [], onSave: onSave, num: 0 };
+      st.items.forEach(function(it){ if (it.t === "num") st.num = Math.max(st.num, it.n); });
+      if (!el("drawTools").innerHTML) buildTools();
+      el("drawOverlay").hidden = false;
+      render();
+    }
+    function close(){ el("drawOverlay").hidden = true; st = null; }
+
+    var svg = el("drawSvg");
+    svg.addEventListener("pointerdown", function(e){ svg.setPointerCapture && svg.setPointerCapture(e.pointerId); onDown(e); });
+    svg.addEventListener("pointermove", onMove);
+    svg.addEventListener("pointerup", onUp);
+    svg.addEventListener("pointercancel", onUp);
+    el("drawDelete").addEventListener("click", removeSel);
+    el("drawRotate").addEventListener("click", function(){ var it = st.items[st.sel]; if (!it) return; snapshot(); it.r = ((it.r || 0) + 90) % 180; render(); });
+    el("drawNumber").addEventListener("click", function(){
+      var it = st.items[st.sel]; if (!it) return;
+      var n = (Number(it.n) || 0) + 1; snapshot(); it.n = n > 11 ? 0 : n; render();
+    });
+    el("drawUndo").addEventListener("click", undo);
+    el("drawCancel").addEventListener("click", close);
+    el("drawSave").addEventListener("click", function(){
+      var b = el("drawSave"); b.disabled = true;
+      var data = { field: st.field, items: st.items };
+      toBlob().then(function(blob){ var cb = st.onSave; close(); cb(blob, data); })
+        .catch(function(err){ console.error(err); showToast("Tekening opslaan mislukt"); })
+        .then(function(){ b.disabled = false; });
+    });
+    document.addEventListener("keydown", function(e){
+      if (!st || el("drawOverlay").hidden) return;
+      if (/INPUT|TEXTAREA|SELECT/.test((e.target.tagName || ""))) return;
+      if (e.key === "Delete" || e.key === "Backspace"){ removeSel(); e.preventDefault(); }
+      else if (e.key === "Escape"){ if (st.tool != null){ st.tool = null; render(); } else { st.sel = null; render(); } e.stopPropagation(); }
+      else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z"){ undo(); e.preventDefault(); }
+    }, true);
+    return { open: open };
+  })();
+
   /* ---------- TRAINING tab (coachdashboard) ----------
      Eén datum, drie onderdelen: Voorbereiden (periodisering, rolverdeling, oefenvormen), Aanwezig, Evaluatie.
      Opzet (afspraak): hoofdtrainer A en B hebben elk een vaardigheid met oefenvorm .1 en .2, die ze elk aan twee groepen
@@ -2804,7 +3150,7 @@
     var fb = row ? Store.getFeedback(row.id).length : 0;
     var sum = row ? (mode === "evaluatie" ? (row.eval_volgende || row.eval_groep1 || "") : (row.organisatie || row.regels || "")) : "";
     return '<button type="button" class="tr-vorm" data-vorm="' + o + '|' + v + '" data-mode="' + mode + '">' +
-      '<span class="tr-vorm-id">' + o + '.' + v + '</span>' +
+      '<span class="tr-vorm-id">' + o + v + '<small>' + (v === 1 ? "bewegings&shy;variaties" : "context&shy;vorm") + '</small></span>' +
       '<span class="tr-vorm-body"><span class="tr-vorm-top">' +
       (mode === "evaluatie" ? (row && row.eval_terug ? terugPill(row) : '<span class="pill none">Nog niet geëvalueerd</span>') : vormPill(row, d) + (fb ? ' <span class="pill none">' + fb + ' feedback</span>' : '')) +
       '</span>' + (sum ? '<span class="tr-vorm-sum">' + esc(sum.length > 90 ? sum.slice(0, 90) + "…" : sum) + '</span>' : '') + '</span>' +
@@ -2835,7 +3181,7 @@
         var p = per && per[o], owner = plan[ROLE_FIELD[o]];
         html += '<div class="card tr-card"><div class="tr-card-h"><span class="tr-letter">' + o + '</span>' +
           (p ? esc(p.v) + ' <small>' + esc(p.a) + '</small>' : 'Onderdeel ' + o) + '</div>' +
-          '<div class="tr-note">' + (owner ? esc(profNaam(owner)) : "Nog geen trainer ingedeeld") + (o === "C" ? " · alleen C.2" : "") + '</div>' +
+          '<div class="tr-note">' + (owner ? esc(profNaam(owner)) : "Nog geen trainer ingedeeld") + (o === "C" ? " · alleen C2 (contextvorm)" : "") + '</div>' +
           (o === "C" ? [2] : [1, 2]).map(function(v){ return vormButton(d, o, v, "plan"); }).join("") + '</div>';
       });
     }
@@ -2843,8 +3189,10 @@
       html += '<details class="card tr-card tr-rules"><summary>Afspraken Ajax (' + PERIODISERING.regels.length + ')</summary><ul>' +
         PERIODISERING.regels.map(function(r){ return '<li>' + esc(r) + '</li>'; }).join("") + '</ul></details>';
     }
+    html += '<button type="button" class="btn ghost block" id="printTrainingBtn">Training downloaden (afdrukken of PDF)</button>';
     var wrap = $("planWrap");
     wrap.innerHTML = html;
+    $("printTrainingBtn").addEventListener("click", function(){ printTraining(d); });
     Array.prototype.forEach.call(wrap.querySelectorAll("[data-role-field]"), function(sel){
       sel.addEventListener("change", function(){
         var patch = {}; patch[sel.getAttribute("data-role-field")] = sel.value || null;
@@ -2855,6 +3203,50 @@
       Store.savePlan(d, { deadline: this.value || null }).then(function(){ showToast("Deadline opgeslagen"); }).catch(function(err){ console.error(err); showToast("Opslaan mislukt"); });
     });
     bindVormButtons(wrap, d);
+  }
+
+  // Training downloaden: afdruk/PDF in de vorm van de Ajax Training planner (per thema: deel 1 en deel 2).
+  function printTraining(d){
+    var per = trainingPeriod(d) || {}, plan = Store.getPlan(d) || {};
+    var rows = ["A", "B", "C"].filter(function(o){ return per[o] || Store.getOefs(d).some(function(r){ return r.onderdeel === o; }); });
+    var paths = Store.getOefs(d).map(function(r){ return r.tekening_path; }).filter(Boolean);
+    Promise.all(paths.map(function(p){ return Store.getTekeningUrl(p).then(function(u){ return [p, u]; }, function(){ return [p, null]; }); })).then(function(pairs){
+      var urls = {}; pairs.forEach(function(x){ urls[x[0]] = x[1]; });
+      var nl = function(t){ return esc(t || "").replace(/\n/g, "<br>"); };
+      function cell(o, v){
+        var r = Store.getOef(d, o, v);
+        if (!r) return '<td class="tp-empty">–</td>';
+        var img = r.tekening_path && urls[r.tekening_path] ? '<img src="' + esc(urls[r.tekening_path]) + '" alt="">' : '';
+        var l1 = v === 1 ? o + "1.1 · bewegingsvariaties" : o + "2.1", l2 = v === 1 ? o + "1.2 · bewegingsvariaties" : o + "2.2 · contextvariatie";
+        return '<td>' + img +
+          (r.aantallen ? '<div class="tp-k">' + esc(r.aantallen) + '</div>' : '') +
+          (r.variatie_1 ? '<div class="tp-b"><b>' + l1 + '</b><br>' + nl(r.variatie_1) + '</div>' : '') +
+          (r.variatie_2 ? '<div class="tp-b"><b>' + l2 + '</b><br>' + nl(r.variatie_2) + '</div>' : '') +
+          (r.organisatie ? '<div class="tp-b"><b>Organisatie</b><br>' + nl(r.organisatie) + '</div>' : '') +
+          (r.regels ? '<div class="tp-b"><b>Regels</b><br>' + nl(r.regels) + '</div>' : '') +
+          (r.wedstrijdelement ? '<div class="tp-b"><b>Wedstrijdelement</b> ' + nl(r.wedstrijdelement) + '</div>' : '') +
+          (r.coachaccenten ? '<div class="tp-b"><b>Coachaccenten</b><br>' + nl(r.coachaccenten) + '</div>' : '') +
+          '</td>';
+      }
+      var lichtingen = LICHTINGEN.map(function(l){ return l.label; }).join(", ");
+      var aantal = Store.getPlayers().length;
+      var rol = ["A", "B", "C"].map(function(o){ var id = plan[ROLE_FIELD[o]]; return ROLE_LABEL[o] + ": " + (id ? esc(profNaam(id)) : "–"); }).join(" &middot; ");
+      $("printArea").innerHTML =
+        '<div class="tp-head"><div class="tp-title">Training planner</div><div>Lichtingen: ' + esc(lichtingen) + '</div><div>Aantal spelers: ' + aantal + '</div><div>Datum: ' + esc(formatDateShort(d) + " " + d.slice(0, 4)) + '</div></div>' +
+        '<div class="tp-rol">' + rol + '</div>' +
+        (per.toernooi ? '<h2 class="tp-toernooi">' + esc(per.toernooi) + '</h2>' :
+        '<table class="tp-table"><thead><tr><th class="tp-thema">Moment / thema</th><th>Deel 1 · x1.1 en x1.2 / max 6 min <small>(space max 1 min)</small></th><th>Deel 2 · x2.1 en x2.2 / max 8 min <small>(space max 1 min)</small></th></tr></thead><tbody>' +
+        rows.map(function(o){
+          var p = per[o] || {}, r = Store.getOef(d, o, 1) || Store.getOef(d, o, 2);
+          return '<tr><td class="tp-thema"><b>' + o + '</b><br>' + esc((r && r.vaardigheid) || p.v || "") + '<br><span>' + esc(p.a || "") + '</span></td>' +
+            (o === "C" ? '<td class="tp-empty">alleen C2</td>' : cell(o, 1)) + cell(o, 2) + '</tr>';
+        }).join("") + '</tbody></table>') +
+        (PERIODISERING.regels && PERIODISERING.regels.length ? '<ul class="tp-regels">' + PERIODISERING.regels.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join("") + '</ul>' : '');
+      // Wachten tot de tekeningen geladen zijn, dan afdrukken.
+      var imgs = Array.prototype.slice.call($("printArea").querySelectorAll("img"));
+      Promise.all(imgs.map(function(im){ return im.complete ? Promise.resolve() : new Promise(function(res){ im.onload = im.onerror = res; }); }))
+        .then(function(){ window.print(); });
+    });
   }
 
   function renderOefEval(){
@@ -2883,7 +3275,7 @@
   /* Oefenvorm-venster: voorbereiden of evalueren. Bewerken: eigenaar (of ingedeelde trainer) en hoofdtrainer. */
   var oefState = null;
   var OEF_FIELDS = { oVaardigheid: "vaardigheid", oAantallen: "aantallen", oOrganisatie: "organisatie", oRegels: "regels",
-    oWedstrijd: "wedstrijdelement", oJong: "aanpassing_jong", oOud: "aanpassing_oud", oNietLoopt: "als_niet_loopt", oCoach: "coachaccenten",
+    oWedstrijd: "wedstrijdelement", oJong: "aanpassing_jong", oOud: "aanpassing_oud", oNietLoopt: "als_niet_loopt", oCoach: "coachaccenten", oVar1: "variatie_1", oVar2: "variatie_2",
     eGroep1: "eval_groep1", eAangepast: "eval_aangepast", eGroep2: "eval_groep2", eRuimte: "eval_ruimte", eLichting: "eval_lichting", eVolgende: "eval_volgende" };
   function canEditOef(d, o, row){
     if (Auth.isHoofdtrainer()) return true;
@@ -2894,8 +3286,8 @@
   function openOef(d, o, v, mode){
     var row = Store.getOef(d, o, v), per = trainingPeriod(d) || {}, p = per[o] || {};
     var editable = canEditOef(d, o, row);
-    oefState = { d: d, o: o, v: v, mode: mode, row: row, terug: row ? row.eval_terug : null, newBlob: null, removeTek: false, editable: editable };
-    $("oefTitle").textContent = (mode === "evaluatie" ? "Evaluatie " : "Oefenvorm ") + o + "." + v + " · " + formatDateShort(d);
+    oefState = { d: d, o: o, v: v, mode: mode, row: row, terug: row ? row.eval_terug : null, newBlob: null, removeTek: false, editable: editable, tekJson: row ? row.tekening_json : null };
+    $("oefTitle").textContent = (mode === "evaluatie" ? "Evaluatie " : "") + o + v + (v === 1 ? " · bewegingsvariaties" : " · contextvorm") + " · " + formatDateShort(d);
     var owner = row && row.eigenaar_id ? (row.eigenaar_naam || profNaam(row.eigenaar_id)) : ((Store.getPlan(d) || {})[ROLE_FIELD[o]] ? profNaam((Store.getPlan(d) || {})[ROLE_FIELD[o]]) : "");
     $("oefMeta").innerHTML = (p.v ? '<span class="pill none">Periodisering: ' + esc(p.v) + ' · ' + esc(p.a) + '</span> ' : '') +
       (owner ? '<span class="pill none">Eigenaar: ' + esc(owner) + '</span> ' : '') + vormPill(row, d) +
@@ -2911,9 +3303,17 @@
       b.classList.toggle("selected", b.getAttribute("data-terug") === oefState.terug);
       b.disabled = !editable;
     });
+    // Ajax-opbouw: deel 1 = bewegingsvariaties (x1.1 en x1.2, max 6 min), deel 2 = contextvorm (x2.1 en x2.2, max 8 min).
+    var code = o + v;
+    $("oVar1Label").textContent = v === 1 ? code + ".1 · bewegingsvariaties (max 6 min)" : code + ".1 · beschrijving van de vorm (max 8 min)";
+    $("oVar2Label").textContent = v === 1 ? code + ".2 · bewegingsvariaties (max 6 min)" : code + ".2 · contextvariatie (max 8 min)";
+    $("oVar1").placeholder = v === 1 ? "1. binnenkantvoet pass\n2. buitenkantvoet pass\n3. trainer bepaalt" : "Wie doet wat, hoe wordt er gescoord…";
+    $("oVar2").placeholder = v === 1 ? "1. wreef pass\n2. punt pass\n3. trainer bepaalt" : "1. pass andere helft telt\n2. 2x raken scoren = 5p";
     $("oefPlanFields").hidden = mode !== "plan";
     $("oefEvalFields").hidden = mode !== "evaluatie";
     $("oTekBtn").hidden = !editable;
+    $("oDrawBtn").hidden = !editable;
+    $("oDrawBtn").textContent = oefState.tekJson ? "Tekening bewerken" : "Tekenen";
     renderTekening();
     $("oefHint").textContent = "";
     var acts = $("oefActions");
@@ -2946,10 +3346,19 @@
     var file = this.files && this.files[0]; this.value = "";
     if (!file || !oefState) return;
     // Verkleinen tot max. 1400px als JPEG: scherp genoeg voor een tekening, klein genoeg voor een snelle app.
-    shrinkImage(file, 1400, "image/jpeg", 0.85).then(function(blob){ oefState.newBlob = blob; oefState.removeTek = false; renderTekening(); })
+    shrinkImage(file, 1400, "image/jpeg", 0.85).then(function(blob){ oefState.newBlob = blob; oefState.removeTek = false; oefState.tekJson = null; $("oDrawBtn").textContent = "Tekenen"; renderTekening(); })
       .catch(function(err){ console.error(err); showToast("Afbeelding kon niet worden gelezen"); });
   });
-  $("oTekDel").addEventListener("click", function(){ if (!oefState) return; oefState.newBlob = null; oefState.removeTek = true; renderTekening(); });
+  $("oTekDel").addEventListener("click", function(){ if (!oefState) return; oefState.newBlob = null; oefState.removeTek = true; oefState.tekJson = null; $("oDrawBtn").textContent = "Tekenen"; renderTekening(); });
+  $("oDrawBtn").addEventListener("click", function(){
+    if (!oefState) return;
+    DrawTool.open(oefState.tekJson, function(blob, data){
+      if (!oefState) return;
+      oefState.newBlob = blob; oefState.tekJson = data; oefState.removeTek = false;
+      $("oDrawBtn").textContent = "Tekening bewerken";
+      renderTekening();
+    });
+  });
   Array.prototype.forEach.call(document.querySelectorAll("[data-terug]"), function(b){
     b.addEventListener("click", function(){
       if (!oefState || !oefState.editable) return;
@@ -2975,6 +3384,7 @@
     tek.then(function(path){
       if (s.removeTek && oldPath && !s.newBlob) sb.storage.from("training-images").remove([oldPath]);
       row.tekening_path = path;
+      row.tekening_json = s.tekJson || null;
       return Store.saveOef(row);
     }).then(function(){
       showToast(kind === "eval" ? "Evaluatie opgeslagen" : (kind === "gedeeld" ? "Gedeeld met de staf" : "Concept opgeslagen"));
@@ -4489,7 +4899,7 @@
   (function(){
     var CLOSERS = { playerCardOverlay: "closePlayerCard", nameGameOverlay: "closeNameGame", scoreOverlay: "closeScoreSheet",
       evalOverlay: "closeEvalSheet", scoutOverlay: "closeScoutSheet", pwOverlay: "closePwSheet", oefOverlay: "closeOefSheet",
-      playerOverlay: "closePlayerSheet", fotoLightbox: "closeFotoLightbox" };
+      playerOverlay: "closePlayerSheet", fotoLightbox: "closeFotoLightbox", drawOverlay: "drawCancel" };
     var open = [], pushed = false, ignorePop = false;
     function sync(){
       // Uitgesteld, zodat "kaart dicht → formulier open" niet als "alles dicht" telt.

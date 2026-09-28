@@ -128,7 +128,15 @@ Zodra `git` beschikbaar is: overstappen op een gewone clone.
   Bucket `training-images` (privé). Onderdeel A = hoofd_a, B = hoofd_b, C = assistent (alleen C.2).
 - Periodisering in `app_settings.periodisering` = { regels: [...], trainingen: { datum: {A:{v,a},B,C} | {toernooi} } },
   gekoppeld op datum aan de afgesproken trainingen (kick-off 6 sep en 17 jan zijn geen trainingen in de app).
-- Nog niet: bibliotheek, timer, tekenbord.
+- Oefenvorm volgt de Ajax Training planner: volgnr 1 = deel 1 bewegingsvariaties (rondes x1.1/x1.2, max 6 min),
+  volgnr 2 = deel 2 contextvorm (x2.1 beschrijving, x2.2 contextvariatie, max 8 min); velden `variatie_1`, `variatie_2`.
+  Weergave als A1/A2/B1/B2/C2.
+- Tekentool (`DrawTool`, SVG): veldvormen, hesjes 4 kleuren, bal, pion, schijfjes, goals L/M/S, pijlen (loop/pass/
+  dribbel/schot), muur, nummers, vak. Opslaan = JPEG (tekening_path) + bewerkbare gegevens (`tekening_json`).
+  Laptop eerst, werkt ook met vinger. Geen animatie (besluit Sofian).
+- "Training downloaden": afdruk/PDF in Ajax-plannervorm (per thema deel 1 en 2 met tekening en teksten).
+- Namen oefenen alleen voor trainers en hoofdtrainer (scouts niet, besluit Sofian).
+- Nog niet: bibliotheek, timer.
 - Trainingsopzet: hoofdtrainer A en B hebben elk een vaardigheid; per vaardigheid oefenvorm 1 en 2, elk twee keer gegeven
   (groep 1, spacing, groep 2; assistent draait door). Rolverdeling per training zichtbaar (hoofdtrainer A/B, assistent,
   taken/coachgedrag), eigenaar + deadline per oefenvorm, controlepunt wedstrijdelement, aanpassingen vooraf ("als het niet loopt").
