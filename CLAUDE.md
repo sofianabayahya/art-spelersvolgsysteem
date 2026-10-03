@@ -131,9 +131,18 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   (standaard: afgemeld bij Aanwezig = niet), keeper (K-knop; "staat de hele wedstrijd op doel" of rouleert).
   Schema (`maak`): sliding window over de spelers, elk blok schuiven de bankspelers erin voor wie het langst speelde;
   posities per plek in de rij (aanval → middenveld → verdediging → keeper), dus gelijke speeltijd (±1 blok) en alle posities.
-- Gastspelers (andere ART-locatie) + keuzes alleen in localStorage `art-toernooi-<datum>` op het toestel (code is openbaar,
-  namen van kinderen niet in de code). Plakken als "naam; geboortejaar; K". Afdrukken (per team of alle teams, 1 pagina
-  per team), WhatsApp-tekst per team, en "Afmeldingen naar Ajax" als WhatsApp-tekst.
+- GEDEELD (besluit Sofian 2026-10-03: iedereen, ook scouts, moet hetzelfde zien): de 10 gastspelers van een andere
+  ART-locatie staan als gewone spelers in `players` (zonder hesje; Sofian geeft op 4 okt nummers; daarna evt. prullenbak):
+  Milan van der Straeten (2018, keeper), Benjamin Darkik, Seyyid Yildiz, Skylan van Engel (2018), Amin el Aakel, Jerome
+  Kaersenhout, Amin el Safoury, Haitam Liazid (2017), Loek Ooyevaar, Yusuf Yilmaz (2016).
+  Toernooi-instellingen per team staan in `app_settings.periodisering.toernooi[datum].teams[lichting]` = {F, P, pl, wb,
+  keeper, kAlles, extra:[speler-ids uit andere lichting]}; alleen de hoofdtrainer wijzigt (UI uitgeschakeld voor trainers).
+  Wie meespeelt = Aanwezig van die datum (vinkje in het tabblad schrijft naar Aanwezig). Milan speelt ook bij 2017 (extra).
+- Wedstrijdmodus (telefoon): klok per periode (tijdstempels, overleeft scherm uit), "Volgende wissel over m:ss", op het
+  moment een gele kaart "WISSEL · bij de eerste bal uit: IN x / UIT y (positie)" met piep/trillen en knop Gewisseld,
+  "Tijd!" na de periode, rustscherm met aftellen + keeperwissel + nieuwe posities, einde met minuten per speler.
+  Scherm blijft aan (Wake Lock). Alleen de klokstand staat per toestel in localStorage `art-toernooi-<datum>`.
+- Afdrukken (per team of alle teams, 1 pagina per team), WhatsApp-tekst per team, "Afmeldingen naar Ajax" als WhatsApp-tekst.
 
 ## Git zonder git
 De Command Line Developer Tools (en dus `git`) zijn nog niet geïnstalleerd. Tot die tijd:

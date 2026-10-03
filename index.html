@@ -534,6 +534,36 @@
   .tt-min{ font-weight:800; }
   .tt-w{ font-size:14px; padding:4px 0; border-bottom:1px solid var(--border); }
   .tt-kw{ color:#b38f00; font-weight:700; }
+  .tt-livebtn{ font-size:20px; padding:16px; justify-content:center; width:100%; }
+  .tt-meer > summary{ cursor:pointer; font-weight:700; padding:8px 2px; }
+  .tt-meer[open] > summary{ margin-bottom:8px; }
+  .tt-meer > .card{ margin-bottom:12px; }
+  .tt-live{ position:fixed; inset:0; z-index:75; background:var(--bg); color:var(--ink); display:flex; flex-direction:column;
+    padding:calc(env(safe-area-inset-top,0px) + 10px) 16px calc(env(safe-area-inset-bottom,0px) + 14px); overflow-y:auto; }
+  .tt-live[hidden]{ display:none; }
+  .ttl-kop{ display:flex; justify-content:space-between; align-items:center; font:700 20px "Barlow Condensed",sans-serif; }
+  .ttl-body{ flex:1; display:flex; flex-direction:column; gap:12px; justify-content:center; text-align:center; }
+  .ttl-fase{ font-size:18px; font-weight:700; color:var(--ink-muted); }
+  .ttl-big{ font:700 88px/1 "Barlow Condensed",sans-serif; letter-spacing:1px; }
+  .ttl-big small{ font-size:28px; color:var(--ink-muted); }
+  .ttl-big.ttl-op{ color:var(--low); }
+  .ttl-info{ font-size:20px; }
+  .ttl-next{ font-size:20px; line-height:1.5; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:14px; }
+  .ttl-next b{ font-size:26px; }
+  .ttl-wissel{ background:#FFD23F; color:#1b1b1b; border-radius:18px; padding:16px; display:flex; flex-direction:column; gap:10px; box-shadow:0 6px 24px rgba(0,0,0,.35); }
+  .ttl-wh{ font:700 20px "Barlow Condensed",sans-serif; letter-spacing:.5px; }
+  .ttl-paar{ font-size:24px; line-height:1.35; text-align:left; background:rgba(255,255,255,.55); border-radius:12px; padding:10px 12px; }
+  .ttl-paar small{ font-size:15px; }
+  .ttl-in{ display:inline-block; background:#1F7A3E; color:#fff; font-size:14px; font-weight:800; border-radius:6px; padding:2px 7px; vertical-align:middle; }
+  .ttl-uit{ display:inline-block; background:#C62828; color:#fff; font-size:14px; font-weight:800; border-radius:6px; padding:2px 7px; vertical-align:middle; }
+  .ttl-box{ text-align:left; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:12px 14px; display:flex; flex-direction:column; gap:6px; }
+  .ttl-box .ttl-wh{ color:var(--ink); }
+  .ttl-lijn{ font-size:17px; }
+  .ttl-lijn b{ display:inline-block; min-width:110px; color:var(--ink-muted); }
+  .ttl-kp{ background:#FFF4D6; color:#4a3a00; border-radius:8px; padding:4px 8px; font-weight:700; }
+  .ttl-knoppen{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; padding-top:10px; }
+  .ttl-knoppen .btn{ font-size:17px; padding:12px 18px; }
+  .ttl-go{ font-size:22px !important; padding:16px 22px !important; width:100%; justify-content:center; }
   /* Demo en rondleiding */
   .demo-pill{ position:fixed; top:calc(env(safe-area-inset-top,0px) + 6px); left:50%; transform:translateX(-50%); z-index:95;
     background:#FFD23F; color:#1b1b1b; font:700 12px "Barlow",sans-serif; padding:4px 6px 4px 12px; border-radius:999px;
@@ -5411,8 +5441,14 @@
       return Object.keys(tr).filter(function(d){ return tr[d] && tr[d].toernooi && d >= addDaysISO(t, -1) && d <= addDaysISO(t, 7); }).sort()[0] || null;
     }
     function actief(){ return !!datum(); }
-    function load(d){ try { return JSON.parse(localStorage.getItem(KEY + d) || "{}") || {}; } catch(e){ return {}; } }
-    function save(d, s){ try { localStorage.setItem(KEY + d, JSON.stringify(s)); } catch(e){} }
+    // Gedeeld (iedereen ziet hetzelfde): de toernooi-instellingen per team staan in app_settings.periodisering.toernooi[datum]
+    // en alleen de hoofdtrainer wijzigt ze. Alleen de klok van de wedstrijdmodus staat per toestel (localStorage).
+    function load(d){
+      var x; try { x = JSON.parse(localStorage.getItem(KEY + d) || "{}") || {}; } catch(e){ x = {}; }
+      x.teams = (((PERIODISERING.toernooi || {})[d] || {}).teams) || {};
+      return x;
+    }
+    function save(d, s){ try { localStorage.setItem(KEY + d, JSON.stringify({ live: s.live || {} })); } catch(e){} }
     function jaar(l){ var m = String(l.label || "").match(/\d{4}/); return m ? Number(m[0]) : 0; }
     function oLeeftijd(l, d){ var y = Number(d.slice(0, 4)) + (Number(d.slice(5, 7)) >= 8 ? 1 : 0); return jaar(l) ? "O" + (y - jaar(l)) : ""; }
     // Toernooi 4 okt: O8/O9 6 tegen 6, 4 perioden van 10 min (rust 2-5-2); O10/O11 8 tegen 8, 4 x 15 min (rust 2-10-2).
@@ -5422,19 +5458,26 @@
       return { F: c.F || (klein ? 6 : 8), P: c.P || 4, L: c.pl || (klein ? 10 : 15), b: c.wb || 5, rust: klein ? [2, 5, 2] : [2, 10, 2],
         uit: c.uit || null, keeper: c.keeper || null, kAlles: c.kAlles !== false };
     }
-    function setCfg(d, l, patch){ var st = load(d); st.teams = st.teams || {}; st.teams[l.key] = Object.assign({}, st.teams[l.key] || {}, patch); save(d, st); }
+    function setCfg(d, l, patch){
+      if (!Auth.isHoofdtrainer()){ showToast("Alleen de hoofdtrainer past het toernooischema aan"); return; }
+      var per = JSON.parse(JSON.stringify(PERIODISERING || {}));
+      per.toernooi = per.toernooi || {};
+      var t = per.toernooi[d] = per.toernooi[d] || {};
+      t.teams = t.teams || {};
+      t.teams[l.key] = Object.assign({}, t.teams[l.key] || {}, patch);
+      PERIODISERING = per;
+      sb.from("app_settings").update({ periodisering: per }).eq("id", 1).then(function(res){
+        if (res.error){ console.error(res.error); showToast("Opslaan mislukt"); }
+      });
+    }
     function spelersVan(st, l){
-      var eigen = Store.getPlayers().filter(function(p){ return p.lichting === l.key; })
+      var extra = ((st.teams || {})[l.key] || {}).extra || [];
+      var eigen = Store.getPlayers().filter(function(p){ return p.lichting === l.key || extra.indexOf(p.id) !== -1; })
         .sort(function(a, b){ return Number(a.hesje || 999) - Number(b.hesje || 999) || a.naam.localeCompare(b.naam); })
-        .map(function(p){ return { id: p.id, naam: p.naam, hesje: p.hesje, q: p.q, gast: false, att: p.attendance || {} }; });
-      var gasten = (st.gasten || []).filter(function(g){ return g.lichting === l.key; })
-        .map(function(g){ return { id: g.id, naam: g.naam, hesje: null, q: g.q || "", gast: true, k: !!g.k, att: {} }; });
-      return eigen.concat(gasten);
+        .map(function(p){ return { id: p.id, naam: p.naam, hesje: p.hesje, q: p.q, gast: false, extra: p.lichting !== l.key, att: p.attendance || {} }; });
+      return eigen;
     }
-    function speeltMee(p, c, d){
-      if (c.uit) return c.uit.indexOf(p.id) === -1;
-      return !(p.att[d] && p.att[d].afwezig); // standaard: wie bij Aanwezig is afgemeld, speelt niet
-    }
+    function speeltMee(p, c, d){ return !(p.att[d] && p.att[d].afwezig); } // wie bij Aanwezig is afgemeld, speelt niet
     function kort(n){ var w = n.split(" "); return w.length > 1 ? w[0] + " " + w[w.length - 1].charAt(0) + "." : n; }
 
     // Het schema: per periode blokken van ±5 min. Per blok spelen de spelers met de minste speeltijd (gelijke minuten,
@@ -5546,30 +5589,38 @@
       var l = LICHTINGEN.find(function(x){ return x.key === team; }), c = cfg(st, l);
       var alle = spelersVan(st, l), mee = alle.filter(function(p){ return speeltMee(p, c, d); });
       var sch = mee.length ? maak(mee, c) : null;
+      var isHoofd = Auth.isHoofdtrainer();
       var opt = function(vals, cur, fmt){ return vals.map(function(v){ return '<option value="' + v + '"' + (Number(v) === Number(cur) ? " selected" : "") + '>' + fmt(v) + '</option>'; }).join(""); };
       var html =
         '<div class="tt-teams">' + LICHTINGEN.map(function(x){
           return '<button type="button" class="chip' + (x.key === team ? " active" : "") + '" data-tt-team="' + x.key + '">' + esc(x.label) + ' <small>' + oLeeftijd(x, d) + '</small></button>';
         }).join("") + '</div>' +
+        (sch ? '<div class="card tr-card tt-start"><div class="tr-card-h">' + esc(l.label) + ' · ' + oLeeftijd(l, d) + ' <small style="margin-left:auto;">' + sch.F + ' tegen ' + sch.F + ' · ' + c.P + ' × ' + c.L + ' min</small></div>' +
+          '<div class="tr-note">' + esc(samenvatting(mee, sch)) + '</div>' +
+          '<button type="button" class="btn primary tt-livebtn" id="ttLiveBtn">&#9654; ' + (liveState(d, l) && liveState(d, l).fase !== "voor" ? "Verder met de wedstrijd" : "Wedstrijdmodus") + '</button>' +
+          '<div class="tr-note">Klok per periode; de app zegt wanneer wie erin en eruit gaat. Scherm blijft aan.</div></div>' : '') +
+        '<details class="tt-meer"' + (window.innerWidth >= 900 ? ' open' : '') + '><summary>Schema, spelers en instellingen</summary>' +
         '<div class="card tr-card"><div class="tr-card-h">' + esc(l.label) + ' · ' + oLeeftijd(l, d) + ' <small style="margin-left:auto;">' + esc(formatDateShort(d)) + '</small></div>' +
         '<div class="tt-set">' +
-        '<label>Spelvorm <select data-tt="F">' + opt([4, 5, 6, 7, 8, 9], c.F, function(v){ return v + " tegen " + v; }) + '</select></label>' +
-        '<label>Perioden <select data-tt="P">' + opt([2, 3, 4], c.P, function(v){ return v + " perioden"; }) + '</select></label>' +
-        '<label>Periode <select data-tt="pl">' + opt([8, 10, 12, 15, 20, 25, 30], c.L, function(v){ return v + " min"; }) + '</select></label>' +
-        '<label>Wissel elke <select data-tt="wb">' + opt([3, 4, 5, 6, 7, 8, 10, 15], c.b, function(v){ return v + " min"; }) + '</select></label></div>' +
+        (isHoofd ? '' : '<div class="tr-note">De hoofdtrainer stelt het schema in; jij ziet precies hetzelfde.</div>') +
+        '<label>Spelvorm <select data-tt="F"' + (isHoofd ? '' : ' disabled') + '>' + opt([4, 5, 6, 7, 8, 9], c.F, function(v){ return v + " tegen " + v; }) + '</select></label>' +
+        '<label>Perioden <select data-tt="P"' + (isHoofd ? '' : ' disabled') + '>' + opt([2, 3, 4], c.P, function(v){ return v + " perioden"; }) + '</select></label>' +
+        '<label>Periode <select data-tt="pl"' + (isHoofd ? '' : ' disabled') + '>' + opt([8, 10, 12, 15, 20, 25, 30], c.L, function(v){ return v + " min"; }) + '</select></label>' +
+        '<label>Wissel elke <select data-tt="wb"' + (isHoofd ? '' : ' disabled') + '>' + opt([3, 4, 5, 6, 7, 8, c.L].filter(function(v, n, a){ return v <= c.L && a.indexOf(v) === n; }), Math.min(c.b, c.L), function(v){ return v >= c.L ? "alleen in de rust" : v + " min"; }) + '</select></label></div>' +
         '<div class="tr-note">Rust tussen de perioden: ' + c.rust.join(" – ") + ' min. Keeper en posities wisselen alleen in de rust.</div>' +
-        (c.keeper ? '<label class="tt-check"><input type="checkbox" data-tt-kalles' + (c.kAlles ? " checked" : "") + '> Keeper staat de hele wedstrijd op doel</label>' : '') +
+        (c.keeper ? '<label class="tt-check"><input type="checkbox" data-tt-kalles' + (c.kAlles ? " checked" : "") + (isHoofd ? '' : ' disabled') + '> Keeper staat de hele wedstrijd op doel</label>' : '') +
         '<div class="tt-spelers">' + alle.map(function(p){
           var m = speeltMee(p, c, d);
           return '<div class="tt-sp' + (m ? "" : " uit") + '"><label><input type="checkbox" data-tt-mee="' + p.id + '"' + (m ? " checked" : "") + '> ' +
-            (p.hesje ? '<b>' + esc(p.hesje) + '</b> ' : '') + esc(p.naam) + (p.gast ? ' <span class="pill none">gast</span>' : '') + '</label>' +
-            '<button type="button" class="tt-k' + (c.keeper === p.id ? " on" : "") + '" data-tt-keeper="' + p.id + '" title="Keeper">K</button>' +
-            (p.gast ? '<button type="button" class="season-x" data-tt-delgast="' + p.id + '" aria-label="Gast verwijderen">&times;</button>' : '') + '</div>';
+            (p.hesje ? '<b>' + esc(p.hesje) + '</b> ' : '') + esc(p.naam) + (p.extra ? ' <span class="pill none">speelt mee</span>' : '') + '</label>' +
+            '<button type="button" class="tt-k' + (c.keeper === p.id ? " on" : "") + '" data-tt-keeper="' + p.id + '" title="Keeper"' + (isHoofd ? '' : ' disabled') + '>K</button>' +
+            (p.extra && isHoofd ? '<button type="button" class="season-x" data-tt-delextra="' + p.id + '" aria-label="Niet meer laten meespelen">&times;</button>' : '') + '</div>';
         }).join("") + '</div>' +
-        '<details class="tt-gast"><summary>+ Gastspelers toevoegen</summary>' +
-        '<div class="tr-note">Eén per regel: <i>naam; geboortejaar</i>, eventueel <i>; K</i> voor een keeper. Alleen op dit toestel bewaard.</div>' +
-        '<textarea id="ttGastIn" rows="4" placeholder="Voornaam Achternaam; ' + jaar(l) + '"></textarea>' +
-        '<button type="button" class="btn ghost small" id="ttGastAdd">Toevoegen</button></details></div>';
+        '<div class="tr-note">Vinkje uit = afgemeld (gaat ook naar Aanwezig). Iedereen ziet hetzelfde schema.</div>' +
+        (isHoofd ? '<label class="tt-check">Speler uit een andere lichting laten meespelen: <select id="ttExtra"><option value="">Kies…</option>' +
+          Store.getPlayers().filter(function(p){ return !alle.some(function(a){ return a.id === p.id; }); })
+            .sort(function(a, b){ return (a.lichting + a.naam).localeCompare(b.lichting + b.naam); })
+            .map(function(p){ return '<option value="' + p.id + '">' + esc(lichtingLabel(p.lichting) + " · " + p.naam) + '</option>'; }).join("") + '</select></label>' : '') + '</div>';
       if (sch){
         html += '<div class="card tr-card"><div class="tr-card-h">Wisselschema <small style="margin-left:auto;">' + sch.F + ' tegen ' + sch.F + ' · ' + mee.length + ' spelers</small></div>' +
           '<div class="tr-note"><b>' + esc(samenvatting(mee, sch)) + '</b>' + (sch.tekort ? ' · <span style="color:var(--low);">te weinig spelers voor ' + c.F + ' tegen ' + c.F + '</span>' : '') + '</div>' +
@@ -5580,6 +5631,7 @@
           '<button type="button" class="btn ghost" id="ttPrintAll">Alle teams afdrukken</button>' +
           '<a class="btn ghost" id="ttWa" target="_blank" rel="noopener">Delen via WhatsApp</a></div></div>';
       }
+      html += '</details>';
       html += '<div class="card tr-card"><div class="tr-card-h">Afmeldingen naar Ajax</div><div class="tr-note">Ajax vraagt de afmeldingen door te geven. Dit bericht zet ze per lichting klaar (spelers die niet meespelen, zonder gasten).</div>' +
         '<a class="btn ghost" id="ttAfm" target="_blank" rel="noopener">Afmeldingen klaarzetten in WhatsApp</a></div>';
       wrap.innerHTML = html;
@@ -5590,10 +5642,9 @@
       });
       Array.prototype.forEach.call(wrap.querySelectorAll("[data-tt-mee]"), function(cb){
         cb.onchange = function(){
-          var uit = alle.filter(function(p){ return !speeltMee(p, c, d); }).map(function(p){ return p.id; });
           var id = cb.getAttribute("data-tt-mee");
-          uit = uit.filter(function(x){ return x !== id; }); if (!cb.checked) uit.push(id);
-          setCfg(d, l, { uit: uit }); render();
+          Store.setAttendance(id, d, cb.checked ? null : { afwezig: true, reden: "Afgemeld" }).then(render)
+            .catch(function(err){ console.error(err); showToast("Opslaan mislukt"); render(); });
         };
       });
       Array.prototype.forEach.call(wrap.querySelectorAll("[data-tt-keeper]"), function(b){
@@ -5601,28 +5652,16 @@
       });
       var ka = wrap.querySelector("[data-tt-kalles]");
       if (ka) ka.onchange = function(){ setCfg(d, l, { kAlles: ka.checked }); render(); };
-      Array.prototype.forEach.call(wrap.querySelectorAll("[data-tt-delgast]"), function(b){
-        b.onclick = function(){ var st2 = load(d); st2.gasten = (st2.gasten || []).filter(function(g){ return g.id !== b.getAttribute("data-tt-delgast"); }); save(d, st2); render(); };
+      var cx = ((st.teams || {})[l.key] || {}).extra || [];
+      Array.prototype.forEach.call(wrap.querySelectorAll("[data-tt-delextra]"), function(b){
+        b.onclick = function(){ var id = b.getAttribute("data-tt-delextra"); setCfg(d, l, { extra: cx.filter(function(x){ return x !== id; }), keeper: c.keeper === id ? null : c.keeper }); render(); };
       });
-      $("ttGastAdd").onclick = function(){
-        var st2 = load(d); st2.gasten = st2.gasten || []; st2.teams = st2.teams || {};
-        var n = 0;
-        $("ttGastIn").value.split("\n").forEach(function(r){
-          var parts = r.split(";").map(function(x){ return x.trim(); }), naam = parts[0];
-          if (!naam) return;
-          var y = Number((parts[1] || "").match(/\d{4}/) ? parts[1].match(/\d{4}/)[0] : jaar(l));
-          var li = LICHTINGEN.find(function(x){ return jaar(x) === y; }) || l;
-          var k = parts.slice(2).some(function(x){ return /^k(eeper)?$/i.test(x); });
-          var g = { id: "gast-" + Date.now().toString(36) + "-" + (n++), naam: naam, lichting: li.key, k: k };
-          st2.gasten.push(g);
-          if (k){ var t2 = st2.teams[li.key] = st2.teams[li.key] || {}; if (!t2.keeper) t2.keeper = g.id; }
-        });
-        save(d, st2); showToast(n ? n + (n === 1 ? " gast toegevoegd" : " gasten toegevoegd") : "Niets toegevoegd"); render();
-      };
+      if ($("ttExtra")) $("ttExtra").onchange = function(){ if (this.value){ setCfg(d, l, { extra: cx.concat([this.value]) }); render(); } };
       if (sch){
         $("ttPrint").onclick = function(){ afdrukken(d, [l]); };
         $("ttPrintAll").onclick = function(){ afdrukken(d, LICHTINGEN); };
         $("ttWa").href = "https://wa.me/?text=" + encodeURIComponent(waTekst(d, l, mee, sch, c));
+        $("ttLiveBtn").onclick = function(){ openLive(d, l); };
       }
       $("ttAfm").href = "https://wa.me/?text=" + encodeURIComponent(afmeldTekst(d, st));
     }
@@ -5641,7 +5680,7 @@
     function afmeldTekst(d, st){
       var t = "Afmeldingen ART 1 AS'80 voor " + formatDateShort(d) + ":\n";
       LICHTINGEN.forEach(function(l){
-        var c = cfg(st, l), afw = spelersVan(st, l).filter(function(p){ return !p.gast && !speeltMee(p, c, d); });
+        var c = cfg(st, l), afw = spelersVan(st, l).filter(function(p){ return !p.extra && !speeltMee(p, c, d); });
         t += "- " + l.label + " (" + oLeeftijd(l, d) + "): " + (afw.length ? afw.map(function(p){ return p.naam; }).join(", ") : "geen") + "\n";
       });
       return t;
@@ -5660,7 +5699,155 @@
       $("printArea").innerHTML = pages;
       window.print();
     }
-    return { render: render, actief: actief };
+
+    /* Wedstrijdmodus (telefoon langs het veld): klok per periode, wissels op het juiste moment (piep + grote kaart,
+       wisselen bij de eerste bal uit; invaller neemt de plek over), rust met aftellen en daar de keeper- en
+       positiewissels. Tijd rekent met tijdstempels (klopt ook na scherm uit/terug) en staat in localStorage. */
+    var live = null, tick = null, wake = null, audio = null;
+    function liveState(d, l){ var st = load(d); return ((st.live || {})[l.key]) || null; }
+    function setLive(d, l, v){ var st = load(d); st.live = st.live || {}; if (v) st.live[l.key] = v; else delete st.live[l.key]; save(d, st); }
+    function piep(){
+      try {
+        if (audio){ [0, 0.3, 0.6].forEach(function(t){
+          var o = audio.createOscillator(), g = audio.createGain(), n = audio.currentTime + t;
+          o.frequency.value = 880; o.connect(g); g.connect(audio.destination);
+          g.gain.setValueAtTime(0.3, n); g.gain.setValueAtTime(0, n + 0.2); o.start(n); o.stop(n + 0.22);
+        }); }
+      } catch(e){}
+      try { if (navigator.vibrate) navigator.vibrate([300, 150, 300]); } catch(e){}
+    }
+    function houdWakker(aan){
+      try {
+        if (aan && navigator.wakeLock && !wake) navigator.wakeLock.request("screen").then(function(w){ wake = w; w.addEventListener("release", function(){ wake = null; }); }).catch(function(){});
+        if (!aan && wake){ wake.release(); wake = null; }
+      } catch(e){}
+    }
+    document.addEventListener("visibilitychange", function(){ if (!document.hidden && live){ houdWakker(true); renderLive(); } });
+    function mmss(s){ s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
+    function lijnen(v){
+      var g = { A: [], M: [], V: [] };
+      v.forEach(function(x){ if (g[x.pos]) g[x.pos].push(kort(x.p.naam)); });
+      return '<div class="ttl-lijn"><b>Aanval</b> ' + esc(g.A.join(", ") || "–") + '</div><div class="ttl-lijn"><b>Midden</b> ' + esc(g.M.join(", ") || "–") +
+        '</div><div class="ttl-lijn"><b>Verdediging</b> ' + esc(g.V.join(", ") || "–") + '</div>';
+    }
+    function openLive(d, l){
+      live = { d: d, l: l };
+      var el = $("ttLive");
+      if (!el){ el = document.createElement("div"); el.id = "ttLive"; el.className = "tt-live"; document.body.appendChild(el); }
+      el.hidden = false;
+      if (tick) clearInterval(tick);
+      tick = setInterval(renderLive, 1000);
+      if (liveState(d, l) && liveState(d, l).fase !== "klaar") houdWakker(true);
+      renderLive();
+    }
+    function sluitLive(){ if (tick) clearInterval(tick); tick = null; houdWakker(false); live = null; if ($("ttLive")) $("ttLive").hidden = true; render(); }
+    function renderLive(){
+      if (!live) return;
+      var d = live.d, l = live.l, st = load(d), c = cfg(st, l);
+      var mee = spelersVan(st, l).filter(function(p){ return speeltMee(p, c, d); });
+      if (!mee.length){ sluitLive(); return; }
+      var sch = maak(mee, c), s = liveState(d, l) || { fase: "voor", per: 0, gedaan: [], gemeld: [] };
+      s.gedaan = s.gedaan || []; s.gemeld = s.gemeld || [];
+      var now = Date.now(), bpp = sch.bpp, blokS = sch.blokMin * 60, L = c.L * 60;
+      var el = s.t0 ? (now - s.t0 - (s.pauze || 0) - (s.pauzeVan ? now - s.pauzeVan : 0)) / 1000 : 0;
+      var kop = '<div class="ttl-kop"><span>' + esc(l.label) + ' · ' + oLeeftijd(l, d) + '</span><button type="button" class="icon-btn" data-ttl="sluit" aria-label="Sluiten">&times;</button></div>';
+      var body = "", knoppen = "";
+      var keeper = function(j){ var k = keeperVan(sch.blokken[j]); return k ? kort(k.naam) : "–"; };
+      if (s.fase === "voor"){
+        body = '<div class="ttl-fase">Periode 1</div><div class="ttl-big">0:00</div>' +
+          '<div class="ttl-info"><b>Keeper:</b> ' + esc(keeper(0)) + '</div><div class="ttl-box">' + lijnen(sch.blokken[0]) +
+          '<div class="ttl-lijn"><b>Bank</b> ' + esc(mee.filter(function(p){ return !sch.blokken[0].some(function(x){ return x.p.id === p.id; }); }).map(function(p){ return kort(p.naam); }).join(", ") || "–") + '</div></div>';
+        knoppen = '<button type="button" class="btn primary ttl-go" data-ttl="start">&#9654; Start periode 1</button>';
+      } else if (s.fase === "spel"){
+        var per = s.per, subs = [];
+        for (var k = 1; k < bpp; k++) subs.push({ j: per * bpp + k, t: k * blokS });
+        var due = subs.filter(function(x){ return el >= x.t && s.gedaan.indexOf(x.j) === -1; });
+        var next = subs.filter(function(x){ return el < x.t; })[0];
+        due.forEach(function(x){ if (s.gemeld.indexOf(x.j) === -1){ s.gemeld.push(x.j); setLive(d, l, s); piep(); } });
+        body = '<div class="ttl-fase">Periode ' + (per + 1) + ' van ' + c.P + (s.pauzeVan ? ' · <span style="color:var(--low);">gepauzeerd</span>' : '') + '</div>' +
+          '<div class="ttl-big' + (el >= L ? ' ttl-op' : '') + '">' + mmss(Math.min(el, L)) + '<small> / ' + c.L + ':00</small></div>' +
+          '<div class="ttl-info"><b>Keeper:</b> ' + esc(keeper(per * bpp)) + '</div>';
+        if (due.length){
+          var x0 = due[0], w = sch.wissels[x0.j] || [];
+          body += '<div class="ttl-wissel"><div class="ttl-wh">WISSEL · bij de eerste bal uit</div>' + (w.length ? w.map(function(x){
+            return '<div class="ttl-paar"><span class="ttl-in">IN</span> <b>' + esc(x.in.naam) + '</b><br><span class="ttl-uit">UIT</span> ' + esc(x.uit ? x.uit.naam : "–") + ' <small>(' + POSNAAM[x.pos] + ')</small></div>';
+          }).join("") : '<div class="ttl-paar">Geen wissel nodig</div>') +
+            '<button type="button" class="btn primary ttl-go" data-ttl="gedaan" data-j="' + x0.j + '">Gewisseld &#10003;</button></div>';
+        } else if (el >= L){
+          body += '<div class="ttl-wissel"><div class="ttl-wh">Tijd! Periode ' + (per + 1) + ' is voorbij</div></div>';
+          knoppen = '<button type="button" class="btn primary ttl-go" data-ttl="rust">' + (per + 1 >= c.P ? "Wedstrijd afgelopen" : "Rust starten (" + c.rust[per] + " min)") + '</button>';
+        } else if (next){
+          var wn = sch.wissels[next.j] || [];
+          body += '<div class="ttl-next">Volgende wissel over <b>' + mmss(next.t - el) + '</b><br>' + esc(wn.map(function(x){ return kort(x.in.naam) + " erin voor " + kort(x.uit ? x.uit.naam : "–"); }).join(", ") || "geen") + '</div>';
+        } else {
+          body += '<div class="ttl-next">Geen wissels meer deze periode. Nog <b>' + mmss(L - el) + '</b>.</div>';
+        }
+        if (!knoppen) knoppen = '<button type="button" class="btn ghost" data-ttl="pauze">' + (s.pauzeVan ? "Doorgaan" : "Pauze") + '</button>' +
+          '<button type="button" class="btn ghost" data-ttl="rust">' + (per + 1 >= c.P ? "Wedstrijd beëindigen" : "Periode beëindigen") + '</button>';
+      } else if (s.fase === "rust"){
+        var jn = (s.per + 1) * bpp, rest = c.rust[s.per] * 60 - (now - s.t0) / 1000, wr = sch.wissels[jn] || [];
+        var kpOud = keeperVan(sch.blokken[jn - 1]), kpNieuw = keeperVan(sch.blokken[jn]);
+        body = '<div class="ttl-fase">Rust na periode ' + (s.per + 1) + '</div><div class="ttl-big' + (rest <= 0 ? ' ttl-op' : '') + '">' + (rest > 0 ? mmss(rest) : "0:00") + '</div>' +
+          '<div class="ttl-box"><div class="ttl-wh">Voor periode ' + (s.per + 2) + '</div>' +
+          (kpNieuw && kpOud && kpNieuw.id !== kpOud.id ? '<div class="ttl-lijn ttl-kp"><b>Keeper wordt</b> ' + esc(kpNieuw.naam) + '</div>' : '<div class="ttl-lijn"><b>Keeper</b> ' + esc(kpNieuw ? kpNieuw.naam : "–") + '</div>') +
+          (wr.length ? '<div class="ttl-lijn"><b>Wissels</b> ' + esc(wr.map(function(x){ return kort(x.in.naam) + " erin voor " + kort(x.uit ? x.uit.naam : "–"); }).join(", ")) + '</div>' : '') +
+          lijnen(sch.blokken[jn]) + '</div>';
+        knoppen = '<button type="button" class="btn primary ttl-go" data-ttl="volgende">&#9654; Start periode ' + (s.per + 2) + '</button>';
+      } else {
+        body = '<div class="ttl-fase">Wedstrijd afgelopen</div><div class="ttl-box">' + mee.map(function(p){
+          return '<div class="ttl-lijn">' + esc(p.naam) + ' <b style="float:right;">' + Math.round(sch.minuten[p.id]) + ' min</b></div>';
+        }).join("") + '</div>';
+        knoppen = '<button type="button" class="btn ghost" data-ttl="reset">Opnieuw beginnen</button>';
+      }
+      var box = $("ttLive");
+      box.innerHTML = kop + '<div class="ttl-body">' + body + '</div><div class="ttl-knoppen">' + knoppen + '</div>';
+      Array.prototype.forEach.call(box.querySelectorAll("[data-ttl]"), function(b){
+        b.onclick = function(){
+          var a = b.getAttribute("data-ttl"), t = Date.now(), cur = liveState(d, l) || { per: 0, gedaan: [], gemeld: [] };
+          if (a === "sluit") return sluitLive();
+          if (!audio){ try { var AC = window.AudioContext || window.webkitAudioContext; if (AC) audio = new AC(); } catch(e){} }
+          if (a === "start"){ setLive(d, l, { fase: "spel", per: 0, t0: t, pauze: 0, pauzeVan: null, gedaan: [], gemeld: [] }); houdWakker(true); }
+          else if (a === "gedaan"){ cur.gedaan = (cur.gedaan || []).concat([Number(b.getAttribute("data-j"))]); setLive(d, l, cur); }
+          else if (a === "pauze"){
+            if (cur.pauzeVan){ cur.pauze = (cur.pauze || 0) + (t - cur.pauzeVan); cur.pauzeVan = null; } else cur.pauzeVan = t;
+            setLive(d, l, cur);
+          }
+          else if (a === "rust"){
+            if (cur.per + 1 >= c.P){ cur.fase = "klaar"; houdWakker(false); } else { cur.fase = "rust"; cur.t0 = t; cur.pauzeVan = null; }
+            setLive(d, l, cur);
+          }
+          else if (a === "volgende"){ cur.fase = "spel"; cur.per = cur.per + 1; cur.t0 = t; cur.pauze = 0; cur.pauzeVan = null; setLive(d, l, cur); houdWakker(true); }
+          else if (a === "reset"){ setLive(d, l, null); }
+          renderLive();
+        };
+      });
+    }
+
+    // Link naar de trainer: zet de keuzes en gastspelers van één team op zijn telefoon (in het deel na #, dat gaat niet
+    // naar de server). Na inloggen leest de app hem in en opent het Toernooi-tabblad bij dat team.
+    function b64(s){ return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); }
+    function unb64(s){ s = s.replace(/-/g, "+").replace(/_/g, "/"); while (s.length % 4) s += "="; return decodeURIComponent(escape(atob(s))); }
+    function trainerLink(d, l){
+      var st = load(d);
+      var x = { d: d, k: l.key, c: (st.teams || {})[l.key] || {}, g: (st.gasten || []).filter(function(g){ return g.lichting === l.key; }) };
+      return location.origin + "/#tt=" + b64(JSON.stringify(x));
+    }
+    function importLink(){
+      var m = location.hash.match(/^#tt=(.+)$/);
+      if (!m) return;
+      try {
+        var x = JSON.parse(unb64(m[1])), st = load(x.d);
+        st.gasten = (st.gasten || []).filter(function(g){ return g.lichting !== x.k; }).concat(x.g || []);
+        st.teams = st.teams || {}; st.teams[x.k] = Object.assign({}, st.teams[x.k] || {}, x.c || {});
+        save(x.d, st);
+        team = x.k;
+        history.replaceState(null, "", location.pathname);
+        switchTab("toernooi");
+        var l = LICHTINGEN.find(function(y){ return y.key === x.k; });
+        showToast("Wisselschema " + (l ? l.label : "") + " staat klaar");
+      } catch(e){ console.error(e); showToast("Deze link kon niet worden gelezen"); }
+    }
+    return { render: render, actief: actief, importLink: importLink };
   })();
 
   function tabAllowedForRole(tab, role, isHoofd){
