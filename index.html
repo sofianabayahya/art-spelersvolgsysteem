@@ -5922,6 +5922,8 @@
   /* ---------- render orchestration ---------- */
   function renderAll(){
     updateTabVisibility();
+    // Lichting-knoppen bovenin hebben in Toernooi geen functie (daar kies je het team in het tabblad zelf).
+    $("lichtingChips").style.display = state.tab === "toernooi" ? "none" : "";
     if (state.tab === "spelers") renderSpelers();
     else if (state.tab === "overzicht") renderOverzicht();
     else if (state.tab === "training") renderTraining();
