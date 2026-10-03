@@ -138,6 +138,10 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   Toernooi-instellingen per team staan in `app_settings.periodisering.toernooi[datum].teams[lichting]` = {F, P, pl, wb,
   keeper, kAlles, extra:[speler-ids uit andere lichting]}; alleen de hoofdtrainer wijzigt (UI uitgeschakeld voor trainers).
   Wie meespeelt = Aanwezig van die datum (vinkje in het tabblad schrijft naar Aanwezig). Milan speelt ook bij 2017 (extra).
+- Iedereen keept (scout, 2026-10-03) bij teams zonder vaste keeper (2019, 2016; vinkje "Iedereen keept", standaard aan):
+  per periode ceil(spelers/perioden) keepers; keeperwissel midden in de periode bij een bal uit = één handeling
+  (2019: de wisselspeler gaat op doel, de keeper eruit; 2016 zonder bank: keeper ruilt met een veldspeler en neemt zijn
+  plek). Nieuwe keepers en posities in de rust. Lege momenten worden overgeslagen (`moment`, `momentTekst`).
 - Wedstrijdmodus (telefoon): klok per periode (tijdstempels, overleeft scherm uit), "Volgende wissel over m:ss", op het
   moment een gele kaart "WISSEL · bij de eerste bal uit: IN x / UIT y (positie)" met piep/trillen en knop Gewisseld,
   "Tijd!" na de periode, rustscherm met aftellen + keeperwissel + nieuwe posities, einde met minuten per speler.
