@@ -5621,6 +5621,7 @@
         (sch ? '<div class="card tr-card tt-start"><div class="tr-card-h">' + esc(l.label) + ' · ' + oLeeftijd(l, d) + ' <small style="margin-left:auto;">' + sch.F + ' tegen ' + sch.F + ' · ' + c.P + ' × ' + c.L + ' min</small></div>' +
           '<div class="tr-note">' + esc(samenvatting(mee, sch)) + '</div>' +
           '<button type="button" class="btn primary tt-livebtn" id="ttLiveBtn">&#9654; ' + (liveState(d, l) && liveState(d, l).fase !== "voor" ? "Verder met de wedstrijd" : "Wedstrijdmodus") + '</button>' +
+          (liveState(d, l) && liveState(d, l).fase !== "voor" ? '<button type="button" class="btn ghost small" id="ttReset">Wedstrijd resetten</button>' : '') +
           '<div class="tr-note">Klok per periode; de app zegt wanneer wie erin en eruit gaat. Scherm blijft aan.</div></div>' : '') +
         '<details class="tt-meer"' + (window.innerWidth >= 900 ? ' open' : '') + '><summary>Schema, spelers en instellingen</summary>' +
         '<div class="card tr-card"><div class="tr-card-h">' + esc(l.label) + ' · ' + oLeeftijd(l, d) + ' <small style="margin-left:auto;">' + esc(formatDateShort(d)) + '</small></div>' +
@@ -5687,6 +5688,11 @@
         $("ttPrintAll").onclick = function(){ afdrukken(d, LICHTINGEN); };
         $("ttWa").href = "https://wa.me/?text=" + encodeURIComponent(waTekst(d, l, mee, sch, c));
         $("ttLiveBtn").onclick = function(){ openLive(d, l); };
+        // Opnieuw beginnen (bv. na een test): alleen de klok en afgevinkte wissels op dit toestel; het schema blijft.
+        if ($("ttReset")) $("ttReset").onclick = function(){
+          confirmDialog({ title: "Wedstrijd resetten?", messageHtml: "De klok en de wissels van <b>" + esc(l.label) + "</b> gaan terug naar het begin (alleen op dit toestel). Het schema zelf blijft hetzelfde.", confirmLabel: "Resetten" })
+            .then(function(ok){ if (ok){ setLive(d, l, null); showToast("Wedstrijd " + l.label + " staat weer op het begin"); render(); } });
+        };
       }
       $("ttAfm").href = "https://wa.me/?text=" + encodeURIComponent(afmeldTekst(d, st));
     }
