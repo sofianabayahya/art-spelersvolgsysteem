@@ -138,6 +138,12 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   Toernooi-instellingen per team staan in `app_settings.periodisering.toernooi[datum].teams[lichting]` = {F, P, pl, wb,
   keeper, kAlles, extra:[speler-ids uit andere lichting]}; alleen de hoofdtrainer wijzigt (UI uitgeschakeld voor trainers).
   Wie meespeelt = Aanwezig van die datum (vinkje in het tabblad schrijft naar Aanwezig). Milan speelt ook bij 2017 (extra).
+- Definitief (2026-10-03 avond): EXACT gelijke speeltijd. `maak` verdeelt de totale speeltijd (P x L) in N gelijke stukken
+  (N = spelers die rouleren). Zonder vaste keeper: stuk i keept speler i, de volgende s (= N - F) zitten op de bank →
+  iedereen keept één stuk en speelt exact even lang (2019: 34,3 min, keeper 5:43; 2016: 60 min, keeper 7:30). Met vaste
+  keeper: bank schuift één speler per stuk door (2018: 25 min, 2017: 42 min). Wisselmomenten vallen op de stukgrenzen
+  (bv. 5:43, 11:26), steeds "bij de eerste bal uit"; posities opnieuw in de rust. `sch.meta[j]` = {per, a, b (sec in periode), start}.
+  Tabel: kop P1..P4 (colspan), letters als span in td (eerder stond class tt-p op de td → tabel kapot).
 - Iedereen keept (scout, 2026-10-03) bij teams zonder vaste keeper (2019, 2016; vinkje "Iedereen keept", standaard aan):
   per periode ceil(spelers/perioden) keepers; keeperwissel midden in de periode bij een bal uit = één handeling
   (2019: de wisselspeler gaat op doel, de keeper eruit; 2016 zonder bank: keeper ruilt met een veldspeler en neemt zijn

@@ -526,6 +526,8 @@
   .tt-grid th, .tt-grid td{ border:1px solid var(--border); padding:4px 5px; text-align:center; white-space:nowrap; }
   .tt-grid th{ font-size:11.5px; color:var(--ink-muted); }
   .tt-grid .tt-naam{ text-align:left; position:sticky; left:0; background:var(--surface); }
+  .tt-grid td.tt-c{ padding:3px 2px; }
+  .tt-grid .tt-p{ min-width:22px; padding:2px 0; }
   .tt-grid .tt-naam small{ color:var(--ink-muted); }
   .tt-grid .tt-rust{ border-left:3px solid var(--ink); }
   .tt-p{ font-weight:800; display:inline-block; min-width:18px; border-radius:4px; }
@@ -5480,60 +5482,50 @@
     function speeltMee(p, c, d){ return !(p.att[d] && p.att[d].afwezig); } // wie bij Aanwezig is afgemeld, speelt niet
     function kort(n){ var w = n.split(" "); return w.length > 1 ? w[0] + " " + w[w.length - 1].charAt(0) + "." : n; }
 
-    // Het schema: per periode blokken van ±5 min. Per blok spelen de spelers met de minste speeltijd (gelijke minuten,
-    // hooguit één blok verschil); wie erin komt neemt de plek over van wie eruit gaat. Keeper: vast, of per periode
-    // degene die het minst gekeept heeft (wisselt alleen in de rust). Posities worden alleen in de rust opnieuw verdeeld:
-    // iedereen krijgt de linie waar hij het minst heeft gestaan, zodat iedereen overal speelt.
+    /* Het schema, exact eerlijk: de speeltijd (perioden x minuten) wordt in N gelijke stukken verdeeld, N = aantal
+       spelers dat rouleert. Stuk i: (zonder vaste keeper) speler i keept, de volgende s spelers zitten op de bank;
+       (met vaste keeper) spelers i..i+s-1 zitten op de bank. Daardoor keept iedereen precies één stuk, zit iedereen
+       even lang op de bank en speelt iedereen exact even lang. Wisselmomenten vallen waar een stuk eindigt (bij de eerste
+       bal uit); posities worden in de rust opnieuw verdeeld, daartussen neemt wie erin komt de vrijgekomen plek. */
     function maak(spelers, c){
-      var F = Math.min(c.F, spelers.length);
+      var F = Math.min(c.F, spelers.length), T = c.P * c.L;
       var vast = c.keeper && c.kAlles ? spelers.find(function(p){ return p.id === c.keeper; }) : null;
-      // Iedereen keept (scout/Ajax): per periode zoveel keepers dat iedereen minstens één keer op doel staat.
-      // Keeperwissel midden in een periode = één handeling bij een bal uit: de wisselspeler gaat op doel (of, zonder
-      // bank, de keeper ruilt met een veldspeler). Nieuwe keepers en posities in de rust.
-      var allK = !vast && c.allK !== false;
-      var kpp = allK ? Math.max(1, Math.ceil(spelers.length / c.P)) : 1;
-      var bpp = Math.max(1, Math.round(c.L / c.b));
-      if (allK) bpp = kpp * Math.max(1, Math.round(bpp / kpp));
-      var B = c.P * bpp, blokMin = c.L / bpp;
+      var R = spelers.filter(function(p){ return p !== vast; });
+      if (!vast && c.keeper){ var ki = R.findIndex(function(p){ return p.id === c.keeper; }); if (ki > 0) R = R.slice(ki).concat(R.slice(0, ki)); }
+      var N = R.length, S = vast ? F - 1 : F, s = Math.max(0, N - S), seg = T / N;
       var form = FORMATIE[F] || FORMATIE[8].slice(0, F), veldPos = form.slice(1);
-      var min = {}, keeps = {}, lijn = {}, idx = {};
-      spelers.forEach(function(p, n){ min[p.id] = 0; keeps[p.id] = 0; lijn[p.id] = {}; idx[p.id] = n; });
-      if (!vast && c.keeper) keeps[c.keeper] = -1; // aangewezen keeper begint
-      var blokken = [], K = null, vorig = [], kp = [];
-      for (var j = 0; j < B; j++){
-        var start = j % bpp === 0;
-        if (vast) K = vast;
-        else {
-          if (start){
-            kp = spelers.slice().sort(function(a, b){ return keeps[a.id] - keeps[b.id] || min[a.id] - min[b.id] || idx[a.id] - idx[b.id]; }).slice(0, kpp);
-            kp.forEach(function(p){ keeps[p.id] = Math.max(0, keeps[p.id]) + 1; });
-          }
-          K = kp[Math.floor((j % bpp) * kpp / bpp)];
-        }
-        var opVeld = vorig.map(function(x){ return x.p.id; });
-        // De andere keepers van deze periode zitten liefst op de bank (zo is de keeperwissel één handeling).
-        var kandidaten = spelers.filter(function(p){ return p !== K; }).sort(function(a, b){
-          return (kp.indexOf(a) !== -1) - (kp.indexOf(b) !== -1) || min[a.id] - min[b.id] ||
-            (opVeld.indexOf(b.id) !== -1) - (opVeld.indexOf(a.id) !== -1) || idx[a.id] - idx[b.id];
-        });
-        var veld = kandidaten.slice(0, F - 1), veldIds = veld.map(function(p){ return p.id; });
+      // Grenzen: einde van elk stuk en van elke periode (afgerond op seconden).
+      var grens = {};
+      for (var i = 1; i < N; i++) grens[Math.round(i * seg * 60)] = 1;
+      for (var p = 1; p < c.P; p++) grens[p * c.L * 60] = 1;
+      var tijden = [0].concat(Object.keys(grens).map(Number).sort(function(a, b){ return a - b; })).concat([T * 60]);
+      var min = {}, lijn = {}, idx = {};
+      spelers.forEach(function(q, n){ min[q.id] = 0; lijn[q.id] = {}; idx[q.id] = n; });
+      var blokken = [], meta = [], vorig = [];
+      for (var j = 0; j < tijden.length - 1; j++){
+        var t0 = tijden[j], t1 = tijden[j + 1], per = Math.floor(t0 / (c.L * 60) + 1e-9), st = Math.floor((t0 + 0.5) / (seg * 60));
+        var start = t0 === per * c.L * 60;
+        var K = vast || R[st % N];
+        var bank = []; for (var b = 0; b < s; b++) bank.push(R[(st + (vast ? 0 : 1) + b) % N]);
+        var veld = R.filter(function(q){ return q !== K && bank.indexOf(q) === -1; });
+        var veldIds = veld.map(function(q){ return q.id; });
         var bezet = [{ p: K, pos: "K" }];
         if (start){
           var vrij = veld.slice();
           veldPos.forEach(function(pos){
-            vrij.sort(function(a, b){ return (lijn[a.id][pos] || 0) - (lijn[b.id][pos] || 0) || idx[a.id] - idx[b.id]; });
+            vrij.sort(function(a, b2){ return (lijn[a.id][pos] || 0) - (lijn[b2.id][pos] || 0) || idx[a.id] - idx[b2.id]; });
             bezet.push({ p: vrij.shift(), pos: pos });
           });
         } else {
-          // Midden in een periode: blijvers houden hun plek; wie erbij komt (invaller of oud-keeper) neemt een vrije plek.
           var plekken = vorig.filter(function(x){ return x.pos !== "K"; });
           var blijft = plekken.filter(function(x){ return veldIds.indexOf(x.p.id) !== -1; });
           var leeg = plekken.filter(function(x){ return veldIds.indexOf(x.p.id) === -1; }).map(function(x){ return x.pos; });
-          var nieuw = veld.filter(function(p){ return !blijft.some(function(x){ return x.p.id === p.id; }); });
-          bezet = bezet.concat(blijft.map(function(x){ return { p: x.p, pos: x.pos }; }), nieuw.map(function(p, n){ return { p: p, pos: leeg[n] || veldPos[0] }; }));
+          var nieuw = veld.filter(function(q){ return !blijft.some(function(x){ return x.p.id === q.id; }); });
+          bezet = bezet.concat(blijft.map(function(x){ return { p: x.p, pos: x.pos }; }), nieuw.map(function(q, n){ return { p: q, pos: leeg[n] || veldPos[0] }; }));
         }
-        bezet.forEach(function(x){ min[x.p.id] += blokMin; if (start) lijn[x.p.id][x.pos] = (lijn[x.p.id][x.pos] || 0) + 1; });
+        bezet.forEach(function(x){ min[x.p.id] += (t1 - t0) / 60; if (start) lijn[x.p.id][x.pos] = (lijn[x.p.id][x.pos] || 0) + 1; });
         blokken.push(bezet); vorig = bezet;
+        meta.push({ per: per, a: t0 - per * c.L * 60, b: t1 - per * c.L * 60, start: start });
       }
       var wissels = blokken.map(function(v, j){
         if (!j) return null;
@@ -5541,63 +5533,67 @@
         var uit = voor.filter(function(x){ return nuIds.indexOf(x.p.id) === -1; });
         var inn = v.filter(function(x){ return voorIds.indexOf(x.p.id) === -1; });
         return inn.map(function(x, k){
-          var zelfde = j % bpp ? uit.find(function(u){ return u.pos === x.pos; }) : null;
+          var zelfde = !meta[j].start ? uit.find(function(u){ return u.pos === x.pos; }) : null;
           return { in: x.p, pos: x.pos, uit: (zelfde || uit[k] || {}).p };
         });
       });
-      return { blokken: blokken, wissels: wissels, minuten: min, perHelft: bpp, bpp: bpp, P: c.P, rust: c.rust, blokMin: blokMin, F: F, kp: vast, allK: allK, tekort: spelers.length < c.F };
+      return { blokken: blokken, meta: meta, wissels: wissels, minuten: min, P: c.P, L: c.L, rust: c.rust, F: F, kp: vast, allK: !vast,
+        keeperMin: vast ? 0 : seg, tekort: spelers.length < c.F };
     }
-    // Wat gebeurt er op moment j (midden in een periode)? Leeg = niets, dan slaan we het over.
-    function moment(sch, j){
-      var w = sch.wissels[j] || [], kNu = keeperVan(sch.blokken[j]), kVoor = keeperVan(sch.blokken[j - 1]);
-      var kWissel = kNu && kVoor && kNu.id !== kVoor.id;
-      var oudBlijft = kWissel && sch.blokken[j].some(function(x){ return x.p.id === kVoor.id; });
-      var plekOud = oudBlijft ? (sch.blokken[j].find(function(x){ return x.p.id === kVoor.id; }) || {}).pos : null;
-      return { w: w, kWissel: kWissel, kNu: kNu, kVoor: kVoor, oudBlijft: oudBlijft, plekOud: plekOud, leeg: !w.length && !kWissel };
-    }
-    function momentTekst(sch, j){
-      var m = moment(sch, j), delen = [];
-      if (m.kWissel) delen.push(kort(m.kNu.naam) + " gaat op doel" + (m.oudBlijft ? ", " + kort(m.kVoor.naam) + " het veld in (" + POSNAAM[m.plekOud] + ")" : ""));
-      m.w.forEach(function(x){
-        if (x.pos === "K") { if (!m.oudBlijft && m.kVoor && x.uit && x.uit.id === m.kVoor.id) delen.push(kort(x.uit.naam) + " eruit"); else delen.push(kort(x.in.naam) + " erin voor " + kort(x.uit ? x.uit.naam : "–")); }
-        else delen.push(kort(x.in.naam) + " erin voor " + kort(x.uit ? x.uit.naam : "–") + " (" + POSNAAM[x.pos] + ")");
-      });
-      return delen.join(" · ");
-    }
-    function minLabel(j, sch){
-      var per = Math.floor(j / sch.bpp) + 1, m = (j % sch.bpp) * sch.blokMin;
-      return "Periode " + per + ", " + (Math.round(m * 10) / 10) + "'";
-    }
-    function rustLabel(j, sch){ var r = Math.floor(j / sch.bpp) - 1; return "Rust " + (sch.rust[r] || "") + " min → periode " + (r + 2); }
     function keeperVan(v){ var k = v.find(function(x){ return x.pos === "K"; }); return k ? k.p : null; }
+    function mmssMin(sec){ sec = Math.round(sec); return Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0"); }
+    function minLabel(j, sch){ return "Periode " + (sch.meta[j].per + 1) + ", " + mmssMin(sch.meta[j].a); }
+    function rustLabel(j, sch){ var r = sch.meta[j].per - 1; return "Rust " + (sch.rust[r] || "") + " min → periode " + (r + 2); }
+    function periodeStart(sch, per){ for (var j = 0; j < sch.meta.length; j++) if (sch.meta[j].per === per) return j; return -1; }
+    // Wat gebeurt er op moment j? Keeperwissel, invallers, wie naar de bank gaat.
+    function moment(sch, j){
+      var v = sch.blokken[j], voor = sch.blokken[j - 1];
+      var kNu = keeperVan(v), kVoor = keeperVan(voor), kWissel = !!(kNu && kVoor && kNu.id !== kVoor.id);
+      var nuIds = v.map(function(x){ return x.p.id; }), voorIds = voor.map(function(x){ return x.p.id; });
+      var oudBlijft = kWissel && nuIds.indexOf(kVoor.id) !== -1;
+      var plekOud = oudBlijft ? v.find(function(x){ return x.p.id === kVoor.id; }).pos : null;
+      var kVanBank = kWissel && voorIds.indexOf(kNu.id) === -1;
+      var w = (sch.wissels[j] || []).filter(function(x){ return x.pos !== "K"; });
+      var gekoppeld = w.map(function(x){ return x.uit && x.uit.id; });
+      var naarBank = voor.filter(function(x){ return nuIds.indexOf(x.p.id) === -1 && gekoppeld.indexOf(x.p.id) === -1 && !(kVoor && x.p.id === kVoor.id); }).map(function(x){ return x.p; });
+      var keeperEruit = kWissel && !oudBlijft;
+      return { w: w, kWissel: kWissel, kNu: kNu, kVoor: kVoor, kVanBank: kVanBank, oudBlijft: oudBlijft, plekOud: plekOud,
+        naarBank: naarBank, keeperEruit: keeperEruit, leeg: !w.length && !kWissel && !naarBank.length };
+    }
+    function momentDelen(sch, j, lang){
+      var m = moment(sch, j), nm = function(p){ return lang ? p.naam : kort(p.naam); }, d = [];
+      if (m.kWissel) d.push(nm(m.kNu) + " gaat op doel" + (m.kVanBank ? " (van de bank)" : ""));
+      if (m.oudBlijft) d.push(nm(m.kVoor) + " het veld in (" + POSNAAM[m.plekOud] + ")");
+      if (m.keeperEruit) d.push(nm(m.kVoor) + " eruit");
+      m.w.forEach(function(x){ d.push(nm(x.in) + " erin voor " + (x.uit ? nm(x.uit) : "–") + " (" + POSNAAM[x.pos] + ")"); });
+      m.naarBank.forEach(function(p){ d.push(nm(p) + " naar de bank"); });
+      return d;
+    }
+    function momentTekst(sch, j){ return momentDelen(sch, j, false).join(" · "); }
 
     function tabelHtml(spelers, sch, c){
-      var mee = spelers;
-      var head = '<tr><th class="tt-naam">Speler</th>' + sch.blokken.map(function(v, j){
-        var a = (j % sch.bpp) * sch.blokMin, nieuw = j && j % sch.bpp === 0;
-        return '<th class="' + (nieuw ? "tt-rust" : "") + '">' + (j % sch.bpp === 0 ? "P" + (j / sch.bpp + 1) + " " : "") + Math.round(a) + "–" + Math.round(a + sch.blokMin) + "'</th>";
-      }).join("") + '<th>Min</th></tr>';
-      var rows = mee.map(function(p){
-        return '<tr><td class="tt-naam">' + (p.hesje ? '<b>' + esc(p.hesje) + '</b> ' : '') + esc(p.naam) + (p.gast ? ' <small>gast</small>' : '') + '</td>' +
+      var head = '<tr><th class="tt-naam">Speler</th>';
+      for (var p = 0; p < sch.P; p++){
+        var n = sch.meta.filter(function(m){ return m.per === p; }).length;
+        head += '<th colspan="' + n + '"' + (p ? ' class="tt-rust"' : '') + '>P' + (p + 1) + '</th>';
+      }
+      head += '<th>Min</th></tr>';
+      var rows = spelers.map(function(p){
+        return '<tr><td class="tt-naam">' + (p.hesje ? '<b>' + esc(p.hesje) + '</b> ' : '') + esc(kort(p.naam)) + '</td>' +
           sch.blokken.map(function(v, j){
             var x = v.find(function(y){ return y.p.id === p.id; });
-            return '<td class="tt-p tt-' + (x ? x.pos : "bank") + (j && j % sch.bpp === 0 ? " tt-rust" : "") + '">' + (x ? x.pos : "–") + '</td>';
+            return '<td class="tt-c' + (j && sch.meta[j].start ? ' tt-rust' : '') + '">' + (x ? '<span class="tt-p tt-' + x.pos + '">' + x.pos + '</span>' : '<span class="tt-bank">–</span>') + '</td>';
           }).join("") + '<td class="tt-min">' + Math.round(sch.minuten[p.id]) + '</td></tr>';
       }).join("");
       return '<table class="tt-grid"><thead>' + head + '</thead><tbody>' + rows + '</tbody></table>';
     }
     function wisselHtml(sch){
-      var start = sch.blokken[0];
-      var out = '<div class="tt-w"><b>Start periode 1</b> · keeper ' + esc(kort((keeperVan(start) || { naam: "–" }).naam)) + '</div>';
-      sch.wissels.forEach(function(w, j){
-        if (!w) return;
-        if (j % sch.bpp){ var mt = moment(sch, j); if (!mt.leeg) out += '<div class="tt-w"><b>' + minLabel(j, sch) + ' (bal uit)</b>: ' + esc(momentTekst(sch, j)) + '</div>'; return; }
-        var label = rustLabel(j, sch);
-        var kp = keeperVan(sch.blokken[j]), kpVoor = keeperVan(sch.blokken[j - 1]);
-        var keeperTxt = kp && (!kpVoor || kp.id !== kpVoor.id) ? ' · <span class="tt-kw">keeper wordt ' + esc(kort(kp.naam)) + '</span>' : '';
-        out += '<div class="tt-w"><b>' + label + '</b>' + (w.length ? ': ' + w.map(function(x){
-          return esc(kort(x.in.naam)) + ' erin voor ' + esc(kort(x.uit ? x.uit.naam : "–")) + (j % sch.bpp ? ' (' + x.pos + ')' : '');
-        }).join(", ") : ': geen wissel') + keeperTxt + '</div>';
+      var out = '<div class="tt-w"><b>Start periode 1</b> · keeper ' + esc(kort((keeperVan(sch.blokken[0]) || { naam: "–" }).naam)) + '</div>';
+      sch.blokken.forEach(function(v, j){
+        if (!j) return;
+        var m = moment(sch, j);
+        if (sch.meta[j].start) out += '<div class="tt-w"><b>' + rustLabel(j, sch) + '</b>: ' + esc(m.leeg ? "posities opnieuw" : momentTekst(sch, j) + " · posities opnieuw") + '</div>';
+        else if (!m.leeg) out += '<div class="tt-w"><b>' + minLabel(j, sch) + ' (bal uit)</b>: ' + esc(momentTekst(sch, j)) + '</div>';
       });
       return out;
     }
@@ -5605,7 +5601,7 @@
       var mins = spelers.filter(function(p){ return p !== sch.kp; }).map(function(p){ return Math.round(sch.minuten[p.id]); });
       var lo = Math.min.apply(null, mins), hi = Math.max.apply(null, mins);
       return (lo === hi ? "Iedereen speelt " + lo + " min" : "Speeltijd " + lo + "–" + hi + " min per speler") +
-        (sch.kp ? " · " + kort(sch.kp.naam) + " keept de hele wedstrijd" : (sch.allK ? " · iedereen keept" : " · keeper wisselt alleen in de rust"));
+        (sch.kp ? " · " + kort(sch.kp.naam) + " keept de hele wedstrijd" : " · iedereen keept " + mmssMin(sch.keeperMin * 60) + " min");
     }
 
     function render(){
@@ -5633,10 +5629,9 @@
         '<label>Spelvorm <select data-tt="F"' + (isHoofd ? '' : ' disabled') + '>' + opt([4, 5, 6, 7, 8, 9], c.F, function(v){ return v + " tegen " + v; }) + '</select></label>' +
         '<label>Perioden <select data-tt="P"' + (isHoofd ? '' : ' disabled') + '>' + opt([2, 3, 4], c.P, function(v){ return v + " perioden"; }) + '</select></label>' +
         '<label>Periode <select data-tt="pl"' + (isHoofd ? '' : ' disabled') + '>' + opt([8, 10, 12, 15, 20, 25, 30], c.L, function(v){ return v + " min"; }) + '</select></label>' +
-        '<label>Wissel elke <select data-tt="wb"' + (isHoofd ? '' : ' disabled') + '>' + opt([3, 4, 5, 6, 7, 8, c.L].filter(function(v, n, a){ return v <= c.L && a.indexOf(v) === n; }), Math.min(c.b, c.L), function(v){ return v >= c.L ? "alleen in de rust" : v + " min"; }) + '</select></label></div>' +
-        '<div class="tr-note">Rust tussen de perioden: ' + c.rust.join(" – ") + ' min. Keeper en posities wisselen alleen in de rust.</div>' +
-        (!(c.keeper && c.kAlles) ? '<label class="tt-check"><input type="checkbox" data-tt-allk' + (c.allK ? " checked" : "") + (isHoofd ? '' : ' disabled') + '> Iedereen keept een keer (keeperwissel bij een bal uit en in de rust)</label>' : '') +
-        (c.keeper ? '<label class="tt-check"><input type="checkbox" data-tt-kalles' + (c.kAlles ? " checked" : "") + (isHoofd ? '' : ' disabled') + '> Keeper staat de hele wedstrijd op doel</label>' : '') +
+        '</div>' +
+        '<div class="tr-note">Rust tussen de perioden: ' + c.rust.join(" – ") + ' min. Iedereen speelt exact even lang; zonder vaste keeper keept iedereen even lang. Wissels bij de eerste bal uit, posities opnieuw in de rust.</div>' +
+        (c.keeper ? '<label class="tt-check"><input type="checkbox" data-tt-kalles' + (c.kAlles ? " checked" : "") + (isHoofd ? '' : ' disabled') + '> Deze keeper staat de hele wedstrijd op doel (uit = iedereen keept)</label>' : '') +
         '<div class="tt-spelers">' + alle.map(function(p){
           var m = speeltMee(p, c, d);
           return '<div class="tt-sp' + (m ? "" : " uit") + '"><label><input type="checkbox" data-tt-mee="' + p.id + '"' + (m ? " checked" : "") + '> ' +
@@ -5699,12 +5694,11 @@
     function waTekst(d, l, mee, sch, c){
       var t = "Wisselschema " + l.label + " (" + oLeeftijd(l, d) + ") · " + sch.F + " tegen " + sch.F + " · " + c.P + " × " + c.L + " min (rust " + c.rust.join("-") + ")\n" + samenvatting(mee, sch) + "\n\n";
       t += "Start: " + sch.blokken[0].map(function(x){ return x.pos + " " + kort(x.p.naam); }).join(", ") + "\n";
-      sch.wissels.forEach(function(w, j){
-        if (!w) return;
-        if (j % sch.bpp){ if (!moment(sch, j).leeg) t += minLabel(j, sch) + " (bal uit): " + momentTekst(sch, j) + "\n"; return; }
-        var kp = keeperVan(sch.blokken[j]), kpVoor = keeperVan(sch.blokken[j - 1]);
-        t += (j % sch.bpp === 0 ? rustLabel(j, sch) : minLabel(j, sch)) + ": " + (w.length ? w.map(function(x){ return kort(x.in.naam) + " erin voor " + kort(x.uit ? x.uit.naam : "–"); }).join(", ") : "geen wissel") +
-          (kp && (!kpVoor || kp.id !== kpVoor.id) ? " · keeper " + kort(kp.naam) : "") + "\n";
+      sch.blokken.forEach(function(v, j){
+        if (!j) return;
+        var m = moment(sch, j);
+        if (sch.meta[j].start) t += rustLabel(j, sch) + ": " + (m.leeg ? "posities opnieuw" : momentTekst(sch, j) + " · posities opnieuw") + "\n";
+        else if (!m.leeg) t += minLabel(j, sch) + " (bal uit): " + momentTekst(sch, j) + "\n";
       });
       return t;
     }
@@ -5723,7 +5717,7 @@
         if (!mee.length) return "";
         var sch = maak(mee, c);
         return '<div class="tt-page"><div class="pa-title">Wisselschema ' + esc(l.label) + ' (' + oLeeftijd(l, d) + ')</div>' +
-          '<div class="pa-sub">' + esc(formatDateShort(d) + " " + d.slice(0, 4)) + ' · ' + sch.F + ' tegen ' + sch.F + ' · ' + c.P + ' × ' + c.L + ' min (rust ' + c.rust.join('-') + ') · wissel elke ' + c.b + ' min · ' + esc(samenvatting(mee, sch)) + '</div>' +
+          '<div class="pa-sub">' + esc(formatDateShort(d) + " " + d.slice(0, 4)) + ' · ' + sch.F + ' tegen ' + sch.F + ' · ' + c.P + ' × ' + c.L + ' min (rust ' + c.rust.join('-') + ') · ' + esc(samenvatting(mee, sch)) + '</div>' +
           tabelHtml(mee, sch, c) + '<div class="tt-wlist">' + wisselHtml(sch) + '</div>' +
           '<div class="pa-sub" style="text-align:left; margin-top:4mm;">K = keeper · V = verdediging · M = middenveld · A = aanval · – = bank</div></div>';
       }).join("");
@@ -5779,7 +5773,7 @@
       if (!mee.length){ sluitLive(); return; }
       var sch = maak(mee, c), s = liveState(d, l) || { fase: "voor", per: 0, gedaan: [], gemeld: [] };
       s.gedaan = s.gedaan || []; s.gemeld = s.gemeld || [];
-      var now = Date.now(), bpp = sch.bpp, blokS = sch.blokMin * 60, L = c.L * 60;
+      var now = Date.now(), L = c.L * 60;
       var el = s.t0 ? (now - s.t0 - (s.pauze || 0) - (s.pauzeVan ? now - s.pauzeVan : 0)) / 1000 : 0;
       var kop = '<div class="ttl-kop"><span>' + esc(l.label) + ' · ' + oLeeftijd(l, d) + '</span><button type="button" class="icon-btn" data-ttl="sluit" aria-label="Sluiten">&times;</button></div>';
       var body = "", knoppen = "";
@@ -5791,22 +5785,23 @@
         knoppen = '<button type="button" class="btn primary ttl-go" data-ttl="start">&#9654; Start periode 1</button>';
       } else if (s.fase === "spel"){
         var per = s.per, subs = [];
-        for (var k = 1; k < bpp; k++) if (!moment(sch, per * bpp + k).leeg) subs.push({ j: per * bpp + k, t: k * blokS });
+        sch.meta.forEach(function(m, j){ if (j && m.per === per && !m.start && !moment(sch, j).leeg) subs.push({ j: j, t: m.a }); });
         var due = subs.filter(function(x){ return el >= x.t && s.gedaan.indexOf(x.j) === -1; });
         var next = subs.filter(function(x){ return el < x.t; })[0];
         due.forEach(function(x){ if (s.gemeld.indexOf(x.j) === -1){ s.gemeld.push(x.j); setLive(d, l, s); piep(); } });
         body = '<div class="ttl-fase">Periode ' + (per + 1) + ' van ' + c.P + (s.pauzeVan ? ' · <span style="color:var(--low);">gepauzeerd</span>' : '') + '</div>' +
           '<div class="ttl-big' + (el >= L ? ' ttl-op' : '') + '">' + mmss(Math.min(el, L)) + '<small> / ' + c.L + ':00</small></div>' +
-          '<div class="ttl-info"><b>Keeper:</b> ' + esc(keeper(per * bpp)) + '</div>';
+          '<div class="ttl-info"><b>Keeper:</b> ' + esc(keeper(Math.max(0, sch.meta.reduce(function(acc, m, j){ return m.per === per && m.a <= el ? j : acc; }, periodeStart(sch, per))))) + '</div>';
         if (due.length){
           var x0 = due[0], mt = moment(sch, x0.j);
           body += '<div class="ttl-wissel"><div class="ttl-wh">' + (mt.kWissel ? "KEEPERWISSEL" : "WISSEL") + ' · bij de eerste bal uit</div>' +
-            (mt.kWissel ? '<div class="ttl-paar"><span class="ttl-in">KEEPER</span> <b>' + esc(mt.kNu.naam) + '</b> gaat op doel' +
-              (mt.oudBlijft ? '<br>' + esc(mt.kVoor.naam) + ' gaat het veld in <small>(' + POSNAAM[mt.plekOud] + ')</small>' : '') + '</div>' : '') +
-            mt.w.filter(function(x){ return !(mt.kWissel && x.pos === "K"); }).map(function(x){
-              return '<div class="ttl-paar"><span class="ttl-in">IN</span> <b>' + esc(x.in.naam) + '</b><br><span class="ttl-uit">UIT</span> ' + esc(x.uit ? x.uit.naam : "–") + ' <small>(' + POSNAAM[x.pos] + ')</small></div>';
+            (mt.kWissel ? '<div class="ttl-paar"><span class="ttl-in">DOEL</span> <b>' + esc(mt.kNu.naam) + '</b>' + (mt.kVanBank ? ' <small>(van de bank)</small>' : '') + '</div>' : '') +
+            (mt.oudBlijft ? '<div class="ttl-paar"><span class="ttl-in">VELD</span> <b>' + esc(mt.kVoor.naam) + '</b> <small>(' + POSNAAM[mt.plekOud] + ')</small></div>' : '') +
+            mt.w.map(function(x){
+              return '<div class="ttl-paar"><span class="ttl-in">IN</span> <b>' + esc(x.in.naam) + '</b> <small>(' + POSNAAM[x.pos] + ')</small><br><span class="ttl-uit">UIT</span> ' + esc(x.uit ? x.uit.naam : "–") + '</div>';
             }).join("") +
-            (mt.kWissel && !mt.oudBlijft && mt.kVoor ? '<div class="ttl-paar"><span class="ttl-uit">UIT</span> ' + esc(mt.kVoor.naam) + ' <small>(was keeper)</small></div>' : '') +
+            (mt.keeperEruit ? '<div class="ttl-paar"><span class="ttl-uit">BANK</span> ' + esc(mt.kVoor.naam) + ' <small>(was keeper)</small></div>' : '') +
+            mt.naarBank.map(function(p){ return '<div class="ttl-paar"><span class="ttl-uit">BANK</span> ' + esc(p.naam) + '</div>'; }).join("") +
             '<button type="button" class="btn primary ttl-go" data-ttl="gedaan" data-j="' + x0.j + '">Gewisseld &#10003;</button></div>';
         } else if (el >= L){
           body += '<div class="ttl-wissel"><div class="ttl-wh">Tijd! Periode ' + (per + 1) + ' is voorbij</div></div>';
@@ -5819,12 +5814,12 @@
         if (!knoppen) knoppen = '<button type="button" class="btn ghost" data-ttl="pauze">' + (s.pauzeVan ? "Doorgaan" : "Pauze") + '</button>' +
           '<button type="button" class="btn ghost" data-ttl="rust">' + (per + 1 >= c.P ? "Wedstrijd beëindigen" : "Periode beëindigen") + '</button>';
       } else if (s.fase === "rust"){
-        var jn = (s.per + 1) * bpp, rest = c.rust[s.per] * 60 - (now - s.t0) / 1000, wr = sch.wissels[jn] || [];
+        var jn = periodeStart(sch, s.per + 1), rest = c.rust[s.per] * 60 - (now - s.t0) / 1000, wr = moment(sch, jn);
         var kpOud = keeperVan(sch.blokken[jn - 1]), kpNieuw = keeperVan(sch.blokken[jn]);
         body = '<div class="ttl-fase">Rust na periode ' + (s.per + 1) + '</div><div class="ttl-big' + (rest <= 0 ? ' ttl-op' : '') + '">' + (rest > 0 ? mmss(rest) : "0:00") + '</div>' +
           '<div class="ttl-box"><div class="ttl-wh">Voor periode ' + (s.per + 2) + '</div>' +
           (kpNieuw && kpOud && kpNieuw.id !== kpOud.id ? '<div class="ttl-lijn ttl-kp"><b>Keeper wordt</b> ' + esc(kpNieuw.naam) + '</div>' : '<div class="ttl-lijn"><b>Keeper</b> ' + esc(kpNieuw ? kpNieuw.naam : "–") + '</div>') +
-          (wr.length ? '<div class="ttl-lijn"><b>Wissels</b> ' + esc(wr.map(function(x){ return kort(x.in.naam) + " erin voor " + kort(x.uit ? x.uit.naam : "–"); }).join(", ")) + '</div>' : '') +
+          (!wr.leeg ? '<div class="ttl-lijn"><b>Wissels</b> ' + esc(momentDelen(sch, jn, false).filter(function(t){ return !/gaat op doel/.test(t); }).join(" · ") || "–") + '</div>' : '') +
           lijnen(sch.blokken[jn]) + '</div>';
         knoppen = '<button type="button" class="btn primary ttl-go" data-ttl="volgende">&#9654; Start periode ' + (s.per + 2) + '</button>';
       } else {
