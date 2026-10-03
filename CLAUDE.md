@@ -120,6 +120,17 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   Gele "DEMO"-pil bovenaan met knop "Rondleiding". Stappen zijn in `Tour` aan te passen (sel, title, text, go).
 - Wijzigt de app, controleer dan of de selectors van de rondleiding nog kloppen.
 
+## Toernooi-tabblad (gebouwd 2026-10-03 voor het toernooi van 4 okt)
+- Eigen tabblad "Toernooi" (trainers + hoofdtrainer), alleen zichtbaar van 1 dag vóór tot 7 dagen ná een datum met
+  `toernooi` in de periodisering (`Toernooi.actief()`); daarna vanzelf weg. Geen databasewijziging.
+- Per lichting: spelvorm (O8/O9 6v6 2x20 wissel elke 5 min; O10/O11 8v8 2x30 elke 6 min; aanpasbaar), wie speelt mee
+  (standaard: afgemeld bij Aanwezig = niet), keeper (K-knop; "staat de hele wedstrijd op doel" of rouleert).
+  Schema (`maak`): sliding window over de spelers, elk blok schuiven de bankspelers erin voor wie het langst speelde;
+  posities per plek in de rij (aanval → middenveld → verdediging → keeper), dus gelijke speeltijd (±1 blok) en alle posities.
+- Gastspelers (andere ART-locatie) + keuzes alleen in localStorage `art-toernooi-<datum>` op het toestel (code is openbaar,
+  namen van kinderen niet in de code). Plakken als "naam; geboortejaar; K". Afdrukken (per team of alle teams, 1 pagina
+  per team), WhatsApp-tekst per team, en "Afmeldingen naar Ajax" als WhatsApp-tekst.
+
 ## Git zonder git
 De Command Line Developer Tools (en dus `git`) zijn nog niet geïnstalleerd. Tot die tijd:
 - `perl tools/gh.pl status` — verschil tussen lokale bestanden en GitHub `main`.
