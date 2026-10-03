@@ -123,7 +123,11 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
 ## Toernooi-tabblad (gebouwd 2026-10-03 voor het toernooi van 4 okt)
 - Eigen tabblad "Toernooi" (trainers + hoofdtrainer), alleen zichtbaar van 1 dag vóór tot 7 dagen ná een datum met
   `toernooi` in de periodisering (`Toernooi.actief()`); daarna vanzelf weg. Geen databasewijziging.
-- Per lichting: spelvorm (O8/O9 6v6 2x20 wissel elke 5 min; O10/O11 8v8 2x30 elke 6 min; aanpasbaar), wie speelt mee
+- Toernooi 4 okt (Sofian): 2019/2018 4 x 10 min (rust 2-5-2), 2017/2016 4 x 15 min (rust 2-10-2); 2018 en 2017: Milan
+  (gast) vaste keeper; 2019 en 2016: keeper rouleert, maar alleen in de rust (geen handschoenen wisselen tijdens het spel);
+  veldspelers wisselen elke 5 min (invaller neemt de plek van wie eruit gaat); posities alleen in de rust opnieuw verdeeld.
+  `maak` = greedy per blok: minste speeltijd speelt (±1 blok), keeper per periode = minst gekeept.
+- Per lichting: spelvorm (O8/O9 6v6, O10/O11 8v8; aanpasbaar), perioden/periodelengte/wissel-interval, wie speelt mee
   (standaard: afgemeld bij Aanwezig = niet), keeper (K-knop; "staat de hele wedstrijd op doel" of rouleert).
   Schema (`maak`): sliding window over de spelers, elk blok schuiven de bankspelers erin voor wie het langst speelde;
   posities per plek in de rij (aanval → middenveld → verdediging → keeper), dus gelijke speeltijd (±1 blok) en alle posities.
