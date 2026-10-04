@@ -310,6 +310,14 @@
     html, body{ height:auto !important; overflow:visible !important; background:#fff !important; color:#000 !important; display:block !important; }
     body > *:not(#printArea){ display:none !important; }
     #printArea{ display:block !important; font-family:"Barlow",Arial,sans-serif; color:#000; }
+    .trap-print{ font-size:10pt; }
+    .trap-print .trap-sum div{ margin:1mm 0; }
+    .trap-print .trap-h{ font-size:14pt; margin:4mm 0 2mm; page-break-after:avoid; }
+    .trap-print .trap-t{ width:100%; border-collapse:collapse; page-break-inside:avoid; }
+    .trap-print .trap-t th, .trap-print .trap-t td{ border:1px solid #888; padding:1.2mm 1.6mm; color:#000; }
+    .trap-print .trap-t tr.k-top td{ background:#E3F2E7 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .trap-print .trap-t tr.k-onder td{ background:#FBE4E7 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .trap-print .trap-tag{ border:1px solid #000; padding:0 1mm; font-size:8pt; }
     .tt-page{ page-break-after:always; }
     .tt-page:last-child{ page-break-after:auto; }
     .tt-page .tt-grid{ border-collapse:collapse; width:100%; font-size:10.5pt; }
@@ -566,6 +574,42 @@
   .ttl-knoppen{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; padding-top:10px; }
   .ttl-knoppen .btn{ font-size:17px; padding:12px 18px; }
   .ttl-go{ font-size:22px !important; padding:16px 22px !important; width:100%; justify-content:center; }
+  /* Toernooi: nabespreking en rapport */
+  .tt-modus{ margin:2px 0; }
+  .tn-bo-card summary{ cursor:pointer; }
+  .tn-bo{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:6px 0; border-top:1px solid var(--border); }
+  .tn-bo-n{ min-width:120px; }
+  .tn-bo-n small{ color:var(--ink-muted); }
+  .tn-bo-l{ display:flex; gap:4px; flex-wrap:wrap; flex:1; }
+  .tn-add{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+  .tn-add input, .tn-add select{ font:16px "Barlow",sans-serif; padding:8px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--ink); }
+  .tn-add input{ flex:1; min-width:120px; }
+  .tn-sp{ padding:10px 12px; display:flex; flex-direction:column; gap:8px; }
+  .tn-kop{ display:flex; justify-content:space-between; align-items:center; font-size:15.5px; }
+  .tn-kop small{ color:var(--ink-muted); }
+  .tn-tot{ font:700 20px "Barlow Condensed",sans-serif; min-width:56px; text-align:right; }
+  .tn-tot.plus{ color:var(--good); } .tn-tot.min{ color:var(--low); } .tn-tot.nul{ color:var(--ink-muted); }
+  .tn-bs{ display:flex; gap:6px; flex-wrap:wrap; }
+  .tn-b{ display:flex; align-items:center; gap:6px; padding:5px 8px; border-radius:10px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); font:600 13.5px "Barlow",sans-serif; cursor:pointer; }
+  .tn-b.tr{ border-style:dashed; }
+  .tn-b.aan{ outline:3px solid #FFD23F; }
+  .tn-v{ min-width:30px; text-align:center; border-radius:7px; padding:2px 5px; font-weight:800; background:var(--bg); color:var(--ink-muted); border:none; font-family:inherit; font-size:15px; }
+  .tn-v.w2{ background:#1F6F45; color:#fff; } .tn-v.w1{ background:#7CC896; color:#0d2414; } .tn-v.w0{ background:#8A93A6; color:#fff; }
+  .tn-v.w-1{ background:#E28A8A; color:#3a0d0d; } .tn-v.w-2{ background:#C62828; color:#fff; }
+  .tn-pick{ display:flex; gap:6px; flex-wrap:wrap; }
+  .tn-pick .tn-v{ font-size:18px; padding:10px 0; min-width:54px; cursor:pointer; }
+  .tn-leeg{ background:none; border:1px solid var(--border); color:var(--ink-muted); border-radius:8px; padding:6px 10px; cursor:pointer; font:inherit; }
+  .tn-note{ width:100%; box-sizing:border-box; font:16px "Barlow",sans-serif; padding:6px 8px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); resize:vertical; }
+  .trap-sum{ display:flex; flex-direction:column; gap:4px; font-size:14px; background:var(--surface-alt); border-radius:12px; padding:10px 12px; }
+  .trap-legend{ font-size:12px; color:var(--ink-muted); margin:8px 0; }
+  .trap-h{ font:700 20px "Barlow Condensed",sans-serif; margin:14px 0 6px; }
+  .trap-t{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  .trap-t th, .trap-t td{ border:1px solid var(--border); padding:5px 6px; text-align:left; vertical-align:top; }
+  .trap-t th{ font-size:12px; color:var(--ink-muted); }
+  .trap-t td.c{ text-align:center; white-space:nowrap; }
+  .trap-t tr.k-top td{ background:rgba(102,192,132,.18); } .trap-t tr.k-onder td{ background:rgba(226,138,138,.2); }
+  .trap-tag{ font-size:11px; font-weight:800; padding:1px 6px; border-radius:6px; background:var(--surface-alt); color:var(--ink-muted); }
+  .trap-tag.avs{ background:#FFD23F; color:#1b1b1b; }
   /* Demo en rondleiding */
   .demo-pill{ position:fixed; top:calc(env(safe-area-inset-top,0px) + 6px); left:50%; transform:translateX(-50%); z-index:95;
     background:#FFD23F; color:#1b1b1b; font:700 12px "Barlow",sans-serif; padding:4px 6px 4px 12px; border-radius:999px;
@@ -987,6 +1031,7 @@
     <div class="rp-bottom" id="rapportBottom">
       <button class="btn primary block" id="ajaxListBtn">Ajax-lijst maken (afdrukken of PDF)</button>
       <button class="btn ghost small" id="downloadOverviewBtn">Download als Excel (CSV)</button>
+      <div class="card tr-card" id="trapList" style="display:none;"></div>
     </div>
   </section>
 
@@ -1202,6 +1247,17 @@
     <div class="oef-feedback" id="oefReactie"></div>
     </div>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="trapOverlay" hidden>
+  <div class="sheet tv-sheet">
+    <div class="sheet-head">
+      <h3 id="trapTitle">Toernooi</h3>
+      <button class="icon-btn" id="closeTrap" aria-label="Sluiten">&times;</button>
+    </div>
+    <div id="trapBody"></div>
+    <button type="button" class="btn ghost block" id="trapPrint" style="margin-top:10px;">Afdrukken of als pdf opslaan</button>
   </div>
 </div>
 
@@ -1956,6 +2012,45 @@
     }
     function onTraining(fn){ listeners.training.push(fn); }
 
+    // Toernooi-nabespreking: alleen de hoofdtrainer (RLS). Oordelen -2..+2 per speler per beoordelaar + één toelichting.
+    var tBeoordelaars = {}, tOordelen = [], tNotities = [];
+    function loadToernooi(){
+      if (!Auth.isRealHoofdtrainer()) return Promise.resolve();
+      return Promise.all([
+        sb.from("toernooi_nabespreking").select("*"), sb.from("toernooi_oordelen").select("*"), sb.from("toernooi_notities").select("*")
+      ]).then(function(r){
+        tBeoordelaars = {}; (r[0].data || []).forEach(function(x){ tBeoordelaars[x.toernooi_datum] = x.beoordelaars || []; });
+        tOordelen = r[1].data || []; tNotities = r[2].data || [];
+        emit("training");
+      }).catch(function(e){ console.error(e); });
+    }
+    function getBeoordelaars(d){ return (tBeoordelaars[d] || []).slice(); }
+    function saveBeoordelaars(d, lijst){
+      tBeoordelaars[d] = lijst; emit("training");
+      return sb.from("toernooi_nabespreking").upsert({ toernooi_datum: d, beoordelaars: lijst, updated_at: new Date().toISOString() }).then(function(res){ if (res.error) throw res.error; });
+    }
+    function getOordelen(d){ return tOordelen.filter(function(o){ return o.toernooi_datum === d; }); }
+    function setOordeel(d, pid, naam, rol, w){
+      tOordelen = tOordelen.filter(function(o){ return !(o.toernooi_datum === d && o.player_id === pid && o.beoordelaar === naam); });
+      if (w != null) tOordelen.push({ toernooi_datum: d, player_id: pid, beoordelaar: naam, rol: rol, waarde: w });
+      emit("training");
+      var q = w == null
+        ? sb.from("toernooi_oordelen").delete().eq("toernooi_datum", d).eq("player_id", pid).eq("beoordelaar", naam)
+        : sb.from("toernooi_oordelen").upsert({ toernooi_datum: d, player_id: pid, beoordelaar: naam, rol: rol, waarde: w, updated_at: new Date().toISOString() }, { onConflict: "toernooi_datum,player_id,beoordelaar" });
+      return q.then(function(res){ if (res.error){ loadToernooi(); throw res.error; } });
+    }
+    function getNotitie(d, pid){ var n = tNotities.find(function(x){ return x.toernooi_datum === d && x.player_id === pid; }); return n ? (n.tekst || "") : ""; }
+    function setNotitie(d, pid, tekst){
+      tNotities = tNotities.filter(function(x){ return !(x.toernooi_datum === d && x.player_id === pid); });
+      tNotities.push({ toernooi_datum: d, player_id: pid, tekst: tekst });
+      return sb.from("toernooi_notities").upsert({ toernooi_datum: d, player_id: pid, tekst: tekst || null, updated_at: new Date().toISOString() }, { onConflict: "toernooi_datum,player_id" })
+        .then(function(res){ if (res.error) throw res.error; });
+    }
+    function toernooiDatums(){
+      var m = {}; tOordelen.forEach(function(o){ m[o.toernooi_datum] = 1; }); Object.keys(tBeoordelaars).forEach(function(d){ m[d] = 1; });
+      return Object.keys(m).sort().reverse();
+    }
+
     function subscribeRealtime(){
       if (channel) return;
       channel = sb.channel("art-live")
@@ -1976,7 +2071,7 @@
 
     function init(){
       loadProfiles().then(function(){
-        return Promise.all([loadPlayers(), loadScores(), loadEvals(), loadScoutReports(), loadCancelled(), loadTraining()]);
+        return Promise.all([loadPlayers(), loadScores(), loadEvals(), loadScoutReports(), loadCancelled(), loadTraining(), loadToernooi()]);
       }).then(function(){
         modeCb("db");
         subscribeRealtime();
@@ -2234,7 +2329,9 @@
 
     return {
       getPlan: getPlan, savePlan: savePlan, savePlans: savePlans, getOefs: getOefs, getOef: getOef, saveOef: saveOef, getFeedback: getFeedback,
-      addFeedback: addFeedback, deleteFeedback: deleteFeedback, getReactie: getReactie, saveReactie: saveReactie, uploadTekening: uploadTekening, getTekeningUrl: getTekeningUrl, onTraining: onTraining,
+      addFeedback: addFeedback, deleteFeedback: deleteFeedback, getReactie: getReactie, saveReactie: saveReactie,
+      getBeoordelaars: getBeoordelaars, saveBeoordelaars: saveBeoordelaars, getOordelen: getOordelen, setOordeel: setOordeel,
+      getNotitie: getNotitie, setNotitie: setNotitie, toernooiDatums: toernooiDatums, uploadTekening: uploadTekening, getTekeningUrl: getTekeningUrl, onTraining: onTraining,
       init: init, onPlayers: onPlayers, onScores: onScores, onSettings: onSettings, onEvals: onEvals, onScoutReports: onScoutReports, onModeReady: onModeReady,
       getPlayers: getPlayers, getScores: getScores, getCancelled: getCancelled, getEvaluations: getEvaluations, getScoutReports: getScoutReports, getMode: getMode,
       getProfiles: getProfiles, updateProfileRole: updateProfileRole, manageUsers: manageUsers, listBackups: listBackups, getBackupData: getBackupData, makeBackup: makeBackup,
@@ -3750,6 +3847,7 @@
     $("tvOverlay").hidden = false;
   }
   $("closeTv").addEventListener("click", function(){ $("tvOverlay").hidden = true; });
+  $("closeTrap").addEventListener("click", function(){ $("trapOverlay").hidden = true; });
   $("tvOverlay").addEventListener("click", function(e){ if (e.target === $("tvOverlay")) $("tvOverlay").hidden = true; });
   document.addEventListener("keydown", function(e){
     if (e.key !== "Escape" || !$("confirmOverlay").hidden) return;
@@ -5613,11 +5711,13 @@
       var alle = spelersVan(st, l), mee = alle.filter(function(p){ return speeltMee(p, c, d); });
       var sch = mee.length ? maak(mee, c) : null;
       var isHoofd = Auth.isHoofdtrainer();
+      if (!isHoofd) modus = "wedstrijd";
+      if (modus === "nabespreking"){ renderNab(d, st, l, wrap); return; }
       var opt = function(vals, cur, fmt){ return vals.map(function(v){ return '<option value="' + v + '"' + (Number(v) === Number(cur) ? " selected" : "") + '>' + fmt(v) + '</option>'; }).join(""); };
       var html =
         '<div class="tt-teams">' + LICHTINGEN.map(function(x){
           return '<button type="button" class="chip' + (x.key === team ? " active" : "") + '" data-tt-team="' + x.key + '">' + esc(x.label) + ' <small>' + oLeeftijd(x, d) + '</small></button>';
-        }).join("") + '</div>' +
+        }).join("") + '</div>' + (isHoofd ? modusHtml() : '') +
         (sch ? '<div class="card tr-card tt-start"><div class="tr-card-h">' + esc(l.label) + ' · ' + oLeeftijd(l, d) + ' <small style="margin-left:auto;">' + sch.F + ' tegen ' + sch.F + ' · ' + c.P + ' × ' + c.L + ' min</small></div>' +
           '<div class="tr-note">' + esc(samenvatting(mee, sch)) + '</div>' +
           '<button type="button" class="btn primary tt-livebtn" id="ttLiveBtn">&#9654; ' + (liveState(d, l) && liveState(d, l).fase !== "voor" ? "Verder met de wedstrijd" : "Wedstrijdmodus") + '</button>' +
@@ -5661,6 +5761,7 @@
       wrap.innerHTML = html;
 
       Array.prototype.forEach.call(wrap.querySelectorAll("[data-tt-team]"), function(b){ b.onclick = function(){ team = b.getAttribute("data-tt-team"); render(); }; });
+      bindModus(wrap);
       Array.prototype.forEach.call(wrap.querySelectorAll("[data-tt]"), function(s){
         s.onchange = function(){ var p = {}; p[s.getAttribute("data-tt")] = Number(s.value); setCfg(d, l, p); render(); };
       });
@@ -5882,7 +5983,143 @@
         showToast("Wisselschema " + (l ? l.label : "") + " staat klaar");
       } catch(e){ console.error(e); showToast("Deze link kon niet worden gelezen"); }
     }
-    return { render: render, actief: actief, importLink: importLink };
+
+    /* Nabespreking (alleen hoofdtrainer): jij noteert de oordelen van scouts (papier) en trainers op de Ajax-schaal
+       −− tot ++. Tik een vakje, kies het oordeel; daarna springt hij door naar de volgende beoordelaar. */
+    var modus = "wedstrijd", open = null;
+    var SYM = { "2": "++", "1": "+", "0": "+−", "-1": "−", "-2": "−−" };
+    function fmtT(v){ return Math.abs(v) < 0.005 ? "0,0" : (v > 0 ? "+" : "−") + (Math.round(Math.abs(v) * 100) / 100).toFixed(Math.abs(v * 10 - Math.round(v * 10)) > 0.001 ? 2 : 1).replace(".", ","); }
+    function gem(lijst){ return lijst.length ? lijst.reduce(function(a, x){ return a + x.waarde; }, 0) / lijst.length : null; }
+    function modusHtml(){
+      return '<div class="ng-tabs tr-tabs tt-modus"><button type="button" data-tt-modus="wedstrijd" class="' + (modus === "wedstrijd" ? "active" : "") + '">Wedstrijd</button>' +
+        '<button type="button" data-tt-modus="nabespreking" class="' + (modus === "nabespreking" ? "active" : "") + '">Nabespreking</button></div>';
+    }
+    function bindModus(wrap){
+      Array.prototype.forEach.call(wrap.querySelectorAll("[data-tt-modus]"), function(b){ b.onclick = function(){ modus = b.getAttribute("data-tt-modus"); open = null; render(); }; });
+    }
+    function renderNab(d, st, l, wrap){
+      var bl = Store.getBeoordelaars(d), hier = bl.map(function(b, i){ return Object.assign({ i: i }, b); }).filter(function(b){ return (b.lichtingen || []).indexOf(l.key) !== -1; });
+      var c = cfg(st, l), spelers = spelersVan(st, l).filter(function(p){ return speeltMee(p, c, d); });
+      var oo = Store.getOordelen(d);
+      var html = '<div class="tt-teams">' + LICHTINGEN.map(function(x){
+          return '<button type="button" class="chip' + (x.key === team ? " active" : "") + '" data-tt-team="' + x.key + '">' + esc(x.label) + ' <small>' + oLeeftijd(x, d) + '</small></button>';
+        }).join("") + '</div>' + modusHtml() +
+        '<details class="card tr-card tn-bo-card"' + (bl.length ? '' : ' open') + '><summary><b>Beoordelaars</b> <small>' + bl.length + ' · scouts op papier, jij noteert</small></summary>' +
+        bl.map(function(b, i){
+          return '<div class="tn-bo"><span class="tn-bo-n"><b>' + esc(b.naam) + '</b> <small>' + (b.rol === "scout" ? "scout" : "trainer") + '</small></span><span class="tn-bo-l">' +
+            LICHTINGEN.map(function(x){ return '<button type="button" class="chip small' + ((b.lichtingen || []).indexOf(x.key) !== -1 ? " active" : "") + '" data-tn-bl="' + i + '|' + x.key + '">' + esc(x.label) + '</button>'; }).join("") +
+            '</span><button type="button" class="season-x" data-tn-del="' + i + '" aria-label="Verwijderen">&times;</button></div>';
+        }).join("") +
+        '<div class="tn-add"><input type="text" id="tnNaam" placeholder="Naam, bv. Ed"><select id="tnRol"><option value="scout">Scout</option><option value="trainer">Trainer</option></select>' +
+        '<button type="button" class="btn ghost small" id="tnAdd">Toevoegen</button></div></details>';
+      if (!hier.length) html += '<div class="card tr-card"><div class="tr-note">Nog geen beoordelaars voor ' + esc(l.label) + '. Voeg ze hierboven toe en zet deze lichting aan.</div></div>';
+      else html += spelers.map(function(p){
+        var mijn = oo.filter(function(o){ return o.player_id === p.id; }), tot = gem(mijn);
+        return '<div class="card tn-sp"><div class="tn-kop"><span>' + (p.hesje ? '<b>' + esc(p.hesje) + '</b> ' : '') + esc(p.naam) + (p.q ? ' <small>' + esc(p.q) + '</small>' : '') + '</span>' +
+          '<span class="tn-tot ' + (tot == null ? "" : tot > 0.05 ? "plus" : tot < -0.05 ? "min" : "nul") + '">' + (tot == null ? "–" : fmtT(tot)) + '</span></div>' +
+          '<div class="tn-bs">' + hier.map(function(b){
+            var o = mijn.find(function(x){ return x.beoordelaar === b.naam; }), w = o ? String(o.waarde) : null, aan = open && open.pid === p.id && open.bi === b.i;
+            return '<button type="button" class="tn-b' + (aan ? " aan" : "") + (b.rol === "trainer" ? " tr" : "") + '" data-tn="' + p.id + '|' + b.i + '"><span>' + esc(b.naam) + '</span><b class="tn-v' + (w == null ? "" : " w" + w) + '">' + (w == null ? "·" : SYM[w]) + '</b></button>';
+          }).join("") + '</div>' +
+          (open && open.pid === p.id ? '<div class="tn-pick">' + [2, 1, 0, -1, -2].map(function(w){
+            return '<button type="button" class="tn-v w' + w + '" data-tn-set="' + p.id + '|' + open.bi + '|' + w + '">' + SYM[String(w)] + '</button>';
+          }).join("") + '<button type="button" class="tn-leeg" data-tn-set="' + p.id + '|' + open.bi + '|x">wissen</button></div>' : '') +
+          '<textarea class="tn-note" data-tn-note="' + p.id + '" rows="1" placeholder="Toelichting (kort)">' + esc(Store.getNotitie(d, p.id)) + '</textarea></div>';
+      }).join("");
+      html += '<button type="button" class="btn primary block" id="tnRapport">Rapport bekijken (alle lichtingen)</button>';
+      wrap.innerHTML = html;
+      bindModus(wrap);
+      Array.prototype.forEach.call(wrap.querySelectorAll("[data-tt-team]"), function(b){ b.onclick = function(){ team = b.getAttribute("data-tt-team"); open = null; render(); }; });
+      var bewaar = function(lijst){ Store.saveBeoordelaars(d, lijst).catch(function(e){ console.error(e); showToast("Opslaan mislukt"); }); };
+      Array.prototype.forEach.call(wrap.querySelectorAll("[data-tn-bl]"), function(b){
+        b.onclick = function(){
+          var x = b.getAttribute("data-tn-bl").split("|"), lijst = Store.getBeoordelaars(d), bo = Object.assign({}, lijst[Number(x[0])]);
+          var ls = (bo.lichtingen || []).slice(), k = ls.indexOf(x[1]); if (k === -1) ls.push(x[1]); else ls.splice(k, 1);
+          bo.lichtingen = ls; lijst[Number(x[0])] = bo; bewaar(lijst);
+        };
+      });
+      Array.prototype.forEach.call(wrap.querySelectorAll("[data-tn-del]"), function(b){
+        b.onclick = function(){
+          var lijst = Store.getBeoordelaars(d), bo = lijst[Number(b.getAttribute("data-tn-del"))];
+          confirmDialog({ title: "Beoordelaar verwijderen?", messageHtml: "<b>" + esc(bo.naam) + "</b> verdwijnt uit de lijst. Zijn oordelen blijven bewaard en tellen mee in het rapport.", confirmLabel: "Verwijderen" })
+            .then(function(ok){ if (ok){ lijst.splice(Number(b.getAttribute("data-tn-del")), 1); bewaar(lijst); } });
+        };
+      });
+      $("tnAdd").onclick = function(){
+        var naam = $("tnNaam").value.trim(); if (!naam) return;
+        var lijst = Store.getBeoordelaars(d);
+        if (lijst.some(function(b){ return b.naam.toLowerCase() === naam.toLowerCase(); })){ showToast(naam + " staat er al"); return; }
+        lijst.push({ naam: naam, rol: $("tnRol").value, lichtingen: LICHTINGEN.map(function(x){ return x.key; }) }); bewaar(lijst);
+      };
+      Array.prototype.forEach.call(wrap.querySelectorAll("[data-tn]"), function(b){
+        b.onclick = function(){ var x = b.getAttribute("data-tn").split("|"); open = open && open.pid === x[0] && open.bi === Number(x[1]) ? null : { pid: x[0], bi: Number(x[1]) }; render(); };
+      });
+      Array.prototype.forEach.call(wrap.querySelectorAll("[data-tn-set]"), function(b){
+        b.onclick = function(){
+          var x = b.getAttribute("data-tn-set").split("|"), bo = Store.getBeoordelaars(d)[Number(x[1])];
+          var volgende = hier.filter(function(h){ return h.i > Number(x[1]); })[0];
+          open = volgende && x[2] !== "x" ? { pid: x[0], bi: volgende.i } : null;
+          Store.setOordeel(d, x[0], bo.naam, bo.rol, x[2] === "x" ? null : Number(x[2])).catch(function(e){ console.error(e); showToast("Opslaan mislukt"); });
+        };
+      });
+      Array.prototype.forEach.call(wrap.querySelectorAll("[data-tn-note]"), function(t){
+        t.onchange = function(){ Store.setNotitie(d, t.getAttribute("data-tn-note"), t.value.trim()).catch(function(e){ console.error(e); showToast("Opslaan mislukt"); }); };
+      });
+      $("tnRapport").onclick = function(){ openRapport(d); };
+    }
+
+    // Automatisch rapport per toernooi (Rapport-tabblad): per lichting totaal, top 3 / onderkant 3, Q, AVS-signaal, oneens.
+    function rapportHtml(d){
+      var bl = Store.getBeoordelaars(d), oo = Store.getOordelen(d), orde = {};
+      bl.forEach(function(b, i){ orde[b.naam] = i; });
+      var avs = [], q4 = [], q1 = [], oneens = [];
+      var secties = LICHTINGEN.map(function(l){
+        var rows = Store.getPlayers().filter(function(p){ return p.lichting === l.key; }).map(function(p){
+          var o = oo.filter(function(x){ return x.player_id === p.id; }).sort(function(a, b){ return (orde[a.beoordelaar] != null ? orde[a.beoordelaar] : 99) - (orde[b.beoordelaar] != null ? orde[b.beoordelaar] : 99); });
+          if (!o.length) return null;
+          var sc = o.filter(function(x){ return x.rol === "scout"; }), tr = o.filter(function(x){ return x.rol === "trainer"; });
+          var r = { p: p, sc: sc, tr: tr, tot: gem(o), aS: gem(sc), aT: gem(tr), note: Store.getNotitie(d, p.id) };
+          r.avs = sc.filter(function(x){ return x.waarde === 2; }).length >= 3;
+          r.oneens = r.aS != null && r.aT != null && Math.abs(r.aS - r.aT) >= 1.5;
+          return r;
+        }).filter(Boolean).sort(function(a, b){ return b.tot - a.tot; });
+        if (!rows.length) return "";
+        var nTop = Math.min(3, Math.floor(rows.length / 2)), nBot = Math.min(3, rows.length - nTop);
+        rows.forEach(function(r, i){
+          r.kant = i < nTop ? "top" : (i >= rows.length - nBot ? "onder" : "");
+          if (r.avs) avs.push(r.p.naam); if (r.oneens) oneens.push(r.p.naam);
+          if (r.p.q === "Q4" && r.tot >= 0.5) q4.push(r.p.naam); if (r.p.q === "Q1" && r.tot >= 1) q1.push(r.p.naam);
+        });
+        var sym = function(l2){ return l2.map(function(x){ return '<span title="' + esc(x.beoordelaar) + '">' + SYM[String(x.waarde)] + '</span>'; }).join(" ") || "–"; };
+        return '<h4 class="trap-h">' + esc(l.label) + ' · ' + oLeeftijd(l, d) + '</h4><table class="trap-t"><thead><tr><th>Speler</th><th>Q</th><th>Scouts</th><th>Trainers</th><th>Totaal</th><th>Toelichting</th></tr></thead><tbody>' +
+          rows.map(function(r){
+            return '<tr class="' + (r.kant === "top" ? "k-top" : r.kant === "onder" ? "k-onder" : "") + '"><td><b>' + esc(r.p.naam) + '</b>' + (r.avs ? ' <span class="trap-tag avs">AVS</span>' : '') + (r.oneens ? ' <span class="trap-tag">oneens</span>' : '') + '</td>' +
+              '<td class="c">' + esc(r.p.q || "") + '</td><td>' + sym(r.sc) + '</td><td>' + sym(r.tr) + '</td><td class="c"><b>' + fmtT(r.tot) + '</b></td><td>' + esc(r.note || "") + '</td></tr>';
+          }).join("") + '</tbody></table>';
+      }).join("");
+      var kort2 = function(a){ return a.length ? a.map(esc).join(", ") : "–"; };
+      return '<div class="trap-sum"><div><b>AVS-signaal</b> (3× ++ van scouts): ' + kort2(avs) + '</div>' +
+        '<div><b>Q4 en toch hoog:</b> ' + kort2(q4) + '</div><div><b>Hoog maar Q1</b> (relatief oud): ' + kort2(q1) + '</div>' +
+        '<div><b>Scouts en trainers oneens:</b> ' + kort2(oneens) + '</div></div>' +
+        '<div class="trap-legend">Groen = top 3 · rood = onderkant 3 · totaal = gemiddelde van alle oordelen (−2 tot +2) · spelers zonder oordeel staan er niet in</div>' + secties;
+    }
+    function openRapport(d){
+      $("trapTitle").textContent = "Toernooi " + formatDateShort(d) + " " + d.slice(0, 4);
+      $("trapBody").innerHTML = rapportHtml(d);
+      $("trapPrint").onclick = function(){
+        $("printArea").innerHTML = '<div class="trap-print"><div class="pa-title">Toernooi-rapport ' + esc(formatDateShort(d) + " " + d.slice(0, 4)) + '</div>' + rapportHtml(d) + '</div>';
+        window.print();
+      };
+      $("trapOverlay").hidden = false;
+    }
+    function lijst(){
+      var el = $("trapList"); if (!el) return;
+      var ds = Auth.isHoofdtrainer() ? Store.toernooiDatums() : [];
+      el.style.display = ds.length ? "" : "none";
+      el.innerHTML = '<div class="tr-card-h">Toernooi-rapporten</div><div class="btn-row">' + ds.map(function(x){ return '<button type="button" class="btn ghost" data-trap="' + x + '">' + esc(formatDateShort(x) + " " + x.slice(0, 4)) + '</button>'; }).join("") + '</div>';
+      Array.prototype.forEach.call(el.querySelectorAll("[data-trap]"), function(b){ b.onclick = function(){ openRapport(b.getAttribute("data-trap")); }; });
+    }
+    return { render: render, actief: actief, importLink: importLink, lijst: lijst };
   })();
 
   function tabAllowedForRole(tab, role, isHoofd){
@@ -5925,7 +6162,7 @@
     // Lichting-knoppen bovenin hebben in Toernooi geen functie (daar kies je het team in het tabblad zelf).
     $("lichtingChips").style.display = state.tab === "toernooi" ? "none" : "";
     if (state.tab === "spelers") renderSpelers();
-    else if (state.tab === "overzicht") renderOverzicht();
+    else if (state.tab === "overzicht"){ renderOverzicht(); Toernooi.lijst(); }
     else if (state.tab === "training") renderTraining();
     else if (state.tab === "aanwezig") renderAbsenties();
     else if (state.tab === "toernooi") Toernooi.render();
@@ -6374,7 +6611,7 @@
   (function(){
     var CLOSERS = { playerCardOverlay: "closePlayerCard", nameGameOverlay: "closeNameGame", scoreOverlay: "closeScoreSheet",
       evalOverlay: "closeEvalSheet", scoutOverlay: "closeScoutSheet", pwOverlay: "closePwSheet", oefOverlay: "closeOefSheet",
-      tvOverlay: "closeTv", rosterOverlay: "closeRoster", rolesOverlay: "closeRoles",
+      tvOverlay: "closeTv", rosterOverlay: "closeRoster", rolesOverlay: "closeRoles", trapOverlay: "closeTrap",
       playerOverlay: "closePlayerSheet", fotoLightbox: "closeFotoLightbox", drawOverlay: "drawCancel" };
     var open = [], pushed = false, ignorePop = false;
     function sync(){

@@ -154,6 +154,20 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   Scherm blijft aan (Wake Lock). Alleen de klokstand staat per toestel in localStorage `art-toernooi-<datum>`.
 - Afdrukken (per team of alle teams, 1 pagina per team), WhatsApp-tekst per team, "Afmeldingen naar Ajax" als WhatsApp-tekst.
 
+## Toernooi-nabespreking en -rapport (gebouwd 2026-10-04)
+- Scouts werken op papier (besluit scouting); Sofian noteert in de nabespreking. Alleen de hoofdtrainer ziet/schrijft (RLS).
+- Tabellen (migratie 20261004_toernooi_oordelen.sql): `toernooi_nabespreking` (datum, beoordelaars jsonb [{naam, rol
+  scout|trainer, lichtingen[]}]), `toernooi_oordelen` (datum, player_id, beoordelaar, rol, waarde -2..2; uniek per
+  datum+speler+beoordelaar), `toernooi_notities` (datum, player_id, tekst).
+- Toernooi-tabblad (hoofdtrainer): schakelaar Wedstrijd / Nabespreking. Nabespreking: beoordelaars beheren (naam, rol,
+  lichtingen), per lichting de spelers die speelden, per beoordelaar een vakje → kiezer −− − +− + ++ (springt door naar
+  de volgende beoordelaar), toelichting per speler, totaal live.
+- Rapport-tabblad: kaart "Toernooi-rapporten" (per datum) → venster met per lichting tabel (Q, scouts, trainers, totaal,
+  toelichting), top 3 groen / onderkant 3 rood, labels AVS (3× ++ scouts) en "oneens" (|gem scouts − gem trainers| ≥ 1,5),
+  samenvatting (AVS, Q4 en toch hoog, hoog maar Q1, oneens). Afdrukken/pdf. Totaal = gemiddelde van alle oordelen.
+- 4 okt ingevoerd (137 oordelen, 32 spelers, 29 toelichtingen) uit de nabespreking + correcties Sofian. Welke scout/trainer
+  welk oordeel gaf is uit de opname benaderd; de totalen kloppen met het PowerPoint-rapport (~/Downloads).
+
 ## Git zonder git
 De Command Line Developer Tools (en dus `git`) zijn nog niet geïnstalleerd. Tot die tijd:
 - `perl tools/gh.pl status` — verschil tussen lokale bestanden en GitHub `main`.
