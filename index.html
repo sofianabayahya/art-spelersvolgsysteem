@@ -559,6 +559,7 @@
   .ttl-big{ font:700 88px/1 "Barlow Condensed",sans-serif; letter-spacing:1px; }
   .ttl-big small{ font-size:28px; color:var(--ink-muted); }
   .ttl-big.ttl-op{ color:var(--low); }
+  .ttl-sub{ font-size:15px; color:var(--ink-muted); margin-top:-6px; }
   .ttl-info{ font-size:20px; }
   .ttl-next{ font-size:20px; line-height:1.5; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:14px; }
   .ttl-next b{ font-size:26px; }
@@ -5898,7 +5899,7 @@
       var body = "", knoppen = "";
       var keeper = function(j){ var k = keeperVan(sch.blokken[j]); return k ? kort(k.naam) : "–"; };
       if (s.fase === "voor"){
-        body = '<div class="ttl-fase">Periode 1</div><div class="ttl-big">0:00</div>' +
+        body = '<div class="ttl-fase">Periode 1</div><div class="ttl-big">' + c.L + ':00</div>' +
           '<div class="ttl-info"><b>Keeper:</b> ' + esc(keeper(0)) + '</div><div class="ttl-box">' + lijnen(sch.blokken[0]) +
           '<div class="ttl-lijn"><b>Bank</b> ' + esc(mee.filter(function(p){ return !sch.blokken[0].some(function(x){ return x.p.id === p.id; }); }).map(function(p){ return kort(p.naam); }).join(", ") || "–") + '</div></div>';
         knoppen = '<button type="button" class="btn primary ttl-go" data-ttl="start">&#9654; Start periode 1</button>';
@@ -5909,7 +5910,9 @@
         var next = subs.filter(function(x){ return el < x.t; })[0];
         due.forEach(function(x){ if (s.gemeld.indexOf(x.j) === -1){ s.gemeld.push(x.j); setLive(d, l, s); piep(); } });
         body = '<div class="ttl-fase">Periode ' + (per + 1) + ' van ' + c.P + (s.pauzeVan ? ' · <span style="color:var(--low);">gepauzeerd</span>' : '') + '</div>' +
-          '<div class="ttl-big' + (el >= L ? ' ttl-op' : '') + '">' + mmss(Math.min(el, L)) + '<small> / ' + c.L + ':00</small></div>' +
+          // Klok telt af naar het einde van de periode; daaronder hoeveel er gespeeld is.
+          '<div class="ttl-big' + (el >= L ? ' ttl-op' : '') + '">' + mmss(Math.max(0, L - el)) + '</div>' +
+          '<div class="ttl-sub">nog te spelen · gespeeld ' + mmss(Math.min(el, L)) + ' van ' + c.L + ':00</div>' +
           '<div class="ttl-info"><b>Keeper:</b> ' + esc(keeper(Math.max(0, sch.meta.reduce(function(acc, m, j){ return m.per === per && m.a <= el ? j : acc; }, periodeStart(sch, per))))) + '</div>';
         if (due.length){
           var x0 = due[0], mt = moment(sch, x0.j);
@@ -6153,7 +6156,7 @@
     if (isHoofd) return true;
     if (tab === "spelers") return true;
     if (tab === "toernooi") return (isHoofd || role === "trainer") && Toernooi.actief();
-    if (tab === "avs") return (isHoofd || role === "trainer") && AVS.actief();
+    if (tab === "avs") return isHoofd && AVS.actief(); // AVS: alleen de hoofdtrainer (besluit Sofian)
     if (tab === "training" || tab === "aanwezig") return role === "trainer";
     return false; // overzicht, instellingen: alleen hoofdtrainer
   }
