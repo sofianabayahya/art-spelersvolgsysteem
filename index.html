@@ -1099,6 +1099,11 @@
     <div id="toernooiWrap" style="display:flex; flex-direction:column; gap:12px;"></div>
   </section>
 
+  <section class="panel" id="panel-avs" hidden>
+    <div class="section-title"><h2>AVS</h2></div>
+    <div id="avsWrap" style="display:flex; flex-direction:column; gap:12px;"></div>
+  </section>
+
   <section class="panel" id="panel-instellingen" hidden>
     <div class="section-title">
       <h2>Instellingen</h2>
@@ -1124,6 +1129,10 @@
   <button class="tab-btn" data-tab="toernooi">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5v1a3 3 0 0 0 3 3M16 6h3v1a3 3 0 0 1-3 3M12 13v4M8 20h8M10 17h4v3h-4z" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <span class="tab-label">Toernooi</span>
+  </button>
+  <button class="tab-btn" data-tab="avs">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 7l3 2-1 4h-4l-1-4zM12 7V4M15 9l3-1M14 13l2 3M10 13l-2 3M9 9L6 8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span class="tab-label">AVS</span>
   </button>
   <button class="tab-btn" data-tab="overzicht">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V10M12 19V5M20 19v-7" stroke-linecap="round"/></svg>
@@ -2510,7 +2519,7 @@
     state.tab = tab;
     // Tabblad Aanwezig toont het paneel "absenties"; Training beheert zelf zijn sub-panelen.
     var panel = tab === "aanwezig" ? "absenties" : tab;
-    ["spelers","overzicht","training","plan","absenties","evaluatie","toernooi","instellingen"].forEach(function(t){ $("panel-" + t).hidden = t !== panel; });
+    ["spelers","overzicht","training","plan","absenties","evaluatie","toernooi","avs","instellingen"].forEach(function(t){ $("panel-" + t).hidden = t !== panel; });
     Array.prototype.forEach.call(document.querySelectorAll(".tab-btn"), function(btn){
       btn.classList.toggle("active", btn.getAttribute("data-tab") === tab);
     });
@@ -5531,38 +5540,36 @@
      (hooguit één wisselblok verschil) en op elke positie komt. Een vaste keeper kan de hele wedstrijd blijven staan.
      Gastspelers en keuzes staan alleen op dit toestel (localStorage), niet in de database: de code is openbaar en
      het zijn kinderen van een andere locatie. Bedoeld om vooraf af te drukken. */
-  var Toernooi = (function(){
-    var KEY = "art-toernooi-", team = null;
+  // Eén motor voor het Toernooi- en het AVS-tabblad; B ("bron") zegt waar teams, spelers en instellingen vandaan komen.
+  function maakSchema(B){
+    var KEY = B.key, team = null;
     var FORMATIE = { 4: ["K", "V", "M", "A"], 5: ["K", "V", "V", "M", "A"], 6: ["K", "V", "V", "M", "A", "A"], 7: ["K", "V", "V", "M", "M", "A", "A"],
       8: ["K", "V", "V", "V", "M", "M", "M", "A"], 9: ["K", "V", "V", "V", "M", "M", "M", "A", "A"] };
     var POSNAAM = { K: "keeper", V: "verdediging", M: "middenveld", A: "aanval" };
-    function datum(){
-      var tr = PERIODISERING.trainingen || {}, t = todayISO();
-      return Object.keys(tr).filter(function(d){ return tr[d] && tr[d].toernooi && d >= addDaysISO(t, -1) && d <= addDaysISO(t, 7); }).sort()[0] || null;
-    }
+    function datum(){ return B.datum(); }
     function actief(){ return !!datum(); }
     // Gedeeld (iedereen ziet hetzelfde): de toernooi-instellingen per team staan in app_settings.periodisering.toernooi[datum]
     // en alleen de hoofdtrainer wijzigt ze. Alleen de klok van de wedstrijdmodus staat per toestel (localStorage).
     function load(d){
       var x; try { x = JSON.parse(localStorage.getItem(KEY + d) || "{}") || {}; } catch(e){ x = {}; }
-      x.teams = (((PERIODISERING.toernooi || {})[d] || {}).teams) || {};
+      x.teams = (((PERIODISERING[B.pad] || {})[d] || {}).teams) || {};
       return x;
     }
     function save(d, s){ try { localStorage.setItem(KEY + d, JSON.stringify({ live: s.live || {} })); } catch(e){} }
     function jaar(l){ var m = String(l.label || "").match(/\d{4}/); return m ? Number(m[0]) : 0; }
-    function oLeeftijd(l, d){ var y = Number(d.slice(0, 4)) + (Number(d.slice(5, 7)) >= 8 ? 1 : 0); return jaar(l) ? "O" + (y - jaar(l)) : ""; }
+    function oLeeftijd(l, d){ if (l.sub) return l.sub; var y = Number(d.slice(0, 4)) + (Number(d.slice(5, 7)) >= 8 ? 1 : 0); return jaar(l) ? "O" + (y - jaar(l)) : ""; }
     // Toernooi 4 okt: O8/O9 6 tegen 6, 4 perioden van 10 min (rust 2-5-2); O10/O11 8 tegen 8, 4 x 15 min (rust 2-10-2).
     // Veldspelers wisselen elke 5 minuten; de keeper (als hij rouleert) en de posities alleen in de rust.
     function cfg(st, l){
       var c = (st.teams || {})[l.key] || {}, klein = jaar(l) >= 2018;
-      return { F: c.F || (klein ? 6 : 8), P: c.P || 4, L: c.pl || (klein ? 10 : 15), b: c.wb || 5, rust: klein ? [2, 5, 2] : [2, 10, 2],
+      return { F: c.F || l.F || (klein ? 6 : 8), P: c.P || l.P || 4, L: c.pl || l.pl || (klein ? 10 : 15), b: c.wb || 5, rust: l.rust || (klein ? [2, 5, 2] : [2, 10, 2]),
         uit: c.uit || null, keeper: c.keeper || null, kAlles: c.kAlles !== false, allK: c.allK !== false };
     }
     function setCfg(d, l, patch){
       if (!Auth.isHoofdtrainer()){ showToast("Alleen de hoofdtrainer past het toernooischema aan"); return; }
       var per = JSON.parse(JSON.stringify(PERIODISERING || {}));
-      per.toernooi = per.toernooi || {};
-      var t = per.toernooi[d] = per.toernooi[d] || {};
+      per[B.pad] = per[B.pad] || {};
+      var t = per[B.pad][d] = per[B.pad][d] || {};
       t.teams = t.teams || {};
       t.teams[l.key] = Object.assign({}, t.teams[l.key] || {}, patch);
       PERIODISERING = per;
@@ -5571,13 +5578,14 @@
       });
     }
     function spelersVan(st, l){
+      if (B.spelers) return B.spelers(l).map(function(p){ return { id: p.id, naam: p.naam, hesje: p.hesje || null, q: p.q || "", gast: false, extra: false, att: {} }; });
       var extra = ((st.teams || {})[l.key] || {}).extra || [];
       var eigen = Store.getPlayers().filter(function(p){ return p.lichting === l.key || extra.indexOf(p.id) !== -1; })
         .sort(function(a, b){ return Number(a.hesje || 999) - Number(b.hesje || 999) || a.naam.localeCompare(b.naam); })
         .map(function(p){ return { id: p.id, naam: p.naam, hesje: p.hesje, q: p.q, gast: false, extra: p.lichting !== l.key, att: p.attendance || {} }; });
       return eigen;
     }
-    function speeltMee(p, c, d){ return !(p.att[d] && p.att[d].afwezig); } // wie bij Aanwezig is afgemeld, speelt niet
+    function speeltMee(p, c, d){ if (B.spelers) return (c.uit || []).indexOf(p.id) === -1; return !(p.att[d] && p.att[d].afwezig); } // wie bij Aanwezig is afgemeld, speelt niet
     function kort(n){ var w = n.split(" "); return w.length > 1 ? w[0] + " " + w[w.length - 1].charAt(0) + "." : n; }
 
     /* Het schema, exact eerlijk: de speeltijd (perioden x minuten) wordt in N gelijke stukken verdeeld, N = aantal
@@ -5703,21 +5711,21 @@
     }
 
     function render(){
-      var d = datum(), wrap = $("toernooiWrap");
-      if (!d){ wrap.innerHTML = '<div class="card tr-card"><div class="tr-note">Er staat geen toernooi op het programma.</div></div>'; return; }
+      var d = datum(), wrap = $(B.wrap), TEAMS = B.teams(d);
+      if (!d || !TEAMS.length){ wrap.innerHTML = '<div class="card tr-card"><div class="tr-note">' + B.leeg + '</div></div>'; return; }
       var st = load(d);
-      if (!team || !LICHTINGEN.some(function(l){ return l.key === team; })) team = LICHTINGEN[0].key;
-      var l = LICHTINGEN.find(function(x){ return x.key === team; }), c = cfg(st, l);
+      if (!team || !TEAMS.some(function(l){ return l.key === team; })) team = TEAMS[0].key;
+      var l = TEAMS.find(function(x){ return x.key === team; }), c = cfg(st, l);
       var alle = spelersVan(st, l), mee = alle.filter(function(p){ return speeltMee(p, c, d); });
       var sch = mee.length ? maak(mee, c) : null;
       var isHoofd = Auth.isHoofdtrainer();
-      if (!isHoofd) modus = "wedstrijd";
+      if (!isHoofd || !B.nab) modus = "wedstrijd";
       if (modus === "nabespreking"){ renderNab(d, st, l, wrap); return; }
       var opt = function(vals, cur, fmt){ return vals.map(function(v){ return '<option value="' + v + '"' + (Number(v) === Number(cur) ? " selected" : "") + '>' + fmt(v) + '</option>'; }).join(""); };
       var html =
-        '<div class="tt-teams">' + LICHTINGEN.map(function(x){
+        '<div class="tt-teams">' + TEAMS.map(function(x){
           return '<button type="button" class="chip' + (x.key === team ? " active" : "") + '" data-tt-team="' + x.key + '">' + esc(x.label) + ' <small>' + oLeeftijd(x, d) + '</small></button>';
-        }).join("") + '</div>' + (isHoofd ? modusHtml() : '') +
+        }).join("") + '</div>' + (isHoofd && B.nab ? modusHtml() : '') +
         (sch ? '<div class="card tr-card tt-start"><div class="tr-card-h">' + esc(l.label) + ' · ' + oLeeftijd(l, d) + ' <small style="margin-left:auto;">' + sch.F + ' tegen ' + sch.F + ' · ' + c.P + ' × ' + c.L + ' min</small></div>' +
           '<div class="tr-note">' + esc(samenvatting(mee, sch)) + '</div>' +
           '<button type="button" class="btn primary tt-livebtn" id="ttLiveBtn">&#9654; ' + (liveState(d, l) && liveState(d, l).fase !== "voor" ? "Verder met de wedstrijd" : "Wedstrijdmodus") + '</button>' +
@@ -5740,8 +5748,8 @@
             '<button type="button" class="tt-k' + (c.keeper === p.id ? " on" : "") + '" data-tt-keeper="' + p.id + '" title="Keeper"' + (isHoofd ? '' : ' disabled') + '>K</button>' +
             (p.extra && isHoofd ? '<button type="button" class="season-x" data-tt-delextra="' + p.id + '" aria-label="Niet meer laten meespelen">&times;</button>' : '') + '</div>';
         }).join("") + '</div>' +
-        '<div class="tr-note">Vinkje uit = afgemeld (gaat ook naar Aanwezig). Iedereen ziet hetzelfde schema.</div>' +
-        (isHoofd ? '<label class="tt-check">Speler uit een andere lichting laten meespelen: <select id="ttExtra"><option value="">Kies…</option>' +
+        '<div class="tr-note">' + (B.spelers ? 'Vinkje uit = speelt niet mee. Iedereen ziet hetzelfde schema.' : 'Vinkje uit = afgemeld (gaat ook naar Aanwezig). Iedereen ziet hetzelfde schema.') + '</div>' +
+        (isHoofd && !B.spelers ? '<label class="tt-check">Speler uit een andere lichting laten meespelen: <select id="ttExtra"><option value="">Kies…</option>' +
           Store.getPlayers().filter(function(p){ return !alle.some(function(a){ return a.id === p.id; }); })
             .sort(function(a, b){ return (a.lichting + a.naam).localeCompare(b.lichting + b.naam); })
             .map(function(p){ return '<option value="' + p.id + '">' + esc(lichtingLabel(p.lichting) + " · " + p.naam) + '</option>'; }).join("") + '</select></label>' : '') + '</div>';
@@ -5756,7 +5764,7 @@
           '<a class="btn ghost" id="ttWa" target="_blank" rel="noopener">Delen via WhatsApp</a></div></div>';
       }
       html += '</details>';
-      html += '<div class="card tr-card"><div class="tr-card-h">Afmeldingen naar Ajax</div><div class="tr-note">Ajax vraagt de afmeldingen door te geven. Dit bericht zet ze per lichting klaar (spelers die niet meespelen, zonder gasten).</div>' +
+      if (B.nab) html += '<div class="card tr-card"><div class="tr-card-h">Afmeldingen naar Ajax</div><div class="tr-note">Ajax vraagt de afmeldingen door te geven. Dit bericht zet ze per lichting klaar (spelers die niet meespelen, zonder gasten).</div>' +
         '<a class="btn ghost" id="ttAfm" target="_blank" rel="noopener">Afmeldingen klaarzetten in WhatsApp</a></div>';
       wrap.innerHTML = html;
 
@@ -5768,6 +5776,7 @@
       Array.prototype.forEach.call(wrap.querySelectorAll("[data-tt-mee]"), function(cb){
         cb.onchange = function(){
           var id = cb.getAttribute("data-tt-mee");
+          if (B.spelers){ var u = (c.uit || []).filter(function(x){ return x !== id; }); if (!cb.checked) u.push(id); setCfg(d, l, { uit: u }); render(); return; }
           Store.setAttendance(id, d, cb.checked ? null : { afwezig: true, reden: "Afgemeld" }).then(render)
             .catch(function(err){ console.error(err); showToast("Opslaan mislukt"); render(); });
         };
@@ -5786,7 +5795,7 @@
       if ($("ttExtra")) $("ttExtra").onchange = function(){ if (this.value){ setCfg(d, l, { extra: cx.concat([this.value]) }); render(); } };
       if (sch){
         $("ttPrint").onclick = function(){ afdrukken(d, [l]); };
-        $("ttPrintAll").onclick = function(){ afdrukken(d, LICHTINGEN); };
+        $("ttPrintAll").onclick = function(){ afdrukken(d, TEAMS); };
         $("ttWa").href = "https://wa.me/?text=" + encodeURIComponent(waTekst(d, l, mee, sch, c));
         $("ttLiveBtn").onclick = function(){ openLive(d, l); };
         // Opnieuw beginnen (bv. na een test): alleen de klok en afgevinkte wissels op dit toestel; het schema blijft.
@@ -5795,7 +5804,7 @@
             .then(function(ok){ if (ok){ setLive(d, l, null); showToast("Wedstrijd " + l.label + " staat weer op het begin"); render(); } });
         };
       }
-      $("ttAfm").href = "https://wa.me/?text=" + encodeURIComponent(afmeldTekst(d, st));
+      if ($("ttAfm")) $("ttAfm").href = "https://wa.me/?text=" + encodeURIComponent(afmeldTekst(d, st));
     }
 
     function waTekst(d, l, mee, sch, c){
@@ -6120,12 +6129,28 @@
       Array.prototype.forEach.call(el.querySelectorAll("[data-trap]"), function(b){ b.onclick = function(){ openRapport(b.getAttribute("data-trap")); }; });
     }
     return { render: render, actief: actief, importLink: importLink, lijst: lijst };
-  })();
+  }
+  var Toernooi = maakSchema({ key: "art-toernooi-", pad: "toernooi", wrap: "toernooiWrap", nab: true, leeg: "Er staat geen toernooi op het programma.",
+    teams: function(){ return LICHTINGEN; },
+    datum: function(){
+      var tr = PERIODISERING.trainingen || {}, t = todayISO();
+      return Object.keys(tr).filter(function(d){ return tr[d] && tr[d].toernooi && d >= addDaysISO(t, -1) && d <= addDaysISO(t, 7); }).sort()[0] || null;
+    } });
+  /* AVS (eenmalig, 5 okt 2026): eigen teams met eigen spelers (geen ART-spelers, staan dus niet in het smoelenboek).
+     Teams en spelers in app_settings.periodisering.avs[datum].def; instellingen per team in .teams (zelfde motor). */
+  var AVS = maakSchema({ key: "art-avs-", pad: "avs", wrap: "avsWrap", nab: false, leeg: "Er staat geen AVS-wedstrijd op het programma.",
+    datum: function(){
+      var a = PERIODISERING.avs || {}, t = todayISO();
+      return Object.keys(a).filter(function(d){ return d >= addDaysISO(t, -1) && d <= addDaysISO(t, 7); }).sort()[0] || null;
+    },
+    teams: function(d){ return (((PERIODISERING.avs || {})[d] || {}).def) || []; },
+    spelers: function(l){ return l.spelers || []; } });
 
   function tabAllowedForRole(tab, role, isHoofd){
     if (isHoofd) return true;
     if (tab === "spelers") return true;
     if (tab === "toernooi") return (isHoofd || role === "trainer") && Toernooi.actief();
+    if (tab === "avs") return (isHoofd || role === "trainer") && AVS.actief();
     if (tab === "training" || tab === "aanwezig") return role === "trainer";
     return false; // overzicht, instellingen: alleen hoofdtrainer
   }
@@ -6160,12 +6185,13 @@
   function renderAll(){
     updateTabVisibility();
     // Lichting-knoppen bovenin hebben in Toernooi geen functie (daar kies je het team in het tabblad zelf).
-    $("lichtingChips").style.display = state.tab === "toernooi" ? "none" : "";
+    $("lichtingChips").style.display = state.tab === "toernooi" || state.tab === "avs" ? "none" : "";
     if (state.tab === "spelers") renderSpelers();
     else if (state.tab === "overzicht"){ renderOverzicht(); Toernooi.lijst(); }
     else if (state.tab === "training") renderTraining();
     else if (state.tab === "aanwezig") renderAbsenties();
     else if (state.tab === "toernooi") Toernooi.render();
+    else if (state.tab === "avs") AVS.render();
     else if (state.tab === "instellingen") renderInstellingen();
   }
 

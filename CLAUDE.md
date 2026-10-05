@@ -168,6 +168,15 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
 - 4 okt ingevoerd (137 oordelen, 32 spelers, 29 toelichtingen) uit de nabespreking + correcties Sofian. Welke scout/trainer
   welk oordeel gaf is uit de opname benaderd; de totalen kloppen met het PowerPoint-rapport (~/Downloads).
 
+## AVS-tabblad (eenmalig, 5 okt 2026)
+- Zelfde motor als Toernooi (`maakSchema(B)`; Toernooi = B met LICHTINGEN + ART-spelers, AVS = B met eigen teams).
+- AVS-teams en -spelers (Ajax Voetbalschool, geen ART-spelers, dus niet in `players`) in
+  `app_settings.periodisering.avs["2026-10-05"].def` = [{key, label, sub, F, P, pl, rust, spelers:[{id, naam, q}]}];
+  instellingen per team in `.teams[key]` (keeper, kAlles, uit = speelt niet mee). Tabblad zichtbaar t/m 7 dagen erna.
+- 2017 team Uitman (8, 6v6): Safouan, Royal, Isaac Fonseca, Eldin, Jarnel, Derwin (gekozen door Sofian) + Carlos Herrera
+  en Kai van Dijk (gekozen door Claude); 2017 team Tommy (10, Nathan Eckhardt afgemeld → 9, 6v6); 2016 team Sofian (12, 8v8).
+  Speeltijd standaard 4x10 (6v6) en 4x15 (8v8), aanpasbaar in het tabblad.
+
 ## Git zonder git
 De Command Line Developer Tools (en dus `git`) zijn nog niet geïnstalleerd. Tot die tijd:
 - `perl tools/gh.pl status` — verschil tussen lokale bestanden en GitHub `main`.
