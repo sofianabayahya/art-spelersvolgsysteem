@@ -323,6 +323,7 @@
     .tt-page .tt-grid{ border-collapse:collapse; width:100%; font-size:10.5pt; }
     .tt-page .tt-grid th, .tt-page .tt-grid td{ border:1px solid #777; padding:1.4mm 1.6mm; text-align:center; color:#000; }
     .tt-page .tt-naam{ text-align:left !important; }
+    .tt-page .tt-nr{ width:14mm; min-width:14mm; height:8mm; }
     .tt-page .tt-rust{ border-left:2.5px solid #000 !important; }
     .tt-page .tt-p{ -webkit-print-color-adjust:exact; print-color-adjust:exact; font-weight:800; }
     .tt-page .tt-wlist{ columns:2; font-size:9.5pt; margin-top:4mm; }
@@ -535,6 +536,7 @@
   .tt-grid th{ font-size:11.5px; color:var(--ink-muted); }
   .tt-grid .tt-naam{ text-align:left; position:sticky; left:0; background:var(--surface); }
   .tt-grid td.tt-c{ padding:3px 2px; }
+  .tt-grid .tt-nr{ min-width:38px; width:38px; }
   .tt-grid .tt-p{ min-width:22px; padding:2px 0; }
   .tt-grid .tt-naam small{ color:var(--ink-muted); }
   .tt-grid .tt-rust{ border-left:3px solid var(--ink); }
@@ -5678,14 +5680,15 @@
     function momentTekst(sch, j){ return momentDelen(sch, j, false).join(" · "); }
 
     function tabelHtml(spelers, sch, c){
-      var head = '<tr><th class="tt-naam">Speler</th>';
+      var head = '<tr><th class="tt-naam">Speler</th><th class="tt-nr">Nr</th>';
       for (var p = 0; p < sch.P; p++){
         var n = sch.meta.filter(function(m){ return m.per === p; }).length;
         head += '<th colspan="' + n + '"' + (p ? ' class="tt-rust"' : '') + '>P' + (p + 1) + '</th>';
       }
       head += '<th>Min</th></tr>';
       var rows = spelers.map(function(p){
-        return '<tr><td class="tt-naam">' + (p.hesje ? '<b>' + esc(p.hesje) + '</b> ' : '') + esc(kort(p.naam)) + '</td>' +
+        // Nr: bekend rugnummer, anders een leeg vak om zelf in te schrijven (AVS-spelers, gasten).
+        return '<tr><td class="tt-naam">' + esc(kort(p.naam)) + '</td><td class="tt-nr">' + (p.hesje ? '<b>' + esc(p.hesje) + '</b>' : '') + '</td>' +
           sch.blokken.map(function(v, j){
             var x = v.find(function(y){ return y.p.id === p.id; });
             return '<td class="tt-c' + (j && sch.meta[j].start ? ' tt-rust' : '') + '">' + (x ? '<span class="tt-p tt-' + x.pos + '">' + x.pos + '</span>' : '<span class="tt-bank">–</span>') + '</td>';

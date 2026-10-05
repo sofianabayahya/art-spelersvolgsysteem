@@ -173,9 +173,11 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
 - AVS-teams en -spelers (Ajax Voetbalschool, geen ART-spelers, dus niet in `players`) in
   `app_settings.periodisering.avs["2026-10-05"].def` = [{key, label, sub, F, P, pl, rust, spelers:[{id, naam, q}]}];
   instellingen per team in `.teams[key]` (keeper, kAlles, uit = speelt niet mee). Tabblad zichtbaar t/m 7 dagen erna.
-- 2017 team Uitman (8, 6v6): Safouan, Royal, Isaac Fonseca, Eldin, Jarnel, Derwin (gekozen door Sofian) + Carlos Herrera
+- Trainer heet Othman (eerst verkeerd verstaan als "Uitman"). 6v6 = 4 x 15 min (rust 2-5-2). Schema heeft een kolom "Nr"
+  (rugnummer of leeg vak om zelf in te schrijven).
+- 2017 team Othman (8, 6v6): Safouan, Royal, Isaac Fonseca, Eldin, Jarnel, Derwin (gekozen door Sofian) + Carlos Herrera
   en Kai van Dijk (gekozen door Claude); 2017 team Tommy (10, Nathan Eckhardt afgemeld → 9, 6v6); 2016 team Sofian (12, 8v8).
-  Speeltijd standaard 4x10 (6v6) en 4x15 (8v8), aanpasbaar in het tabblad.
+  Speeltijd 4x15 voor alle drie de teams (aanpasbaar in het tabblad).
 
 ## Git zonder git
 De Command Line Developer Tools (en dus `git`) zijn nog niet geïnstalleerd. Tot die tijd:
