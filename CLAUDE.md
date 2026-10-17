@@ -181,6 +181,27 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   en Kai van Dijk (gekozen door Claude); 2017 team Tommy (10, Nathan Eckhardt afgemeld → 9, 6v6); 2016 team Sofian (12, 8v8).
   Speeltijd 4x15 voor alle drie de teams (aanpasbaar in het tabblad).
 
+## Na het platformdocument (2026-10-17)
+- Sofian deelde een generieke "Voetbaltrainersplatform"-spec (Desktop). Besluit: niet herbouwen (geen React/Konva, geen
+  animatie, geen multi-club); alleen overnemen wat ART helpt. Vanaf nu werken we weer EERST via `push-test` (de app is in
+  gebruik bij Tommy, Kai en Simon) en pas na Sofians akkoord naar main.
+- Tekentool-magneet (`snapPt`): bij neerzetten/slepen springt een item horizontaal/verticaal op één lijn met andere items
+  (binnen 12 px), blauwe hulplijnen tijdens slepen; schakelaar "Magneet: netjes uitlijnen" (localStorage art-draw-magneet);
+  Alt/Option = even vrij.
+- Meervoudig selecteren in de tekentool: slepen over een lege plek = selectievak (st.drag.mode "box", `st.multi`),
+  Shift+klik = toevoegen/weghalen, Cmd/Ctrl+A = alles; groep slepen (mode "group"), Backspace/Delete = alles weg,
+  Cmd/Ctrl+D = groep dupliceren, Esc = selectie weg. Selectiebalk toont "x geselecteerd".
+- Knopstanden tekentool: altijd precies één knop "aan" (lichtblauw vlak + dikke blauwe rand, kleur van het selectievak):
+  "Selecteren" (pijltje, Esc) als er geen gereedschap aan staat, anders het gekozen gereedschap. Muis: kruisje bij
+  neerzetten/tekenen, pijl bij selecteren, verplaatskruis boven een item (`#drawSvg.plaatsen` / `.kiezen`).
+- Opstellingen in de tekentool (`OPST`, `zetOpstelling`): 6v6 2-1-2 en 8v8 3-3-1, eigen team (rood) of tegenstander (geel,
+  gespiegeld); staande velden verdedigen onder, liggende links.
+- Vormenbank (Training → derde knop "Vormenbank", `renderBank`): alle gedeelde vormen, zoeken + filters (vaardigheid,
+  droog/SSG, werkte ja/deels/nee/nog niet), tegels met tekening; venster met alles incl. evaluatie en reflectie en
+  "Gebruik als basis" → kopie (status concept) naar een vorm van de eerstvolgende training die je mag bewerken.
+  Kopie neemt tekening_json mee, nooit tekening_path (anders verwijdert een nieuwe upload het origineel).
+- "Training overnemen" (hoofdtrainer, Voorbereiden): alle vormen van een eerdere datum kopiëren; bestaande blijven staan.
+
 ## Git zonder git
 De Command Line Developer Tools (en dus `git`) zijn nog niet geïnstalleerd. Tot die tijd:
 - `perl tools/gh.pl status` — verschil tussen lokale bestanden en GitHub `main`.

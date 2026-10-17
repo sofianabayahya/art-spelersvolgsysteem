@@ -577,6 +577,13 @@
   .ttl-knoppen{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; padding-top:10px; }
   .ttl-knoppen .btn{ font-size:17px; padding:12px 18px; }
   .ttl-go{ font-size:22px !important; padding:16px 22px !important; width:100%; justify-content:center; }
+  /* Vormenbank */
+  .bank-q{ width:100%; box-sizing:border-box; font:16px "Barlow",sans-serif; padding:9px 12px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--ink); }
+  .bank-f{ display:flex; gap:6px; flex-wrap:wrap; }
+  .bank-f select, .bank-doel select{ font:16px "Barlow",sans-serif; padding:8px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--ink); max-width:100%; }
+  .bank-doel{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .bank-doel select{ flex:1; min-width:200px; }
+  @media (min-width:700px){ .bank-tiles{ grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); } }
   /* Toernooi: nabespreking en rapport */
   .tt-modus{ margin:2px 0; }
   .tn-bo-card summary{ cursor:pointer; }
@@ -667,16 +674,25 @@
   .draw-grid{ display:grid; grid-template-columns:repeat(6, 1fr); gap:6px; }
   .draw-selbar{ flex-wrap:wrap; justify-content:center; }
   .draw-tool{ aspect-ratio:1 / 1; border-radius:10px; border:1px solid var(--border); background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; }
-  .draw-tool.active{ outline:3px solid var(--accent); outline-offset:1px; }
+  /* Precies één knop "aan": Selecteren of het gekozen gereedschap. Zelfde blauw als het selectievak. */
+  .draw-tool.active{ background:#DFF3FF; border:3px solid #00B3FF; box-shadow:0 0 0 2px rgba(0,179,255,.25); }
   .draw-tool{ position:relative; }
   .draw-key{ position:absolute; right:2px; bottom:1px; font:700 9.5px "Barlow",sans-serif; color:#556; line-height:1; }
   @media (pointer:coarse){ .draw-key{ display:none; } }
+  .draw-selcount{ font:700 13px "Barlow",sans-serif; color:#00B3FF; align-self:center; padding:0 6px; }
   .draw-zoom{ display:flex; gap:8px; align-items:flex-start; font-size:14px; font-weight:600; flex-wrap:wrap; cursor:pointer; }
   .draw-zoom input{ width:18px; height:18px; margin-top:1px; }
   .draw-zoom small{ flex-basis:100%; font-weight:400; font-size:12px; color:var(--ink-muted); padding-left:26px; }
   .draw-phone{ background:#FFF4D6; color:#4a3a00; font-size:13.5px; padding:8px 14px; border-bottom:1px solid var(--border); display:flex; gap:10px; align-items:center; }
   .draw-phone button{ margin-left:auto; background:none; border:none; font:700 18px sans-serif; color:inherit; cursor:pointer; }
-  .draw-select{ font:600 14px "Barlow",sans-serif; padding:9px; border-radius:10px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); cursor:pointer; }
+  .draw-select{ font:700 14px "Barlow",sans-serif; padding:9px 12px; border-radius:10px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); cursor:pointer; display:flex; align-items:center; gap:8px; }
+  .draw-select svg{ width:18px; height:18px; flex:0 0 auto; }
+  .draw-select small{ margin-left:auto; font-weight:600; color:var(--ink-muted); }
+  .draw-select.active{ background:#DFF3FF; border:3px solid #00B3FF; color:#0b2230; box-shadow:0 0 0 2px rgba(0,179,255,.25); }
+  .draw-select.active small{ color:#33617a; }
+  #drawSvg.plaatsen{ cursor:crosshair; }
+  #drawSvg.kiezen{ cursor:default; }
+  #drawSvg.kiezen [data-i]{ cursor:move; }
   .draw-fields{ display:flex; flex-wrap:wrap; gap:6px; }
   .draw-fields button, .draw-clear{ font:600 13px "Barlow",sans-serif; padding:7px 10px; border-radius:999px; border:1px solid var(--border); background:var(--surface-alt); color:var(--ink); cursor:pointer; }
   .draw-fields button.active{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
@@ -1048,10 +1064,15 @@
     <div class="ng-tabs tr-tabs" role="tablist">
       <button type="button" data-tr-sub="plan">Voorbereiden</button>
       <button type="button" data-tr-sub="evaluatie">Evaluatie</button>
+      <button type="button" data-tr-sub="bank">Vormenbank</button>
     </div>
   </section>
   <section class="panel" id="panel-plan" hidden>
     <div id="planWrap" style="display:flex; flex-direction:column; gap:12px;"></div>
+  </section>
+
+  <section class="panel" id="panel-bank" hidden>
+    <div id="bankWrap" style="display:flex; flex-direction:column; gap:12px;"></div>
   </section>
 
   <section class="panel" id="panel-evaluatie" hidden>
@@ -1262,6 +1283,16 @@
   </div>
 </div>
 
+<div class="overlay" id="bankOverlay" hidden>
+  <div class="sheet tv-sheet">
+    <div class="sheet-head">
+      <h3 id="bankTitle">Vorm</h3>
+      <button class="icon-btn" id="closeBank" aria-label="Sluiten">&times;</button>
+    </div>
+    <div id="bankBody"></div>
+  </div>
+</div>
+
 <div class="overlay" id="trapOverlay" hidden>
   <div class="sheet tv-sheet">
     <div class="sheet-head">
@@ -1342,6 +1373,7 @@
         <div class="draw-hint" id="drawHint"></div>
         <svg id="drawSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 680" role="img" aria-label="Veld"></svg>
         <div class="draw-selbar" id="drawSelBar" hidden>
+          <span class="draw-selcount" id="drawSelCount" hidden></span>
           <button type="button" class="btn ghost small" id="drawDup" title="Dupliceren (Ctrl/Cmd+D)">Dupliceren</button>
           <button type="button" class="btn ghost small" id="drawEditText">Tekst wijzigen</button>
           <button type="button" class="btn ghost small" id="drawNumber">Rugnummer +1</button>
@@ -1978,6 +2010,7 @@
       });
     }
     function getOefs(d){ return oefs.filter(function(o){ return o.training_date === d; }); }
+    function getAllOefs(){ return oefs.slice(); }
     function getOef(d, onderdeel, volgnr){ return oefs.find(function(o){ return o.training_date === d && o.onderdeel === onderdeel && o.volgnr === volgnr; }) || null; }
     function saveOef(row){
       return sb.from("oefenvormen").upsert(row, { onConflict: "training_date,onderdeel,volgnr" }).select().single().then(function(res){
@@ -2340,7 +2373,7 @@
     }
 
     return {
-      getPlan: getPlan, savePlan: savePlan, savePlans: savePlans, getOefs: getOefs, getOef: getOef, saveOef: saveOef, getFeedback: getFeedback,
+      getPlan: getPlan, savePlan: savePlan, savePlans: savePlans, getOefs: getOefs, getAllOefs: getAllOefs, getOef: getOef, saveOef: saveOef, getFeedback: getFeedback,
       addFeedback: addFeedback, deleteFeedback: deleteFeedback, getReactie: getReactie, saveReactie: saveReactie,
       getBeoordelaars: getBeoordelaars, saveBeoordelaars: saveBeoordelaars, getOordelen: getOordelen, setOordeel: setOordeel,
       getNotitie: getNotitie, setNotitie: setNotitie, toernooiDatums: toernooiDatums, uploadTekening: uploadTekening, getTekeningUrl: getTekeningUrl, onTraining: onTraining,
@@ -2522,7 +2555,7 @@
     state.tab = tab;
     // Tabblad Aanwezig toont het paneel "absenties"; Training beheert zelf zijn sub-panelen.
     var panel = tab === "aanwezig" ? "absenties" : tab;
-    ["spelers","overzicht","training","plan","absenties","evaluatie","toernooi","avs","instellingen"].forEach(function(t){ $("panel-" + t).hidden = t !== panel; });
+    ["spelers","overzicht","training","plan","absenties","evaluatie","bank","toernooi","avs","instellingen"].forEach(function(t){ $("panel-" + t).hidden = t !== panel; });
     Array.prototype.forEach.call(document.querySelectorAll(".tab-btn"), function(btn){
       btn.classList.toggle("active", btn.getAttribute("data-tab") === tab);
     });
@@ -3305,7 +3338,7 @@
       return d + " L " + x2 + " " + y2;
     }
     function itemSvg(it, i){
-      var a = ' data-i="' + i + '"', sel = st.sel === i;
+      var a = ' data-i="' + i + '"', sel = st.sel === i || (!!st.multi && st.multi.indexOf(i) !== -1);
       var hl = sel ? ' filter="url(#drawSel)"' : '';
       switch (it.t){
         case "shirt":
@@ -3356,19 +3389,32 @@
         '<g>' + fieldSvg() + '</g><g>' +
         // Vakken onderop, daarna de rest (volgorde in de lijst blijft gelijk, dus data-i klopt).
         st.items.map(function(it, i){ return it.t === "zone" ? itemSvg(it, i) : ""; }).join("") +
-        st.items.map(function(it, i){ return it.t === "zone" ? "" : itemSvg(it, i); }).join("") + '</g>';
-      el("drawSelBar").hidden = st.sel == null;
-      var it = st.sel != null ? st.items[st.sel] : null;
+        st.items.map(function(it, i){ return it.t === "zone" ? "" : itemSvg(it, i); }).join("") + '</g>' +
+        (st.guides && st.drag ? '<g pointer-events="none">' +
+          (st.guides.x != null ? '<line x1="' + st.guides.x + '" y1="0" x2="' + st.guides.x + '" y2="' + f.h + '" stroke="#00B3FF" stroke-width="2" stroke-dasharray="8 6"/>' : '') +
+          (st.guides.y != null ? '<line x1="0" y1="' + st.guides.y + '" x2="' + f.w + '" y2="' + st.guides.y + '" stroke="#00B3FF" stroke-width="2" stroke-dasharray="8 6"/>' : '') + '</g>' : '') +
+        (st.drag && st.drag.mode === "box" ? '<rect pointer-events="none" x="' + Math.min(st.drag.x0, st.drag.x1) + '" y="' + Math.min(st.drag.y0, st.drag.y1) + '" width="' + Math.abs(st.drag.x1 - st.drag.x0) + '" height="' + Math.abs(st.drag.y1 - st.drag.y0) + '" fill="rgba(0,179,255,.12)" stroke="#00B3FF" stroke-width="2" stroke-dasharray="6 5"/>' : '');
+      if (st.multi) st.multi = st.multi.filter(function(i){ return i < st.items.length; });
+      var meer = !!st.multi && st.multi.length > 1;
+      el("drawSelBar").hidden = st.sel == null && !meer;
+      el("drawSelCount").hidden = !meer;
+      el("drawSelCount").textContent = meer ? st.multi.length + " geselecteerd" : "";
+      var it = !meer && st.sel != null ? st.items[st.sel] : null;
       el("drawRotate").hidden = !it || (it.t !== "goal" && it.t !== "board");
       el("drawNumber").hidden = !it || !((it.t === "p" && !TEAM[it.c].letter) || it.t === "shirt");
       el("drawEditText").hidden = !it || it.t !== "text";
       Array.prototype.forEach.call(document.querySelectorAll("[data-draw-tool]"), function(b){
         b.classList.toggle("active", st.tool != null && b.getAttribute("data-draw-tool") === String(st.tool));
       });
+      // Selecteren licht op als er geen gereedschap aan staat; de muis laat zien wat er gebeurt.
+      var selKnop = document.querySelector("[data-draw-select]");
+      if (selKnop) selKnop.classList.toggle("active", st.tool == null);
+      var dsvg = el("drawSvg");
+      if (dsvg.classList){ dsvg.classList.toggle("plaatsen", st.tool != null); dsvg.classList.toggle("kiezen", st.tool == null); }
       Array.prototype.forEach.call(document.querySelectorAll("[data-draw-field]"), function(b){ b.classList.toggle("active", b.getAttribute("data-draw-field") === st.field); });
       el("drawHint").textContent = st.tool != null
         ? (/arrow|wall|zone/.test(toolDef(st.tool).t) ? (toolDef(st.tool).t === "hatzone" ? "Sleep een rechthoek: op elke hoek komt een " + lastHat + " hoedje. Rechtermuisklik of nog een keer op de knop = stoppen." : "Sleep over het veld om te tekenen. Rechtermuisklik of nog een keer op de knop = stoppen.") : "Klik op het veld om neer te zetten. Rechtermuisklik, nog een keer op de knop of Esc = stoppen.")
-        : "Klik iets aan om het te verplaatsen, te draaien of te verwijderen. Sneltoetsen staan op de knoppen (H = hoedje).";
+        : "Klik iets aan om het te verplaatsen of te verwijderen. Sleep over een lege plek om meerdere tegelijk te selecteren (Shift+klik = toevoegen, Cmd/Ctrl+A = alles).";
     }
     function toolDef(idx){ var flat = []; TOOLS.forEach(function(g){ flat = flat.concat(g.items); }); return flat[idx]; }
     function toolIcon(t){
@@ -3400,7 +3446,7 @@
     function buildTools(){
       var idx = 0;
       el("drawTools").innerHTML =
-        '<button type="button" class="draw-select" data-draw-select>Selecteren</button>' +
+        '<button type="button" class="draw-select" data-draw-select title="Selecteren (Esc)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3l14 8-6 1.6L10 19z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Selecteren<small>Esc</small></button>' +
         TOOLS.map(function(g){
           return '<div class="draw-group"><div class="draw-group-h">' + g.group + '</div><div class="draw-grid">' +
             g.items.map(function(t){
@@ -3411,6 +3457,10 @@
         }).join("") +
         '<div class="draw-group"><div class="draw-group-h">Veldvorm</div><div class="draw-fields">' +
         Object.keys(FIELDS).map(function(k){ return '<button type="button" data-draw-field="' + k + '">' + FIELDS[k].label + '</button>'; }).join("") + '</div></div>' +
+        '<div class="draw-group"><div class="draw-group-h">Opstellingen</div><div class="draw-fields">' +
+        [["212", "", "6 tegen 6 (2-1-2)"], ["212", "t", "2-1-2 tegenstander"], ["331", "", "8 tegen 8 (3-3-1)"], ["331", "t", "3-3-1 tegenstander"]].map(function(x){
+          return '<button type="button" data-draw-form="' + x[0] + '|' + x[1] + '">' + x[2] + '</button>'; }).join("") + '</div></div>' +
+        '<label class="draw-zoom"><input type="checkbox" id="drawMagneet"' + (magneet ? ' checked' : '') + '> Magneet: netjes uitlijnen<small>Hoedjes en spelers springen op één lijn met wat er al staat. Houd Alt/Option ingedrukt om vrij te plaatsen.</small></label>' +
         '<label class="draw-zoom"><input type="checkbox" id="drawZoom" checked> Opslaan ingezoomd op de spelers<small>Het plaatje toont alleen het stuk waar je getekend hebt. Tekenen doe je gewoon op het hele veld.</small></label>' +
         '<button type="button" class="draw-clear" id="drawClear">Alles wissen</button>';
       Array.prototype.forEach.call(document.querySelectorAll("[data-draw-tool]"), function(b){
@@ -3422,7 +3472,50 @@
         b.addEventListener("click", function(){ snapshot(); st.field = b.getAttribute("data-draw-field"); st.sel = null; render(); });
       });
       el("drawZoom").addEventListener("change", function(){ if (st) st.zoom = this.checked; });
+      el("drawMagneet").addEventListener("change", function(){ magneet = this.checked; try { localStorage.setItem("art-draw-magneet", magneet ? "aan" : "uit"); } catch(e){} });
+      Array.prototype.forEach.call(document.querySelectorAll("[data-draw-form]"), function(b){
+        b.addEventListener("click", function(){ var x = b.getAttribute("data-draw-form").split("|"); zetOpstelling(x[0], x[1] === "t"); });
+      });
       el("drawClear").addEventListener("click", function(){ if (!st.items.length) return; snapshot(); st.items = []; st.sel = null; st.num = 0; render(); });
+    }
+
+    /* Magneet: bij neerzetten en slepen springt een hoedje/speler horizontaal of verticaal op één lijn met wat er al
+       staat (binnen 12 beeldpunten); tijdens het slepen tonen blauwe hulplijnen de uitlijning. Alt/Option = even vrij. */
+    var magneet = (function(){ try { return localStorage.getItem("art-draw-magneet") !== "uit"; } catch(e){ return true; } })();
+    var SNAP = 12;
+    function snapPt(x, y, skip, evt){
+      var gx = null, gy = null;
+      if (magneet && !(evt && evt.altKey)){
+        var bx = SNAP + 1, by = SNAP + 1;
+        st.items.forEach(function(it, i){
+          if (i === skip) return;
+          ("x" in it ? [[it.x, it.y]] : [[it.x1, it.y1], [it.x2, it.y2]]).forEach(function(q){
+            var dx = Math.abs(q[0] - x), dy = Math.abs(q[1] - y);
+            if (dx < bx){ bx = dx; gx = q[0]; }
+            if (dy < by){ by = dy; gy = q[1]; }
+          });
+        });
+      }
+      st.guides = gx != null || gy != null ? { x: gx, y: gy } : null;
+      return { x: gx != null ? gx : x, y: gy != null ? gy : y };
+    }
+
+    /* Opstellingen met één klik: eigen team (rood) verdedigt onder (staande velden) of links (liggende velden),
+       de tegenstander (geel) gespiegeld. Posities als fractie van het speelveld; nummers lopen door per teamkleur. */
+    var OPST = { "212": [[0.5, 0.94, "K"], [0.3, 0.8], [0.7, 0.8], [0.5, 0.68], [0.33, 0.56], [0.67, 0.56]],
+      "331": [[0.5, 0.94, "K"], [0.2, 0.8], [0.5, 0.82], [0.8, 0.8], [0.25, 0.68], [0.5, 0.7], [0.75, 0.68], [0.5, 0.57]] };
+    function zetOpstelling(code, tegen){
+      if (!st || !OPST[code]) return;
+      var f = FIELDS[st.field], m = 30, staand = /^(staand|f8|f6|half)$/.test(st.field), kleur = tegen ? "geel" : "rood";
+      snapshot();
+      var n = st.items.reduce(function(mx, x){ return x.t === "p" && x.c === kleur ? Math.max(mx, x.n || 0) : mx; }, 0);
+      OPST[code].forEach(function(q){
+        var fx = q[0], fy = tegen ? 1 - q[1] : q[1];
+        var x = staand ? m + fx * (f.w - 2 * m) : m + (1 - fy) * (f.w - 2 * m);
+        var y = staand ? m + fy * (f.h - 2 * m) : m + fx * (f.h - 2 * m);
+        st.items.push(q[2] === "K" ? { t: "p", c: "keeper", x: Math.round(x), y: Math.round(y) } : { t: "p", c: kleur, n: ++n, x: Math.round(x), y: Math.round(y) });
+      });
+      st.tool = null; st.sel = null; render();
     }
 
     // Knop kiezen; nog een keer dezelfde knop = stoppen. Hoedjeskleur onthouden voor "Vak met hoedjes" en toets H.
@@ -3443,12 +3536,14 @@
         var t = toolDef(st.tool);
         snapshot();
         if (isDragTool(t)){
+          p = snapPt(p.x, p.y, -1, evt);
           var it = t.t === "arrow" ? { t: "arrow", k: t.k, x1: p.x, y1: p.y, x2: p.x, y2: p.y }
             : (t.t === "hatzone" ? { t: "zone", hz: true, x1: p.x, y1: p.y, x2: p.x, y2: p.y } : { t: t.t, x1: p.x, y1: p.y, x2: p.x, y2: p.y });
           st.items.push(it);
           st.drag = { mode: "draw", i: st.items.length - 1 };
         } else {
-          var obj = { t: t.t, x: p.x, y: p.y };
+          var sp = snapPt(p.x, p.y, -1, evt); st.guides = null;
+          var obj = { t: t.t, x: sp.x, y: sp.y };
           if (t.c) obj.c = t.c;
           if (t.s) obj.s = t.s;
           if (t.t === "num") obj.n = ++st.num;
@@ -3465,24 +3560,63 @@
       }
       if (target){
         var i = Number(target.getAttribute("data-i"));
+        // Shift+klik: toevoegen aan / halen uit de selectie.
+        if (evt.shiftKey){
+          var lijst = st.multi ? st.multi.slice() : (st.sel != null ? [st.sel] : []);
+          var k = lijst.indexOf(i); if (k === -1) lijst.push(i); else lijst.splice(k, 1);
+          st.multi = lijst.length > 1 ? lijst : null; st.sel = lijst.length === 1 ? lijst[0] : null;
+          render(); evt.preventDefault(); return;
+        }
+        // Een van meerdere geselecteerde items vastpakken = de hele groep verschuiven.
+        if (st.multi && st.multi.length > 1 && st.multi.indexOf(i) !== -1){
+          snapshot(); st.drag = { mode: "group", last: p, moved: false }; render(); evt.preventDefault(); return;
+        }
+        st.multi = null;
         st.sel = i; snapshot();
-        st.drag = { mode: "move", i: i, last: p, moved: false };
+        var cur = st.items[i];
+        st.drag = { mode: "move", i: i, last: p, moved: false, raw: "x" in cur ? { x: cur.x, y: cur.y } : null };
         render(); evt.preventDefault();
-      } else { st.sel = null; render(); }
+      } else {
+        // Lege plek: selectievak trekken (alles wat erin valt wordt geselecteerd).
+        st.sel = null; st.multi = null;
+        st.drag = { mode: "box", x0: p.x, y0: p.y, x1: p.x, y1: p.y };
+        render(); evt.preventDefault();
+      }
     }
     function onMove(evt){
       if (!st || !st.drag) return;
       var p = svgPt(evt), it = st.items[st.drag.i];
-      if (st.drag.mode === "draw"){ it.x2 = p.x; it.y2 = p.y; }
+      if (st.drag.mode === "box"){ st.drag.x1 = p.x; st.drag.y1 = p.y; render(); evt.preventDefault(); return; }
+      if (st.drag.mode === "group"){
+        var gdx = p.x - st.drag.last.x, gdy = p.y - st.drag.last.y;
+        st.multi.forEach(function(j){ var g = st.items[j]; if ("x" in g){ g.x += gdx; g.y += gdy; } else { g.x1 += gdx; g.y1 += gdy; g.x2 += gdx; g.y2 += gdy; } });
+        st.drag.last = p; st.drag.moved = true; render(); evt.preventDefault(); return;
+      }
+      if (st.drag.mode === "draw"){ var e2 = snapPt(p.x, p.y, st.drag.i, evt); it.x2 = e2.x; it.y2 = e2.y; }
       else {
         var dx = p.x - st.drag.last.x, dy = p.y - st.drag.last.y;
-        if ("x" in it){ it.x += dx; it.y += dy; } else { it.x1 += dx; it.y1 += dy; it.x2 += dx; it.y2 += dy; }
+        if (st.drag.raw){
+          // Vrije positie bijhouden en die laten "plakken", zodat je ook weer los kunt trekken van de lijn.
+          st.drag.raw.x += dx; st.drag.raw.y += dy;
+          var q = snapPt(st.drag.raw.x, st.drag.raw.y, st.drag.i, evt); it.x = q.x; it.y = q.y;
+        } else { it.x1 += dx; it.y1 += dy; it.x2 += dx; it.y2 += dy; }
         st.drag.last = p; st.drag.moved = true;
       }
       render(); evt.preventDefault();
     }
     function onUp(){
       if (!st || !st.drag) return;
+      if (st.drag.mode === "box"){
+        var bx0 = Math.min(st.drag.x0, st.drag.x1), bx1 = Math.max(st.drag.x0, st.drag.x1), by0 = Math.min(st.drag.y0, st.drag.y1), by1 = Math.max(st.drag.y0, st.drag.y1);
+        var binnen = function(x, y){ return x >= bx0 && x <= bx1 && y >= by0 && y <= by1; };
+        var gekozen = (bx1 - bx0) + (by1 - by0) < 8 ? [] : st.items.map(function(g, j){
+          var ok = "x" in g ? binnen(g.x, g.y) : binnen((g.x1 + g.x2) / 2, (g.y1 + g.y2) / 2);
+          return ok ? j : -1;
+        }).filter(function(j){ return j !== -1; });
+        st.multi = gekozen.length > 1 ? gekozen : null; st.sel = gekozen.length === 1 ? gekozen[0] : null;
+        st.drag = null; render(); return;
+      }
+      if (st.drag.mode === "group"){ if (!st.drag.moved) st.undo.pop(); st.drag = null; render(); return; }
       var it = st.items[st.drag.i];
       // Te kort getrokken lijnen/vakken (per ongeluk klikken) weer weghalen.
       if (st.drag.mode === "draw" && Math.abs(it.x2 - it.x1) + Math.abs(it.y2 - it.y1) < 12){ st.items.splice(st.drag.i, 1); st.undo.pop(); }
@@ -3492,10 +3626,16 @@
         [[it.x1, it.y1], [it.x2, it.y1], [it.x1, it.y2], [it.x2, it.y2]].forEach(function(q){ st.items.push({ t: "cone", c: lastHat, x: q[0], y: q[1] }); });
       }
       if (st.drag.mode === "move" && !st.drag.moved) st.undo.pop();
-      st.drag = null; render();
+      st.drag = null; st.guides = null; render();
     }
-    function removeSel(){ if (st.sel == null) return; snapshot(); st.items.splice(st.sel, 1); st.sel = null; render(); }
-    function undo(){ var s = st.undo.pop(); if (!s) return; var o = JSON.parse(s); st.field = o.field; st.items = o.items; st.sel = null; render(); }
+    function removeSel(){
+      if (st.multi && st.multi.length){
+        snapshot(); var weg = st.multi.slice().sort(function(a, b){ return b - a; });
+        weg.forEach(function(j){ st.items.splice(j, 1); }); st.multi = null; st.sel = null; render(); return;
+      }
+      if (st.sel == null) return; snapshot(); st.items.splice(st.sel, 1); st.sel = null; render();
+    }
+    function undo(){ var s = st.undo.pop(); if (!s) return; var o = JSON.parse(s); st.field = o.field; st.items = o.items; st.sel = null; st.multi = null; render(); }
 
     /* Inzoomen bij opslaan: alleen het stuk waar spelers, spullen en pijlen staan (met ruimte eromheen), in 3:2 zoals
        de tegels. Gebruikt de tekening bijna het hele veld (of staat er niets), dan blijft het hele veld zichtbaar. */
@@ -3568,6 +3708,17 @@
     });
     // Dupliceren: kopie iets verschoven, en direct geselecteerd (handig voor rijen pionnen).
     function duplicate(){
+      if (st.multi && st.multi.length > 1){
+        snapshot(); var nieuw = [];
+        st.multi.forEach(function(j){
+          var c = JSON.parse(JSON.stringify(st.items[j]));
+          if ("x" in c){ c.x += 24; c.y += 24; } else { c.x1 += 24; c.y1 += 24; c.x2 += 24; c.y2 += 24; }
+          if (c.t === "p" && !TEAM[c.c].letter) c.n = 1 + st.items.reduce(function(mx, x){ return x.t === "p" && x.c === c.c ? Math.max(mx, x.n || 0) : mx; }, 0);
+          if (c.t === "num") c.n = ++st.num;
+          st.items.push(c); nieuw.push(st.items.length - 1);
+        });
+        st.multi = nieuw; st.sel = null; render(); return;
+      }
       var it = st.sel != null ? st.items[st.sel] : null; if (!it) return;
       snapshot();
       var c = JSON.parse(JSON.stringify(it));
@@ -3596,7 +3747,8 @@
       if (!st || el("drawOverlay").hidden) return;
       if (/INPUT|TEXTAREA|SELECT/.test((e.target.tagName || ""))) return;
       if (e.key === "Delete" || e.key === "Backspace"){ removeSel(); e.preventDefault(); }
-      else if (e.key === "Escape"){ if (st.tool != null){ st.tool = null; render(); } else { st.sel = null; render(); } e.stopPropagation(); }
+      else if (e.key === "Escape"){ if (st.tool != null){ st.tool = null; render(); } else { st.sel = null; st.multi = null; render(); } e.stopPropagation(); }
+      else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "a"){ st.tool = null; st.sel = null; st.multi = st.items.map(function(x, j){ return j; }); render(); e.preventDefault(); }
       else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z"){ undo(); e.preventDefault(); }
       else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "d"){ duplicate(); e.preventDefault(); }
       else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key.length === 1){
@@ -3678,7 +3830,9 @@
     Array.prototype.forEach.call(document.querySelectorAll("[data-tr-sub]"), function(b){ b.classList.toggle("active", b.getAttribute("data-tr-sub") === state.trainingSub); });
     $("panel-plan").hidden = state.trainingSub !== "plan";
     $("panel-evaluatie").hidden = state.trainingSub !== "evaluatie";
+    $("panel-bank").hidden = state.trainingSub !== "bank";
     if (state.trainingSub === "plan") renderPlan();
+    else if (state.trainingSub === "bank") renderBank();
     else { renderOefEval(); renderEvaluatie(); }
   }
   $("trainingPick").addEventListener("change", function(){ state.trainingDate = this.value; state.trainingSub = null; trainingDefaults(); renderTraining(); });
@@ -3805,7 +3959,7 @@
       });
       html += '<div class="btn-row"><button type="button" class="btn primary" id="viewTrainingBtn">Bekijk hele training</button>' +
         '<button type="button" class="btn ghost" id="printTrainingBtn">Downloaden</button>' +
-        (isHoofd ? '<button type="button" class="btn ghost" id="rolesBtn">Rollen wijzigen</button>' : '') + '</div></div>';
+        (isHoofd ? '<button type="button" class="btn ghost" id="rolesBtn">Rollen wijzigen</button><button type="button" class="btn ghost" id="copyTrainingBtn">Training overnemen</button>' : '') + '</div></div>';
     }
     if (per.toernooi && isHoofd) html += '<button type="button" class="btn ghost block" id="rolesBtn">Rollen wijzigen</button>';
     if (PERIODISERING.regels && PERIODISERING.regels.length){
@@ -3817,12 +3971,140 @@
     if ($("printTrainingBtn")) $("printTrainingBtn").addEventListener("click", function(){ printTraining(d); });
     if ($("viewTrainingBtn")) $("viewTrainingBtn").addEventListener("click", function(){ openTrainingView(d); });
     if ($("rolesBtn")) $("rolesBtn").addEventListener("click", function(){ Roles.open(d); });
+    if ($("copyTrainingBtn")) $("copyTrainingBtn").addEventListener("click", function(){ trainingOvernemen(d); });
     if ($("evalPrevBtn")) $("evalPrevBtn").addEventListener("click", function(){ state.trainingDate = prev; state.trainingSub = "evaluatie"; renderTraining(); });
     bindVormButtons(wrap, d);
   }
 
   /* Hele training bekijken op het scherm: zelfde opbouw als de Ajax-planner (per thema deel 1 en deel 2).
      Laptop: twee kolommen naast elkaar; telefoon: onder elkaar. Alleen lezen. */
+  /* Vormenbank: alle gedeelde oefenvormen doorzoeken (vaardigheid, droog/small-sided game, werkte het?), bekijken met
+     tekening, evaluatie en reflectie, en met "Gebruik als basis" kopiëren naar een vorm van de eerstvolgende training.
+     De kopie is een nieuwe vorm (status "nog bezig"); het origineel blijft ongewijzigd. De tekening gaat mee als
+     tekengegevens, niet als gedeeld plaatje (anders zou het origineel bij een nieuwe upload worden verwijderd). */
+  var bankF = { q: "", v: "", soort: "", terug: "" };
+  var KOPIE_VELDEN = ["aantallen", "variatie_1", "variatie_2", "organisatie", "regels", "wedstrijdelement", "aanpassing_jong", "aanpassing_oud", "als_niet_loopt", "coachaccenten"];
+  function bankAlle(){ return Store.getAllOefs().filter(function(o){ return o.status === "gedeeld"; }); }
+  function bankLijst(){
+    return bankAlle().filter(function(o){
+      if (bankF.v && (o.vaardigheid || "") !== bankF.v) return false;
+      if (bankF.soort && String(o.volgnr) !== bankF.soort) return false;
+      if (bankF.terug === "nog" ? !!o.eval_terug : (bankF.terug && o.eval_terug !== bankF.terug)) return false;
+      if (bankF.q){
+        var t = [o.vaardigheid, o.aantallen, o.variatie_1, o.variatie_2, o.organisatie, o.regels, o.wedstrijdelement, o.coachaccenten, o.eval_volgende].join(" ").toLowerCase();
+        if (t.indexOf(bankF.q.toLowerCase()) === -1) return false;
+      }
+      return true;
+    }).sort(function(a, b){ return a.training_date < b.training_date ? 1 : a.training_date > b.training_date ? -1 : (a.onderdeel + a.volgnr).localeCompare(b.onderdeel + b.volgnr); });
+  }
+  function bankTile(o){
+    var img = o.tekening_path ? '<img alt="" data-tek-path="' + esc(o.tekening_path) + '">' : (o.tekening_json ? DrawTool.staticSvg(o.tekening_json) : '<span class="tr-tile-empty">Geen tekening</span>');
+    return '<button type="button" class="tr-tile" data-bank="' + o.training_date + '|' + o.onderdeel + '|' + o.volgnr + '"><span class="tr-tile-img">' + img + '</span>' +
+      '<span class="tr-tile-cap"><b>' + esc(o.vaardigheid || "Vorm") + '</b> <small>' + vormSub(o.volgnr) + (o.aantallen ? ' · ' + esc(o.aantallen) : '') + '</small></span>' +
+      '<span class="tr-tile-st">' + (o.eval_terug ? terugPill(o) : '<span class="pill none">nog niet geëvalueerd</span>') + ' <span class="pill none">' + esc(formatDateShort(o.training_date)) + '</span></span></button>';
+  }
+  function renderBank(){
+    var wrap = $("bankWrap"), alle = bankAlle(), lijst = bankLijst();
+    var vs = alle.map(function(o){ return o.vaardigheid || ""; }).filter(function(v, i, a){ return v && a.indexOf(v) === i; }).sort();
+    var chip = function(g, val, label){ return '<button type="button" class="chip small' + (bankF[g] === val ? " active" : "") + '" data-bank-f="' + g + '|' + val + '">' + label + '</button>'; };
+    wrap.innerHTML = '<div class="card tr-card"><div class="tr-card-h">Vormenbank <small style="margin-left:auto;">' + lijst.length + ' van ' + alle.length + ' vormen</small></div>' +
+      '<div class="tr-note">Alle gedeelde vormen van eerdere trainingen. Tik op een vorm om hem te bekijken of als basis te gebruiken.</div>' +
+      '<input type="search" id="bankQ" class="bank-q" placeholder="Zoek, bv. 3v2, zijvak, reactiebal" value="' + esc(bankF.q) + '">' +
+      '<div class="bank-f"><select id="bankV"><option value="">Alle vaardigheden</option>' + vs.map(function(v){ return '<option' + (v === bankF.v ? ' selected' : '') + '>' + esc(v) + '</option>'; }).join("") + '</select></div>' +
+      '<div class="bank-f">' + chip("soort", "", "Alles") + chip("soort", "1", "Droog") + chip("soort", "2", "Small-sided game") + '</div>' +
+      '<div class="bank-f">' + chip("terug", "", "Alle") + chip("terug", "ja", "Werkte") + chip("terug", "deels", "Deels") + chip("terug", "nee", "Werkte niet") + chip("terug", "nog", "Nog niet geëvalueerd") + '</div></div>' +
+      (lijst.length ? '<div class="tr-tiles bank-tiles">' + lijst.map(bankTile).join("") + '</div>'
+        : '<div class="card tr-card"><div class="tr-note">' + (alle.length ? "Geen vormen gevonden met deze keuze." : "Nog geen gedeelde vormen. Zodra trainers hun vormen op Klaar zetten, komen ze hier.") + '</div></div>');
+    var q = $("bankQ"), tmr = null;
+    q.oninput = function(){ clearTimeout(tmr); tmr = setTimeout(function(){ bankF.q = q.value.trim(); renderBank(); var n = $("bankQ"); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 250); };
+    $("bankV").onchange = function(){ bankF.v = this.value; renderBank(); };
+    Array.prototype.forEach.call(wrap.querySelectorAll("[data-bank-f]"), function(b){ b.onclick = function(){ var x = b.getAttribute("data-bank-f").split("|"); bankF[x[0]] = x[1]; renderBank(); }; });
+    Array.prototype.forEach.call(wrap.querySelectorAll("[data-bank]"), function(b){ b.onclick = function(){ var x = b.getAttribute("data-bank").split("|"); openBankVorm(x[0], x[1], Number(x[2])); }; });
+    fillTekeningen(wrap);
+  }
+  // Doelen voor "Gebruik als basis": de vormen van de eerstvolgende training die jij mag bewerken.
+  function bankDoelen(srcV){
+    var t = todayISO(), d0 = TRAINING_DATES.map(function(x){ return x.date; }).filter(function(x){ return x >= t && !(trainingPeriod(x) || {}).toernooi; })[0];
+    if (!d0) return { d0: null, slots: [] };
+    var slots = [];
+    ["A", "B", "C"].forEach(function(o){ vormenVan(o).forEach(function(v){ var row = Store.getOef(d0, o, v); if (canEditOef(d0, o, row)) slots.push({ o: o, v: v, row: row }); }); });
+    var mijn = myOnderdeel(d0);
+    var pref = slots.find(function(x){ return x.o === mijn && x.v === srcV; }) || slots.find(function(x){ return x.v === srcV && !x.row; }) || slots[0];
+    return { d0: d0, slots: slots, pref: pref };
+  }
+  function openBankVorm(d, o, v){
+    var r = Store.getOef(d, o, v); if (!r) return;
+    var nl = function(t){ return esc(t || "").replace(/\n/g, "<br>"); };
+    var b = function(k, t){ return t ? '<div class="tv-b"><b>' + k + '</b>' + nl(t) + '</div>' : ''; };
+    $("bankTitle").textContent = (r.vaardigheid || "Vorm") + " · " + vormSub(v).replace("&shy;", "") + " · " + formatDateShort(d);
+    var eig = vormOwner(d, o, r);
+    var html = '<div class="tv-meta">' + o + v + ' · training ' + esc(formatDateShort(d) + " " + d.slice(0, 4)) + (eig ? ' · ' + esc(eig) : '') + '</div>' +
+      (r.tekening_path ? '<div class="oef-tek"><img alt="Tekening" data-tek-path="' + esc(r.tekening_path) + '"></div>' : (r.tekening_json ? '<div class="tv-svg">' + DrawTool.staticSvg(r.tekening_json) + '</div>' : '')) +
+      b("Aantallen", r.aantallen) + b(o + v + ".1 · " + vormSub(v), r.variatie_1) + b(o + v + ".2 · contextvariatie", r.variatie_2) +
+      b("Organisatie en ruimte", r.organisatie) + b("Regels", r.regels) + b("Wedstrijdelement", r.wedstrijdelement) +
+      b("Aanpassing jongste lichting", r.aanpassing_jong) + b("Aanpassing oudste lichting", r.aanpassing_oud) +
+      b("Als het niet loopt", r.als_niet_loopt) + b("Coachaccenten", r.coachaccenten);
+    if (r.eval_terug || r.eval_groep1 || r.eval_volgende){
+      html += '<div class="oef-h">Hoe ging het?' + (r.eval_terug ? terugPill(r) : '') + '</div>' +
+        b("Groep 1", r.eval_groep1) + b("Aangepast", r.eval_aangepast) + b("Groep 2", r.eval_groep2) + b("Ruimte", r.eval_ruimte) +
+        b("Lichting met moeite", r.eval_lichting) + b("Volgende keer anders", r.eval_volgende);
+    }
+    if (r.reflectie_goed || r.reflectie_anders) html += '<div class="oef-h">Reflectie van de trainer</div>' + b("Ging goed", r.reflectie_goed) + b("Volgende keer anders", r.reflectie_anders);
+    var dl = bankDoelen(v);
+    if (dl.d0 && dl.slots.length){
+      html += '<div class="oef-h">Gebruik als basis</div><div class="tr-note" style="margin-bottom:8px;">Kopieert deze vorm (met tekening) naar een vorm van de training van <b>' + esc(formatDateShort(dl.d0)) + '</b>. Daarna pas je hem aan. Het origineel blijft zoals het is.</div>' +
+        '<div class="bank-doel"><select id="bankDoel">' + dl.slots.map(function(x){
+          return '<option value="' + x.o + '|' + x.v + '"' + (x === dl.pref ? ' selected' : '') + '>' + x.o + x.v + ' · ' + esc(thema(dl.d0, x.o).v || ("Onderdeel " + x.o)) + ' (' + vormSub(x.v).replace("&shy;", "") + ')' + (x.row ? ' · heeft al inhoud' : '') + '</option>';
+        }).join("") + '</select><button type="button" class="btn primary" id="bankKopie">Gebruik als basis</button></div>';
+    } else if (dl.d0){
+      html += '<div class="tr-note" style="margin-top:10px;">Je bent voor de training van ' + esc(formatDateShort(dl.d0)) + ' (nog) niet ingedeeld, dus je kunt deze vorm niet kopiëren.</div>';
+    }
+    $("bankBody").innerHTML = html;
+    fillTekeningen($("bankBody"));
+    if ($("bankKopie")) $("bankKopie").onclick = function(){ var x = $("bankDoel").value.split("|"); gebruikAlsBasis(r, dl.d0, x[0], Number(x[1])); };
+    $("bankOverlay").hidden = false;
+  }
+  function kopieRij(src, d0, o, v, bestaand){
+    var plan = Store.getPlan(d0) || {};
+    var row = { training_date: d0, onderdeel: o, volgnr: v, status: "concept",
+      eigenaar_id: bestaand && bestaand.eigenaar_id ? bestaand.eigenaar_id : (plan[ROLE_FIELD[o]] || myUserId()),
+      vaardigheid: (trainingPeriod(d0) || {})[o] && trainingPeriod(d0)[o].v || src.vaardigheid || null,
+      tekening_json: src.tekening_json || null, tekening_path: null };
+    KOPIE_VELDEN.forEach(function(k){ row[k] = src[k] || null; });
+    return row;
+  }
+  function gebruikAlsBasis(src, d0, o, v){
+    var bestaand = Store.getOef(d0, o, v);
+    var go = bestaand ? confirmDialog({ title: "Vorm vervangen?", messageHtml: "<b>" + o + v + "</b> van " + esc(formatDateShort(d0)) + " heeft al inhoud. Die wordt vervangen door de kopie.", confirmLabel: "Vervangen" }) : Promise.resolve(true);
+    go.then(function(ok){
+      if (!ok) return;
+      Store.saveOef(kopieRij(src, d0, o, v, bestaand)).then(function(){
+        showToast("Gekopieerd naar " + o + v + " (" + formatDateShort(d0) + ")" + (!src.tekening_json && src.tekening_path ? "; de foto-tekening ging niet mee" : ""));
+        $("bankOverlay").hidden = true;
+        state.trainingDate = d0; state.trainingSub = "plan"; renderTraining();
+        openOef(d0, o, v, "plan");
+      }).catch(function(err){ console.error(err); showToast("Kopiëren mislukt"); });
+    });
+  }
+  // Hele training overnemen (hoofdtrainer): alle vormen van een eerdere training als startpunt; vormen die al inhoud hebben blijven staan.
+  function trainingOvernemen(d){
+    var datums = Store.getAllOefs().map(function(o){ return o.training_date; }).filter(function(x, i, a){ return x !== d && a.indexOf(x) === i; }).sort().reverse();
+    if (!datums.length){ showToast("Er is nog geen eerdere training om over te nemen"); return; }
+    confirmDialog({ title: "Training overnemen", confirmLabel: "Overnemen", danger: false,
+      messageHtml: 'Kopieer alle vormen van een eerdere training naar <b>' + esc(formatDateShort(d)) + '</b>. Vormen die hier al inhoud hebben, blijven staan.' +
+        '<div style="margin-top:10px;"><select id="overneemVan" style="font-size:16px; padding:8px; border-radius:10px; width:100%;">' +
+        datums.map(function(x){ return '<option value="' + x + '">' + esc(formatDateShort(x) + " " + x.slice(0, 4)) + ' · ' + Store.getOefs(x).length + ' vormen</option>'; }).join("") + '</select></div>' }).then(function(ok){
+      if (!ok) return;
+      var van = ($("overneemVan") || {}).value; if (!van) return;
+      var rows = Store.getOefs(van).filter(function(src){ return !Store.getOef(d, src.onderdeel, src.volgnr); })
+        .map(function(src){ return kopieRij(src, d, src.onderdeel, src.volgnr, null); });
+      if (!rows.length){ showToast("Alle vormen van deze training hebben al inhoud"); return; }
+      rows.reduce(function(p, row){ return p.then(function(){ return Store.saveOef(row); }); }, Promise.resolve())
+        .then(function(){ showToast(rows.length + (rows.length === 1 ? " vorm" : " vormen") + " overgenomen (nog bezig)"); })
+        .catch(function(err){ console.error(err); showToast("Overnemen mislukt"); });
+    });
+  }
+
   function openTrainingView(d){
     var per = trainingPeriod(d) || {}, plan = Store.getPlan(d) || {};
     var nl = function(t){ return esc(t || "").replace(/\n/g, "<br>"); };
@@ -3860,6 +4142,7 @@
   }
   $("closeTv").addEventListener("click", function(){ $("tvOverlay").hidden = true; });
   $("closeTrap").addEventListener("click", function(){ $("trapOverlay").hidden = true; });
+  $("closeBank").addEventListener("click", function(){ $("bankOverlay").hidden = true; });
   $("tvOverlay").addEventListener("click", function(e){ if (e.target === $("tvOverlay")) $("tvOverlay").hidden = true; });
   document.addEventListener("keydown", function(e){
     if (e.key !== "Escape" || !$("confirmOverlay").hidden) return;
@@ -6643,7 +6926,7 @@
   (function(){
     var CLOSERS = { playerCardOverlay: "closePlayerCard", nameGameOverlay: "closeNameGame", scoreOverlay: "closeScoreSheet",
       evalOverlay: "closeEvalSheet", scoutOverlay: "closeScoutSheet", pwOverlay: "closePwSheet", oefOverlay: "closeOefSheet",
-      tvOverlay: "closeTv", rosterOverlay: "closeRoster", rolesOverlay: "closeRoles", trapOverlay: "closeTrap",
+      tvOverlay: "closeTv", rosterOverlay: "closeRoster", rolesOverlay: "closeRoles", trapOverlay: "closeTrap", bankOverlay: "closeBank",
       playerOverlay: "closePlayerSheet", fotoLightbox: "closeFotoLightbox", drawOverlay: "drawCancel" };
     var open = [], pushed = false, ignorePop = false;
     function sync(){
