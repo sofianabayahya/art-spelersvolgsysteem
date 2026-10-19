@@ -216,6 +216,9 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   Spelers auto-fill kolommen (min 160px); Aanwezig rijen in kolommen (min 360px) en bedieningskaart op één regel;
   Training: weekstrook (`#trWeeks`, alle trainingen van het blok met "x van 5", klik = naar die training) en A/B/C
   naast elkaar (`.tr-ocols`, per kolom 2 tegels naast elkaar: hele training op één scherm). Telefoon ongewijzigd (weekstrook verborgen).
+- Oefenvorm-venster op de laptop schermvullend (KNVB-indeling): tekening links in een groot vak (leeg = gestippeld vak met
+  "Tekening maken"), velden rechts in twee kolommen en compact (Sofian: zo min mogelijk scrollen). Let op: de basisregel
+  `.sheet{max-width:520px}` staat laat in de stylesheet; brede vensters daarom met `.sheet.oef-sheet` / `.sheet.tv-sheet`.
 
 ## Git zonder git
 De Command Line Developer Tools (en dus `git`) zijn nog niet geïnstalleerd. Tot die tijd:

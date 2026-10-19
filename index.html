@@ -444,12 +444,14 @@
   /* Laptop: tekening links (blijft staan tijdens scrollen), velden rechts. Telefoon: tekening bovenaan. */
   @media (min-width:900px){
     #oefOverlay{ align-items:center; padding:20px; }
-    .oef-sheet{ max-width:1180px; border-radius:20px; max-height:94vh; }
+    .sheet.oef-sheet{ max-width:1180px; border-radius:20px; max-height:94vh; }
     .oef-body{ display:grid; grid-template-columns:minmax(0, 1.15fr) minmax(0, 1fr); gap:22px; align-items:start; }
     .oef-left{ position:sticky; top:0; }
     .oef-left .oef-tek img{ max-height:70vh; }
   }
   .oef-meta{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+  .oef-tek-leeg{ aspect-ratio:3 / 2; max-height:360px; width:100%; border:2px dashed var(--border); border-radius:12px; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:10px; color:var(--ink-muted); font-size:14px; background:var(--surface-alt); }
   .oef-tek img{ width:100%; max-height:360px; object-fit:contain; border-radius:10px; background:#fff; display:block; }
   .oef-actions{ display:flex; gap:8px; margin-top:6px; }
   .oef-actions .btn{ flex:1; justify-content:center; }
@@ -492,8 +494,8 @@
   .tr-tile-st{ display:flex; flex-wrap:wrap; gap:4px; }
   .tr-tile-st .pill{ font-size:11px; }
   .tr-orow-pills .pill{ border:none; cursor:pointer; font-family:inherit; }
-  .tv-sheet{ max-width:1100px; }
-  @media (min-width:600px){ #tvOverlay{ align-items:center; } .tv-sheet{ border-radius:20px; max-height:92vh; } }
+  .sheet.tv-sheet{ max-width:1100px; }
+  @media (min-width:600px){ #tvOverlay{ align-items:center; } .sheet.tv-sheet{ border-radius:20px; max-height:92vh; } }
   .tv-meta{ font-size:13px; color:var(--ink-muted); margin:-6px 0 12px; }
   .tv-onderdeel{ border-top:2px solid var(--border); padding:12px 0; }
   .tv-onderdeel h4{ display:flex; align-items:center; gap:8px; font:700 19px "Barlow Condensed",sans-serif; margin:0 0 8px; flex-wrap:wrap; }
@@ -1020,6 +1022,25 @@
     .tr-ocols .tr-row-mine{ border:2px solid var(--accent); margin-left:0; padding-left:12px; }
     .tr-ocols .tr-tiles{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
     .tr-ocols .tr-tile{ background:var(--surface); }
+    /* Oefenvorm-venster schermvullend, zoals de KNVB-planner: tekening links (blijft staan), tekst rechts (scrollt). */
+    #oefOverlay{ align-items:stretch; padding:16px; }
+    .sheet.oef-sheet{ max-width:1680px; width:100%; height:100%; max-height:none; border-radius:20px; display:flex; flex-direction:column; overflow:hidden; padding:18px 24px 20px; }
+    .oef-sheet .sheet-head h3{ font-size:24px; }
+    .oef-sheet .oef-body{ flex:1; min-height:0; display:grid; grid-template-columns:minmax(0, 1.3fr) minmax(0, 1fr); gap:28px; align-items:stretch; }
+    .oef-sheet .oef-left{ position:static; overflow:auto; }
+    .oef-sheet .oef-left .oef-tek img, .oef-sheet .oef-left .oef-svg svg{ max-height:calc(100vh - 230px); }
+    .oef-sheet .oef-tek-leeg{ max-height:calc(100vh - 230px); }
+    .oef-sheet .oef-right{ overflow-y:auto; min-height:0; padding-right:8px; }
+    /* Rechts zo compact mogelijk: alle velden in twee kolommen, zodat een vorm op één scherm past. */
+    .oef-sheet .oef-meta{ margin-bottom:6px; }
+    .oef-sheet .field{ margin-bottom:10px; gap:3px; }
+    .oef-sheet .field label{ font-size:12.5px; }
+    .oef-sheet .field textarea{ min-height:62px; }
+    #oefPlanFields, #oefEvalFields{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); column-gap:14px; }
+    #oefPlanFields .field-row, #oefEvalFields .field-row{ display:contents; }
+    #oefEvalFields > .field:first-child, #oefEvalFields > .oef-h, #oefEvalFields > .tr-note{ grid-column:span 2; }
+    #oefEvalFields[hidden], #oefPlanFields[hidden]{ display:none !important; }
+    .sheet.tv-sheet{ max-width:1280px; }
   }
 </style>
 </head>
@@ -4777,7 +4798,11 @@
     $("oTekDel").hidden = !s.editable || s.mode !== "plan" || !(s.newBlob || path);
     if (s.newBlob){ wrap.innerHTML = '<img alt="Tekening van de oefenvorm" src="' + URL.createObjectURL(s.newBlob) + '">'; return; }
     if (!path && s.tekJson){ wrap.innerHTML = '<div class="oef-svg">' + DrawTool.staticSvg(s.tekJson) + '</div>'; return; }
-    if (!path){ wrap.innerHTML = '<div class="tr-note">Nog geen tekening.</div>'; return; }
+    if (!path){
+      wrap.innerHTML = '<div class="oef-tek-leeg">' + (s.editable && s.mode === "plan" ? '<button type="button" class="btn primary" id="oTekLeegBtn">Tekening maken</button><span>of een foto/screenshot toevoegen hieronder</span>' : '<span>Nog geen tekening</span>') + '</div>';
+      if ($("oTekLeegBtn")) $("oTekLeegBtn").onclick = function(){ $("oDrawBtn").click(); };
+      return;
+    }
     wrap.innerHTML = '<div class="tr-note">Laden…</div>';
     Store.getTekeningUrl(path).then(function(url){
       if (oefState === s) wrap.innerHTML = '<a href="' + esc(url) + '" target="_blank" rel="noopener"><img alt="Tekening van de oefenvorm" src="' + esc(url) + '"></a>';
