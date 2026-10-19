@@ -604,6 +604,14 @@
   .uitleg-stap{ font-size:12px; color:var(--ink-muted); font-weight:700; }
   .uitleg-sheet h3{ margin:4px 0 6px; font-size:22px; }
   .uitleg-sheet p{ font-size:16px; line-height:1.5; margin:0 0 14px; }
+  .aj-sam{ font-weight:600; }
+  .aj-blok{ display:flex; flex-direction:column; gap:6px; border-top:1px solid var(--border); padding-top:10px; }
+  .aj-uitleg{ font-size:12px; color:var(--ink-muted); }
+  .aj-r{ display:flex; align-items:center; gap:8px; font-size:15px; }
+  .aj-r input[type=checkbox]{ width:18px; height:18px; flex:0 0 auto; }
+  .aj-naam{ flex:1; min-width:0; font:16px "Barlow",sans-serif; padding:6px 8px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--ink); }
+  .aj-r select{ font:15px "Barlow",sans-serif; padding:6px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); }
+  .aj-l{ font-size:12px; color:var(--ink-muted); }
   .arch-kies summary{ cursor:pointer; font-weight:600; margin-top:12px; color:var(--ink-muted); }
   .arch-k{ display:flex; align-items:center; gap:8px; padding:4px 0; font-size:15px; cursor:pointer; }
   .arch-k input{ width:18px; height:18px; }
@@ -4151,6 +4159,112 @@
     return { start: start, misschien: misschien };
   })();
 
+  /* Lijst van Ajax vergelijken (Instellingen → Spelers beheren): plak de tekst van de Ajax-lijst (pdf of Excel).
+     De app haalt de namen + geboortejaren eruit, legt ze naast de spelers (ook archief) en stelt voor wat er moet
+     gebeuren: nieuw toevoegen, terug uit archief, spelling aanpassen, archiveren wie er niet meer op staat.
+     Niets gebeurt zonder vinkje + bevestiging. Namen die in de pdf aan elkaar plakken worden per twee woorden gesplitst
+     (bekende namen gaan voor); nieuwe namen zijn daarom nog aan te passen voordat je ze toevoegt. */
+  var AJAX_RUIS = ["voor-", "voor", "en", "achternaam", "geboortejaar", "q", "#", "wedstrijdbeoordeling", "potentieel", "niveau",
+    "rank", "advies", "of", "naam", "jaar", "kwartaal", "hesje", "lichting"];
+  var NAAM_TUSSEN = ["de", "da", "van", "der", "den", "el", "ten", "ter", "la", "le", "dos", "du", "del", "di", "do", "al", "bin"];
+  function naamKey(s){ return String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z ]/g, "").replace(/\s+/g, " ").trim(); }
+  function lev(a, b){
+    var m = a.length, n = b.length, d = [], i, j;
+    for (i = 0; i <= m; i++){ d[i] = [i]; }
+    for (j = 1; j <= n; j++) d[0][j] = j;
+    for (i = 1; i <= m; i++) for (j = 1; j <= n; j++) d[i][j] = Math.min(d[i-1][j] + 1, d[i][j-1] + 1, d[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+    return d[m][n];
+  }
+  function lijkt(a, b){ var x = naamKey(a), y = naamKey(b); if (x === y) return 0; var d = lev(x, y); return d <= (Math.min(x.length, y.length) >= 10 ? 2 : 1) ? d : -1; }
+  function parseAjaxLijst(text, bekend){
+    var toks = String(text || "").replace(/A\s*\/\s*B\s*\/\s*C\s*\/\s*D/g, " ").split(/[\s,;|]+/).filter(function(t){ return t; });
+    var naamWoord = function(t){
+      if (AJAX_RUIS.indexOf(t.toLowerCase()) !== -1) return false;
+      if (/^[^A-Za-zÀ-ɏ]/.test(t)) return false;           // begint met (, #, cijfer
+      if (t.length > 1 && t === t.toUpperCase()) return false;        // ADVIES, UITSTROOM
+      return /^[A-ZÀ-Þ]/.test(t) || NAAM_TUSSEN.indexOf(t.toLowerCase()) !== -1;
+    };
+    var runs = [], run = [], jaren = [];
+    toks.forEach(function(t){
+      if (/^20\d\d$/.test(t)) jaren.push(Number(t));
+      if (naamWoord(t)) run.push(t); else { if (run.length) runs.push(run); run = []; }
+    });
+    if (run.length) runs.push(run);
+    var namen = [];
+    runs.forEach(function(r){
+      while (r.length && NAAM_TUSSEN.indexOf(r[0].toLowerCase()) !== -1) r.shift();     // tussenvoegsel vooraan hoort er niet bij
+      var i = 0;
+      while (i < r.length){
+        var best = null;
+        for (var len = Math.min(5, r.length - i); len >= 2 && !best; len--){
+          var kand = r.slice(i, i + len).join(" ");
+          bekend.forEach(function(p){ var d = lijkt(kand, p.naam); if (d !== -1 && (!best || d < best.d)) best = { p: p, d: d, len: len, naam: kand }; });
+        }
+        if (best){ namen.push({ naam: best.naam, p: best.p }); i += best.len; continue; }
+        var j = i + 1;
+        while (j < r.length && NAAM_TUSSEN.indexOf(r[j].toLowerCase()) !== -1) j++;   // "Mase da Veiga": tussenvoegsels erbij
+        j = Math.min(j + 1, r.length);
+        if (j - i < 2){ i = j; continue; }                                               // los woord: geen naam
+        namen.push({ naam: r.slice(i, j).join(" "), p: null }); i = j;
+      }
+    });
+    if (jaren.length === namen.length) namen.forEach(function(n, k){ n.jaar = jaren[k]; });
+    return namen;
+  }
+  function renderAjaxVergelijk(){
+    var el = $("ajaxResult"), tekst = $("fAjaxPaste").value;
+    var actief = Store.getPlayers(), archief = Store.getArchief();
+    var namen = parseAjaxLijst(tekst, actief.concat(archief));
+    if (!namen.length){ el.innerHTML = '<div class="hint">Geen namen gevonden. Kopieer de hele lijst uit de pdf of het Excel-bestand en plak hem hierboven.</div>'; return; }
+    var gezien = {}, nieuw = [], terug = [], spelling = [], ok = 0;
+    namen.forEach(function(n){
+      if (n.p){
+        if (gezien[n.p.id]) return; gezien[n.p.id] = 1;
+        if (n.p.archivedAt) terug.push(n);
+        else if (naamKey(n.naam) !== naamKey(n.p.naam) || n.naam !== n.p.naam && lijkt(n.naam, n.p.naam) > 0) spelling.push(n);
+        else ok++;
+      } else nieuw.push(n);
+    });
+    var weg = actief.filter(function(p){ return !gezien[p.id]; });
+    var lOpt = function(jaar){ return LICHTINGEN.map(function(l){ return '<option value="' + l.key + '"' + (l.key === "l" + jaar ? " selected" : "") + '>' + esc(l.label) + '</option>'; }).join(""); };
+    var blok = function(titel, uitleg, items){ return items.length ? '<div class="aj-blok"><b>' + titel + ' (' + items.length + ')</b><div class="aj-uitleg">' + uitleg + '</div>' + items.join("") + '</div>' : ''; };
+    el.innerHTML =
+      '<div class="aj-sam">' + namen.length + ' namen op de lijst · ' + ok + ' kloppen al</div>' +
+      blok("Nieuw", "Pas de naam aan als hij niet goed is overgenomen.", nieuw.map(function(n, i){
+        return '<div class="aj-r"><input type="checkbox" checked data-aj="nieuw" data-i="' + i + '"><input type="text" class="aj-naam" data-aj-naam="' + i + '" value="' + esc(n.naam) + '"><select data-aj-l="' + i + '">' + lOpt(n.jaar) + '</select></div>'; })) +
+      blok("Terug uit het archief", "Stond in het archief en staat weer op de lijst.", terug.map(function(n, i){
+        return '<label class="aj-r"><input type="checkbox" checked data-aj="terug" data-i="' + i + '"> ' + esc(n.p.naam) + ' <span class="aj-l">' + esc(lichtingLabel(n.p.lichting)) + '</span></label>'; })) +
+      blok("Spelling anders", "Naam in de app aanpassen naar de spelling van Ajax.", spelling.map(function(n, i){
+        return '<label class="aj-r"><input type="checkbox" checked data-aj="spelling" data-i="' + i + '"> ' + esc(n.p.naam) + ' &rarr; <b>' + esc(n.naam) + '</b></label>'; })) +
+      blok("Niet meer op de lijst", "Archiveren: uit beeld, gegevens blijven bewaard.", weg.map(function(p, i){
+        return '<label class="aj-r"><input type="checkbox" checked data-aj="weg" data-i="' + i + '"> ' + esc(p.naam) + ' <span class="aj-l">' + esc(lichtingLabel(p.lichting)) + '</span></label>'; })) +
+      (nieuw.length + terug.length + spelling.length + weg.length ? '<button class="btn primary" id="ajaxApplyBtn">Aangevinkte wijzigingen doorvoeren</button>' : '<div class="hint">Alles klopt: de spelers in de app zijn gelijk aan de lijst.</div>');
+    if (!$("ajaxApplyBtn")) return;
+    $("ajaxApplyBtn").onclick = function(){
+      var aan = function(soort){ return Array.prototype.filter.call(el.querySelectorAll('[data-aj="' + soort + '"]'), function(c){ return c.checked; }).map(function(c){ return Number(c.getAttribute("data-i")); }); };
+      var toe = aan("nieuw").map(function(i){ return { naam: el.querySelector('[data-aj-naam="' + i + '"]').value.trim(), lichting: el.querySelector('[data-aj-l="' + i + '"]').value }; }).filter(function(r){ return r.naam; });
+      var tr = aan("terug").map(function(i){ return terug[i].p; }), sp = aan("spelling").map(function(i){ return spelling[i]; }), wg = aan("weg").map(function(i){ return weg[i]; });
+      if (!toe.length && !tr.length && !sp.length && !wg.length){ showToast("Niets aangevinkt"); return; }
+      var regels = [];
+      if (toe.length) regels.push("<b>Toevoegen:</b> " + toe.map(function(r){ return esc(r.naam); }).join(", "));
+      if (tr.length) regels.push("<b>Terug uit archief:</b> " + tr.map(function(p){ return esc(p.naam); }).join(", "));
+      if (sp.length) regels.push("<b>Spelling:</b> " + sp.map(function(n){ return esc(n.p.naam) + " &rarr; " + esc(n.naam); }).join(", "));
+      if (wg.length) regels.push("<b>Archiveren:</b> " + wg.map(function(p){ return esc(p.naam); }).join(", "));
+      confirmDialog({ title: "Wijzigingen doorvoeren?", messageHtml: regels.join("<br>"), confirmLabel: "Doorvoeren", danger: false }).then(function(ok){
+        if (!ok) return;
+        $("ajaxApplyBtn").disabled = true;
+        var stap = Promise.resolve();
+        toe.forEach(function(r){ stap = stap.then(function(){ return Store.addPlayer(r); }); });
+        sp.forEach(function(n){ stap = stap.then(function(){ return Store.updatePlayer(n.p.id, { naam: n.naam }); }); });
+        if (tr.length) stap = stap.then(function(){ return Store.setArchived(tr.map(function(p){ return p.id; }), false); });
+        if (wg.length) stap = stap.then(function(){ return Store.setArchived(wg.map(function(p){ return p.id; }), true); });
+        stap.then(function(){
+          showToast("Spelerslijst bijgewerkt"); $("fAjaxPaste").value = ""; renderInstellingen(); renderAll();
+        }).catch(function(err){ console.error(err); showToast("Er ging iets mis; bekijk de lijst en probeer het nog eens"); renderInstellingen(); });
+      });
+    };
+  }
+
   // Archiveren (hoofdtrainer): spelers uit beeld zonder iets te verwijderen; terugzetten in Instellingen → Archief.
   function archiveerSpelers(ps){
     if (!ps.length) return;
@@ -5609,6 +5723,12 @@
       '<div id="profilesList" style="display:flex; flex-direction:column; gap:10px;">' + rows + '</div>' +
       '</div></details>' +
       '<details class="set-group" data-group="spelers"' + (settingsOpen.spelers ? ' open' : '') + '><summary>Spelers beheren</summary><div class="set-body">' +
+      '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Lijst van Ajax vergelijken</h2></div>' +
+      '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Nieuwe lijst van scouting voor een blok? Open de pdf of het Excel-bestand, selecteer alles (Cmd+A), kopieer (Cmd+C) en plak het hier. De app laat zien wie er nieuw is, wie er niet meer op staat, wie terug kan uit het archief en waar de spelling anders is. Je kiest zelf wat er gebeurt.</div>' +
+      '<div class="card" style="padding:14px; display:flex; flex-direction:column; gap:10px;">' +
+      '<textarea id="fAjaxPaste" rows="5" placeholder="Plak hier de hele lijst van Ajax"></textarea>' +
+      '<button class="btn primary" id="ajaxCompareBtn">Vergelijken</button>' +
+      '<div id="ajaxResult" style="display:flex; flex-direction:column; gap:12px;"></div></div>' +
       '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Nieuwe speler</h2></div>' +
       '<button class="btn primary" id="settingsAddPlayerBtn">+ Speler toevoegen</button>' +
       '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Spelerslijst importeren</h2></div>' +
@@ -5713,6 +5833,7 @@
       d.addEventListener("toggle", function(){ settingsOpen[d.getAttribute("data-group")] = d.open; });
     });
     $("settingsAddPlayerBtn").addEventListener("click", function(){ openPlayerSheet(null); });
+    $("ajaxCompareBtn").addEventListener("click", renderAjaxVergelijk);
     vulPrivacy();
     fillPlayerPhotos($("trashList"));
     fillPlayerPhotos($("archiefList"));

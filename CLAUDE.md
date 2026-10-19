@@ -181,6 +181,13 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
 - Spelerskaart (hoofdtrainer): knop "Archiveren". Instellingen → Spelers beheren → Archief: lijst met "Terugzetten" en
   "Meerdere spelers tegelijk archiveren" (vinkjes per lichting). Bedoeld voor gastspelers van toernooien: oordelen,
   notities en beoordelingen blijven; het toernooirapport neemt gearchiveerde spelers mee.
+- "Lijst van Ajax vergelijken" (Instellingen → Spelers beheren, `parseAjaxLijst`, `renderAjaxVergelijk`): plak de tekst
+  van de Ajax-pdf/Excel; namen + jaren worden eruit gehaald (pdf-pagina's plakken namen aan elkaar: bekende namen gaan voor,
+  rest per 2 woorden + tussenvoegsels; jaren op volgorde gekoppeld als het aantal klopt). Voorstel met vinkjes: nieuw
+  (naam/lichting aanpasbaar), terug uit archief, spelling (fuzzy, Levenshtein ≤1, ≥10 tekens ≤2), niet meer op de lijst →
+  archiveren. Pas na bevestiging. Getest met "ART 2 AS'80.pdf" (blok 2, 24 namen).
+- Blok 2 (2026-10-19): Ian Ringeling, Mason Crawford (2017), Kabilan Dilip (2016) toegevoegd (nog geen hesje/Q);
+  Anass Belhaj en Amin el Aakel gearchiveerd; Royce Kinman → Royce Kimman.
 - Niet de prullenbak gebruiken voor gasten: die verwijdert na 30 dagen definitief (met hun toernooi-oordelen).
 
 ## Na het platformdocument (2026-10-17)
