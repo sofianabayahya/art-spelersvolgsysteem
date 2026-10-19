@@ -577,6 +577,37 @@
   .ttl-knoppen{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; padding-top:10px; }
   .ttl-knoppen .btn{ font-size:17px; padding:12px 18px; }
   .ttl-go{ font-size:22px !important; padding:16px 22px !important; width:100%; justify-content:center; }
+  /* Zoeken, Voor jou, tijdlijn, uitleg */
+  .sp-zoek{ display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:0 12px; }
+  .sp-zoek svg{ width:18px; height:18px; color:var(--ink-muted); flex:0 0 auto; }
+  .sp-zoek input{ flex:1; min-width:0; border:none; background:transparent; color:var(--ink); font:16px "Barlow",sans-serif; padding:11px 0; outline:none; }
+  .sp-zoek:focus-within{ border-color:#00B3FF; box-shadow:0 0 0 2px rgba(0,179,255,.25); }
+  .pcard.pc-hit{ outline:3px solid #00B3FF; outline-offset:2px; }
+  .vj{ background:#FFF4D6; color:#4a3a00; border-radius:14px; padding:10px 12px; display:flex; flex-direction:column; gap:2px; }
+  .vj-h{ display:flex; align-items:center; gap:8px; font-weight:700; margin-bottom:4px; }
+  .vj-h svg, .vj-i svg{ width:18px; height:18px; flex:0 0 auto; }
+  .vj-r{ display:flex; align-items:flex-start; gap:6px; }
+  .vj-i{ flex:1; display:flex; align-items:flex-start; gap:8px; text-align:left; background:none; border:none; color:inherit; font:15px "Barlow",sans-serif; padding:6px 0; cursor:pointer; }
+  .vj-i span{ text-decoration:underline; text-decoration-color:rgba(74,58,0,.35); text-underline-offset:3px; }
+  .vj-x{ background:none; border:none; color:inherit; font-size:20px; line-height:1; padding:4px 6px; cursor:pointer; opacity:.7; }
+  .tab-badge{ position:absolute; top:4px; left:calc(50% + 6px); min-width:18px; height:18px; padding:0 5px; border-radius:999px; background:#C62828; color:#fff; font:700 11px/18px "Barlow",sans-serif; text-align:center; }
+  nav.tabbar button{ position:relative; }
+  .tl{ margin-top:10px; border-top:1px solid var(--border); padding-top:8px; }
+  .tl-h{ font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:var(--ink-muted); margin-bottom:4px; }
+  .tl-r{ display:flex; gap:10px; padding:6px 0; border-bottom:1px solid var(--border); font-size:14px; align-items:flex-start; }
+  .tl-r:last-child{ border-bottom:none; }
+  .tl-k{ min-width:96px; color:var(--ink-muted); font-size:13px; }
+  .tl-v small{ color:var(--ink-muted); }
+  .tl-plus{ color:var(--good); } .tl-min{ color:var(--low); }
+  .uitleg-sheet{ max-width:420px; border-radius:20px; }
+  @media (min-width:600px){ #uitlegOverlay{ align-items:center; } }
+  .uitleg-stap{ font-size:12px; color:var(--ink-muted); font-weight:700; }
+  .uitleg-sheet h3{ margin:4px 0 6px; font-size:22px; }
+  .uitleg-sheet p{ font-size:16px; line-height:1.5; margin:0 0 14px; }
+  .arch-kies summary{ cursor:pointer; font-weight:600; margin-top:12px; color:var(--ink-muted); }
+  .arch-k{ display:flex; align-items:center; gap:8px; padding:4px 0; font-size:15px; cursor:pointer; }
+  .arch-k input{ width:18px; height:18px; }
+  .arch-geen{ font-size:12px; color:var(--ink-muted); }
   /* Vormenbank */
   .bank-q{ width:100%; box-sizing:border-box; font:16px "Barlow",sans-serif; padding:9px 12px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--ink); }
   .bank-f{ display:flex; gap:6px; flex-wrap:wrap; }
@@ -1005,6 +1036,7 @@
             <button type="button" data-view-as="scout">Scout</button>
           </div>
           <button type="button" id="menuInstellingenBtn" hidden>Instellingen</button>
+          <button type="button" id="menuUitlegBtn">Uitleg bekijken</button>
           <button type="button" id="menuPwBtn">Wachtwoord wijzigen</button>
           <button type="button" id="menuLogoutBtn" class="danger">Uitloggen</button>
         </div>
@@ -1029,6 +1061,8 @@
       </div>
       <span class="count" id="spelersCount"></span>
     </div>
+    <label class="sp-zoek"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4" stroke-linecap="round"/></svg>
+      <input type="search" id="spelersZoek" placeholder="Zoek op nummer of naam" autocomplete="off" enterkeyhint="search" aria-label="Zoek speler op nummer of naam"></label>
     <button type="button" class="ng-entry" id="ngEntry"><span class="ng-ico">Aa</span><span><b>Namen oefenen</b><small id="ngEntrySub"></small></span><span class="ng-go">&rsaquo;</span></button>
     <div id="spelersList" class="player-grid"></div>
   </section>
@@ -1123,11 +1157,6 @@
     <div id="toernooiWrap" style="display:flex; flex-direction:column; gap:12px;"></div>
   </section>
 
-  <section class="panel" id="panel-avs" hidden>
-    <div class="section-title"><h2>AVS</h2></div>
-    <div id="avsWrap" style="display:flex; flex-direction:column; gap:12px;"></div>
-  </section>
-
   <section class="panel" id="panel-instellingen" hidden>
     <div class="section-title">
       <h2>Instellingen</h2>
@@ -1148,15 +1177,11 @@
   </button>
   <button class="tab-btn" data-tab="training">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9h16M8 3v4M16 3v4M9 14l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    <span class="tab-label">Training</span>
+    <span class="tab-label">Training</span><span class="tab-badge" id="trainingBadge" hidden></span>
   </button>
   <button class="tab-btn" data-tab="toernooi">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5v1a3 3 0 0 0 3 3M16 6h3v1a3 3 0 0 1-3 3M12 13v4M8 20h8M10 17h4v3h-4z" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <span class="tab-label">Toernooi</span>
-  </button>
-  <button class="tab-btn" data-tab="avs">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 7l3 2-1 4h-4l-1-4zM12 7V4M15 9l3-1M14 13l2 3M10 13l-2 3M9 9L6 8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    <span class="tab-label">AVS</span>
   </button>
   <button class="tab-btn" data-tab="overzicht">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V10M12 19V5M20 19v-7" stroke-linecap="round"/></svg>
@@ -1280,6 +1305,15 @@
     <div class="oef-feedback" id="oefReactie"></div>
     </div>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="uitlegOverlay" hidden>
+  <div class="sheet uitleg-sheet" role="dialog" aria-modal="true" aria-labelledby="uitlegTitel">
+    <div class="uitleg-stap" id="uitlegStap"></div>
+    <h3 id="uitlegTitel"></h3>
+    <p id="uitlegTekst"></p>
+    <div class="btn-row"><button type="button" class="btn ghost" id="uitlegOverslaan">Overslaan</button><button type="button" class="btn primary" id="uitlegVolgende">Volgende</button></div>
   </div>
 </div>
 
@@ -1893,7 +1927,7 @@
 
   /* ---------- Store: Supabase-backed data laag ---------- */
   var Store = (function(){
-    var trash = [];
+    var trash = [], archief = [];
     var players = [], scores = [], evaluations = [], scoutReports = [], cancelled = [], profiles = {};
     var listeners = { players: [], scores: [], settings: [], evals: [], scout: [], training: [] };
     var modeCb = function(){};
@@ -1906,7 +1940,7 @@
 
     function mapPlayer(row){
       return { id: row.id, hesje: row.hesje, naam: row.naam, lichting: row.lichting, q: row.q,
-        rank: row.rank, advies: row.advies, attendance: row.attendance || {}, fotoPath: row.foto_path || null, deletedAt: row.deleted_at || null };
+        rank: row.rank, advies: row.advies, attendance: row.attendance || {}, fotoPath: row.foto_path || null, deletedAt: row.deleted_at || null, archivedAt: row.archived_at || null };
     }
     function mapScore(row){
       return { id: row.id, playerId: row.player_id, trainerId: row.trainer_id, trainerName: beoordelaarNaam(row.trainer_id, row.trainer_naam),
@@ -1944,7 +1978,8 @@
       return sb.from("players").select("*").then(function(res){
         if (res.error){ console.error(res.error); return; }
         var all = (res.data || []).map(mapPlayer);
-        players = all.filter(function(p){ return !p.deletedAt; });
+        players = all.filter(function(p){ return !p.deletedAt && !p.archivedAt; });
+        archief = all.filter(function(p){ return !p.deletedAt && p.archivedAt; }); // alleen gevuld voor de hoofdtrainer (RLS)
         trash = all.filter(function(p){ return p.deletedAt; }); // alleen gevuld voor de hoofdtrainer (RLS)
         emit("players");
       });
@@ -2026,6 +2061,8 @@
       return q.then(function(res){ if (res.error) throw res.error; return loadTraining(); });
     }
     function getFeedback(oefId){ return feedback.filter(function(f){ return f.oefenvorm_id === oefId; }); }
+    function getAllFeedback(){ return feedback.slice(); }
+    function getAllReacties(){ return reacties.slice(); }
     function addFeedback(oefId, soort, tekst){
       return sb.from("oefenvorm_feedback").insert({ oefenvorm_id: oefId, auteur_id: myUserId(), soort: soort, tekst: tekst }).then(function(res){
         if (res.error) throw res.error;
@@ -2172,6 +2209,14 @@
       });
     }
     function getTrash(){ return trash.slice(); }
+    // Archief: speler uit beeld (niet weg). Trainers en scouts zien hem niet (RLS); terugzetten = archived_at leeg.
+    function setArchived(ids, aan){
+      return sb.from("players").update({ archived_at: aan ? new Date().toISOString() : null }).in("id", ids).then(function(res){
+        if (res.error) throw res.error;
+        return loadPlayers();
+      });
+    }
+    function getArchief(){ return archief.slice(); }
 
     // Signed URLs 24 uur geldig en bewaard op dit toestel, zodat de browser de foto's kan cachen
     // (een nieuwe URL per keer = elke keer opnieuw downloaden). Wordt gewist bij uitloggen.
@@ -2374,14 +2419,14 @@
 
     return {
       getPlan: getPlan, savePlan: savePlan, savePlans: savePlans, getOefs: getOefs, getAllOefs: getAllOefs, getOef: getOef, saveOef: saveOef, getFeedback: getFeedback,
-      addFeedback: addFeedback, deleteFeedback: deleteFeedback, getReactie: getReactie, saveReactie: saveReactie,
+      addFeedback: addFeedback, deleteFeedback: deleteFeedback, getReactie: getReactie, saveReactie: saveReactie, getAllFeedback: getAllFeedback, getAllReacties: getAllReacties,
       getBeoordelaars: getBeoordelaars, saveBeoordelaars: saveBeoordelaars, getOordelen: getOordelen, setOordeel: setOordeel,
       getNotitie: getNotitie, setNotitie: setNotitie, toernooiDatums: toernooiDatums, uploadTekening: uploadTekening, getTekeningUrl: getTekeningUrl, onTraining: onTraining,
       init: init, onPlayers: onPlayers, onScores: onScores, onSettings: onSettings, onEvals: onEvals, onScoutReports: onScoutReports, onModeReady: onModeReady,
       getPlayers: getPlayers, getScores: getScores, getCancelled: getCancelled, getEvaluations: getEvaluations, getScoutReports: getScoutReports, getMode: getMode,
       getProfiles: getProfiles, updateProfileRole: updateProfileRole, manageUsers: manageUsers, listBackups: listBackups, getBackupData: getBackupData, makeBackup: makeBackup,
       addPlayer: addPlayer, updatePlayer: updatePlayer, deletePlayer: deletePlayer,
-      getTrash: getTrash, restorePlayer: restorePlayer, deletePlayerForever: deletePlayerForever, getFotoUrls: getFotoUrls, clearFotoUrlCache: clearFotoUrlCache, uploadPlayerFoto: uploadPlayerFoto, deletePlayerFoto: deletePlayerFoto,
+      getTrash: getTrash, getArchief: getArchief, setArchived: setArchived, restorePlayer: restorePlayer, deletePlayerForever: deletePlayerForever, getFotoUrls: getFotoUrls, clearFotoUrlCache: clearFotoUrlCache, uploadPlayerFoto: uploadPlayerFoto, deletePlayerFoto: deletePlayerFoto,
       upsertScore: upsertScore, setAttendance: setAttendance, toggleCancelled: toggleCancelled,
       upsertEvaluation: upsertEvaluation, deleteEvaluation: deleteEvaluation,
       addScoutReport: addScoutReport, saveScoutGrade: saveScoutGrade, updateScoutReport: updateScoutReport, deleteScoutReport: deleteScoutReport
@@ -2544,6 +2589,11 @@
     });
   }
 
+  $("spelersZoek").addEventListener("input", function(){ state.zoek = this.value; renderSpelers(); });
+  $("spelersZoek").addEventListener("keydown", function(e){
+    if (e.key === "Enter"){ var hit = zoekSpelers((state.zoek || "").trim())[0]; if (hit){ this.blur(); openPlayerCard(hit.id); } }
+    else if (e.key === "Escape"){ this.value = ""; state.zoek = ""; renderSpelers(); }
+  });
   function filteredPlayers(){
     var players = Store.getPlayers().slice().sort(function(a,b){ return Number(a.hesje||9999) - Number(b.hesje||9999); });
     if (state.lichting === "all") return players;
@@ -2555,7 +2605,7 @@
     state.tab = tab;
     // Tabblad Aanwezig toont het paneel "absenties"; Training beheert zelf zijn sub-panelen.
     var panel = tab === "aanwezig" ? "absenties" : tab;
-    ["spelers","overzicht","training","plan","absenties","evaluatie","bank","toernooi","avs","instellingen"].forEach(function(t){ $("panel-" + t).hidden = t !== panel; });
+    ["spelers","overzicht","training","plan","absenties","evaluatie","bank","toernooi","instellingen"].forEach(function(t){ $("panel-" + t).hidden = t !== panel; });
     Array.prototype.forEach.call(document.querySelectorAll(".tab-btn"), function(btn){
       btn.classList.toggle("active", btn.getAttribute("data-tab") === tab);
     });
@@ -2570,12 +2620,24 @@
 
   /* ---------- SPELERS tab: smoelenboek ----------
      Alleen kijken: grote foto, hesjenummer en geboortekwartaal. Alle acties zitten in de spelerskaart. */
+  // Zoeken (alle lichtingen): exact hesjenummer eerst, dan nummers die ermee beginnen, dan namen.
+  function zoekSpelers(q){
+    q = q.toLowerCase();
+    var num = /^\d+$/.test(q);
+    return Store.getPlayers().map(function(p){
+      var h = String(p.hesje || ""), n = p.naam.toLowerCase(), r = -1;
+      if (h && h === q) r = 0; else if (h && h.indexOf(q) === 0) r = 1; else if (!num && n.indexOf(q) !== -1) r = n.indexOf(q) === 0 ? 2 : 3;
+      return { p: p, r: r };
+    }).filter(function(x){ return x.r !== -1; }).sort(function(a, b){ return a.r - b.r || Number(a.p.hesje || 999) - Number(b.p.hesje || 999); }).map(function(x){ return x.p; });
+  }
   function renderSpelers(){
-    var players = filteredPlayers();
+    var basis = filteredPlayers(), zoek = (state.zoek || "").trim();
+    var players = zoek ? zoekSpelers(zoek) : basis;
+    $("spelersZoek").inputMode = Auth.myRole() === "scout" ? "numeric" : "search";
     $("spelersCount").textContent = players.length + (players.length === 1 ? " speler" : " spelers");
     // Namen oefenen: alleen voor trainers en de hoofdtrainer (scouts komen vaak maar één keer).
     var mayPractice = Auth.isHoofdtrainer() || Auth.myRole() === "trainer";
-    $("ngEntry").hidden = !players.length || !mayPractice;
+    $("ngEntry").hidden = !players.length || !mayPractice || !!zoek;
     if (players.length && mayPractice) $("ngEntrySub").textContent = NameGame.entryText();
     var rates = canRate();
     $("rateBar").hidden = !rates || !players.length;
@@ -2583,6 +2645,10 @@
     var blokSel = $("spelersBlokSelect");
     if (blokSel.value !== String(state.beoordelenBlok)) blokSel.value = String(state.beoordelenBlok);
     var list = $("spelersList");
+    if (zoek && !players.length){
+      list.innerHTML = '<div class="empty card" style="grid-column:1 / -1;"><div class="t">Geen speler gevonden</div><div class="d">Niemand met nummer of naam “' + esc(zoek) + '”.</div></div>';
+      return;
+    }
     if (!players.length){
       list.innerHTML = '<div class="empty card" style="grid-column:1 / -1;">' + emptySvg +
         '<div class="t">Nog geen spelers</div>' +
@@ -2603,7 +2669,7 @@
       var photo = p.fotoPath
         ? '<img class="pc-img" data-ident-photo="' + p.id + '" data-foto-path="' + esc(p.fotoPath) + '" alt="">'
         : '<div class="pc-img pc-empty">' + personSvg + '</div>';
-      return '<button type="button" class="pcard" data-card="' + p.id + '" aria-label="' + esc(p.naam) + '">' +
+      return '<button type="button" class="pcard' + (zoek && String(p.hesje || "") === zoek ? ' pc-hit' : '') + '" data-card="' + p.id + '" aria-label="' + esc(p.naam) + '">' +
         '<div class="pc-photo">' + photo + (done ? '<span class="pc-done" title="Door jou beoordeeld in ' + esc(blokLabel(state.beoordelenBlok)) + '">&#10003;</span>' : '') + '</div>' +
         '<div class="pc-info">' +
         '<span class="pc-hesje' + (p.hesje ? '' : ' none') + '">' + (p.hesje ? esc(p.hesje) : "–") + '</span>' +
@@ -2612,6 +2678,8 @@
         '</div>' +
         '<div class="pc-name">' + esc(p.naam) + '</div></button>';
     }).join("");
+    if (zoek) doneCount = basis.filter(function(p){ return rates && ratedByMe(p.id); }).length; // voortgang blijft over de hele lijst
+    players = zoek ? basis : players;
     if (rates){
       $("rateProgress").innerHTML = '<b>' + doneCount + '/' + players.length + '</b> <span class="rp-check">&#10003;</span>';
       $("rateProgress").title = doneCount + " van " + players.length + " door jou beoordeeld in " + blokLabel(state.beoordelenBlok);
@@ -2816,13 +2884,11 @@
         (att.flagged ? ' <span style="color:var(--low);">!</span>' : '') : "nog geen trainingen");
     }
     if (isHoofd){
-      var gs = gradeSummary(p.id, blok);
-      row("Trainers &middot; " + esc(blokLabel(blok)), gs.tW || gs.tP ? letterPair(gs.tW, gs.tP) : "nog niet beoordeeld");
-      row("Scouts &middot; " + esc(blokLabel(blok)), gs.sW || gs.sP ? letterPair(gs.sW, gs.sP) : "nog niet gescout");
       var st = starInfo(p.id);
       row("Ster", st.star ? '<span style="color:var(--mid);">&#9733; ' + st.total + '&times; A/B</span>' : st.total + "&times; A/B (ster vanaf " + Branding.getScoutDrempel() + ")");
       var ad = ADVIES_OPTIONS.find(function(o){ return o.value === String(p.advies || ""); });
       row("Advies", p.advies ? esc(ad ? ad.label : p.advies) : "nog geen advies");
+      rows.push(tijdlijnHtml(p));
     } else if (role === "trainer"){
       var mine = Store.getScores().find(function(s){ return s.playerId === p.id && s.trainerId === myUserId() && s.blok === state.beoordelenBlok; });
       row("Jouw beoordeling &middot; " + esc(blokLabel(state.beoordelenBlok)), mine
@@ -2838,7 +2904,7 @@
     var actions = [];
     if (role === "scout") actions.push('<button class="btn primary" data-card-act="scout">Beoordelen</button>');
     else if (isHoofd || role === "trainer") actions.push('<button class="btn primary" data-card-act="score">Beoordelen</button>');
-    if (isHoofd) actions.push('<button class="btn ghost" data-card-act="edit">Bewerken</button>');
+    if (isHoofd) actions.push('<button class="btn ghost" data-card-act="edit">Bewerken</button>', '<button class="btn ghost" data-card-act="archief">Archiveren</button>');
 
     var body = $("playerCardBody");
     body.innerHTML =
@@ -2860,6 +2926,7 @@
         if (act === "score") openScoreSheet(p.id);
         else if (act === "scout") openScoutGradeSheet(p.id);
         else if (act === "edit") openPlayerSheet(p.id);
+        else if (act === "archief") archiveerSpelers([p]);
       });
     });
     $("playerCardOverlay").hidden = false;
@@ -3922,13 +3989,7 @@
     var d = state.trainingDate, per = trainingPeriod(d) || {}, plan = Store.getPlan(d) || {}, isHoofd = Auth.isHoofdtrainer();
     var st = trainingStatus(d), mine = myOnderdeel(d), html = "";
     var deadlineTxt = deadlineText(d);
-    // Vorige training: eigen vormen nog niet geëvalueerd? Dan een balkje bovenaan (evalueren is na de training).
-    var prev = TRAINING_DATES.map(function(t){ return t.date; }).filter(function(x){ return x < todayISO(); }).pop();
-    var todoEval = prev ? Store.getOefs(prev).filter(function(r){ return r.eigenaar_id === myUserId() && !r.eval_terug; }) : [];
-    if (todoEval.length){
-      html += '<button type="button" class="tr-banner" id="evalPrevBtn"><span><b>' + esc(formatDateShort(prev)) + ':</b> ' +
-        (todoEval.length === 1 ? "jouw vorm " + todoEval[0].onderdeel + todoEval[0].volgnr : "jouw vormen") + ' nog evalueren</span><span class="ng-go" style="flex:0;">&rsaquo;</span></button>';
-    }
+    html += voorJouHtml();
     if (per.toernooi){
       html += '<div class="card tr-card"><div class="tr-card-h">' + esc(per.toernooi) + '</div><div class="tr-note">Geen oefenvormen voor te bereiden.</div></div>';
     } else {
@@ -3972,12 +4033,173 @@
     if ($("viewTrainingBtn")) $("viewTrainingBtn").addEventListener("click", function(){ openTrainingView(d); });
     if ($("rolesBtn")) $("rolesBtn").addEventListener("click", function(){ Roles.open(d); });
     if ($("copyTrainingBtn")) $("copyTrainingBtn").addEventListener("click", function(){ trainingOvernemen(d); });
-    if ($("evalPrevBtn")) $("evalPrevBtn").addEventListener("click", function(){ state.trainingDate = prev; state.trainingSub = "evaluatie"; renderTraining(); });
+    bindVoorJou(wrap);
     bindVormButtons(wrap, d);
   }
 
   /* Hele training bekijken op het scherm: zelfde opbouw als de Ajax-planner (per thema deel 1 en deel 2).
      Laptop: twee kolommen naast elkaar; telefoon: onder elkaar. Alleen lezen. */
+  /* "Voor jou": wat er voor deze trainer klaarstaat. Nieuwe reacties van de hoofdtrainer en tips/tops van collega's
+     (verdwijnen als gelezen; bijgehouden op dit toestel), plus eigen vormen die nog niet klaar of nog niet
+     geëvalueerd zijn (die blijven tot het gedaan is). */
+  function gezienKey(){ return "art-gezien-" + (myUserId() || "x"); }
+  function gezien(){ try { return JSON.parse(localStorage.getItem(gezienKey()) || "{}") || {}; } catch(e){ return {}; } }
+  function markeerGezien(keys){ var g = gezien(); keys.forEach(function(k){ g[k] = 1; }); try { localStorage.setItem(gezienKey(), JSON.stringify(g)); } catch(e){} }
+  function sleutelsVoorVorm(oefId){
+    var k = [];
+    Store.getAllReacties().forEach(function(r){ if (r.oefenvorm_id === oefId) k.push("r" + r.id + (r.updated_at || "")); });
+    Store.getAllFeedback().forEach(function(f){ if (f.oefenvorm_id === oefId) k.push("f" + f.id); });
+    return k;
+  }
+  function voorJouItems(){
+    var me = myUserId(), role = Auth.myRole();
+    if (!me || !(Auth.isHoofdtrainer() || role === "trainer")) return [];
+    var g = gezien(), oefs = Store.getAllOefs(), items = [];
+    var vind = function(id){ return oefs.find(function(o){ return o.id === id; }); };
+    Store.getAllReacties().forEach(function(r){
+      var k = "r" + r.id + (r.updated_at || ""), o = vind(r.oefenvorm_id);
+      if (r.trainer_id !== me || g[k] || !o) return;
+      items.push({ key: k, ico: "msg", tekst: "Nieuwe reactie van " + (r.auteur_id ? profNaam(r.auteur_id).split(" ")[0] : "de hoofdtrainer") + " op je reflectie (" + o.onderdeel + o.volgnr + " · " + formatDateShort(o.training_date) + ")", open: [o.training_date, o.onderdeel, o.volgnr, "evaluatie"] });
+    });
+    Store.getAllFeedback().forEach(function(f){
+      var k = "f" + f.id, o = vind(f.oefenvorm_id);
+      if (f.auteur_id === me || g[k] || !o || o.eigenaar_id !== me) return;
+      items.push({ key: k, ico: "tip", tekst: (f.soort === "top" ? "Top" : "Tip") + " van " + (f.auteur_id ? profNaam(f.auteur_id) : "een collega").split(" ")[0] + " op je vorm " + o.onderdeel + o.volgnr + ": “" + f.tekst + "”", open: [o.training_date, o.onderdeel, o.volgnr, "plan"] });
+    });
+    var t = todayISO(), datums = TRAINING_DATES.map(function(x){ return x.date; });
+    var d0 = datums.filter(function(x){ return x >= t && !(trainingPeriod(x) || {}).toernooi; })[0];
+    var mijn = d0 ? myOnderdeel(d0) : null;
+    if (mijn) vormenVan(mijn).forEach(function(v){
+      var r = Store.getOef(d0, mijn, v);
+      if (!r || r.status !== "gedeeld") items.push({ key: null, ico: "klok", tekst: mijn + v + " " + (r ? "nog niet klaar" : "nog niet gemaakt") + " · klaar vóór " + deadlineText(d0), open: [d0, mijn, v, "plan"] });
+    });
+    var prev = datums.filter(function(x){ return x < t; }).pop();
+    if (prev) Store.getOefs(prev).forEach(function(r){
+      if (r.eigenaar_id === me && !r.eval_terug) items.push({ key: null, ico: "eval", tekst: "Evalueer je vorm " + r.onderdeel + r.volgnr + " van " + formatDateShort(prev), open: [prev, r.onderdeel, r.volgnr, "evaluatie"] });
+    });
+    return items;
+  }
+  var VJ_ICO = {
+    msg: '<path d="M4 5h16v11H8l-4 4z" stroke-linejoin="round"/>',
+    tip: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9V16h7v-2.1A6 6 0 0 0 12 3z" stroke-linejoin="round"/>',
+    klok: '<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2" stroke-linecap="round"/>',
+    eval: '<path d="M5 12l4 4 10-10" stroke-linecap="round" stroke-linejoin="round"/>'
+  };
+  function voorJouHtml(){
+    var items = voorJouItems();
+    if (!items.length) return "";
+    return '<div class="vj"><div class="vj-h"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0"/></svg>Voor jou</div>' +
+      items.map(function(it, i){
+        return '<div class="vj-r"><button type="button" class="vj-i" data-vj="' + i + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">' + VJ_ICO[it.ico] + '</svg><span>' + esc(it.tekst) + '</span></button>' +
+          (it.key ? '<button type="button" class="vj-x" data-vj-x="' + i + '" aria-label="Gelezen">&times;</button>' : '') + '</div>';
+      }).join("") + '</div>';
+  }
+  function bindVoorJou(wrap){
+    var items = voorJouItems();
+    Array.prototype.forEach.call(wrap.querySelectorAll("[data-vj]"), function(b){
+      b.onclick = function(){
+        var it = items[Number(b.getAttribute("data-vj"))]; if (!it) return;
+        if (it.key) markeerGezien([it.key]);
+        state.trainingDate = it.open[0]; state.trainingSub = it.open[3] === "evaluatie" ? "evaluatie" : "plan";
+        renderTraining(); openOef(it.open[0], it.open[1], it.open[2], it.open[3]);
+      };
+    });
+    Array.prototype.forEach.call(wrap.querySelectorAll("[data-vj-x]"), function(b){
+      b.onclick = function(){ var it = items[Number(b.getAttribute("data-vj-x"))]; if (it && it.key){ markeerGezien([it.key]); renderAll(); } };
+    });
+  }
+
+  /* Uitleg bij de eerste keer inloggen: drie korte kaartjes per rol (trainer, scout). Eén keer per account en rol
+     op dit toestel; opnieuw te bekijken via het accountmenu. */
+  var Uitleg = (function(){
+    var STAPPEN = {
+      trainer: [
+        ["Aanwezigheid", "Op het veld: open Aanwezig en tik op een speler om hem af te melden, met reden. Iedereen staat standaard op aanwezig."],
+        ["Jouw vorm maken", "In Training staat bovenaan jouw taak. Maak je vorm het liefst op de laptop (tekenen gaat daar het snelst) en zet hem vóór vrijdagavond op Klaar."],
+        ["Voor jou", "Bovenaan Training zie je nieuwe tips van collega's, reacties van de hoofdtrainer en wat er nog moet. In de Vormenbank vind je vormen van eerdere trainingen."]
+      ],
+      scout: [
+        ["Zoek op nummer", "Tik bovenaan Spelers het hesjenummer in. Je ziet meteen de speler; tik erop voor zijn kaart."],
+        ["Beoordelen", "Op de spelerskaart kies je Beoordelen: wedstrijd en potentieel (A tot D), je advies en kort waarom."],
+        ["Alleen voor jou", "Je ziet alleen je eigen beoordelingen, niet die van anderen. Na je bezoek wordt je account uitgezet."]
+      ]
+    };
+    var lijst = [], i = 0;
+    function key(role){ return "art-uitleg-" + (myUserId() || "x") + "-" + role; }
+    function toon(){
+      var s = lijst[i];
+      $("uitlegStap").textContent = (i + 1) + " van " + lijst.length;
+      $("uitlegTitel").textContent = s[0]; $("uitlegTekst").textContent = s[1];
+      $("uitlegVolgende").textContent = i === lijst.length - 1 ? "Aan de slag" : "Volgende";
+      $("uitlegOverlay").hidden = false;
+    }
+    function klaar(){ $("uitlegOverlay").hidden = true; }
+    function start(role){
+      lijst = STAPPEN[role === "scout" ? "scout" : "trainer"]; i = 0;
+      try { localStorage.setItem(key(role), "1"); } catch(e){}
+      toon();
+    }
+    function misschien(){
+      if (DEMO) return;
+      var role = Auth.myRole();
+      if (role !== "trainer" && role !== "scout") return;
+      var gedaan = false; try { gedaan = !!localStorage.getItem(key(role)); } catch(e){}
+      if (!gedaan) start(role);
+    }
+    $("uitlegVolgende").addEventListener("click", function(){ if (i < lijst.length - 1){ i++; toon(); } else klaar(); });
+    $("uitlegOverslaan").addEventListener("click", klaar);
+    return { start: start, misschien: misschien };
+  })();
+
+  // Archiveren (hoofdtrainer): spelers uit beeld zonder iets te verwijderen; terugzetten in Instellingen → Archief.
+  function archiveerSpelers(ps){
+    if (!ps.length) return;
+    var namen = ps.length === 1 ? "<b>" + esc(ps[0].naam) + "</b>" : "<b>" + ps.length + " spelers</b> (" + ps.map(function(p){ return esc(p.naam); }).join(", ") + ")";
+    confirmDialog({ title: ps.length === 1 ? "Speler archiveren?" : ps.length + " spelers archiveren?",
+      messageHtml: namen + " verdwijnen uit Spelers, Aanwezig en het Rapport; trainers en scouts zien ze niet meer. Alle gegevens blijven bewaard. Terugzetten kan in Instellingen &rarr; Spelers beheren &rarr; Archief.",
+      confirmLabel: "Archiveren", danger: false }).then(function(ok){
+      if (!ok) return;
+      Store.setArchived(ps.map(function(p){ return p.id; }), true).then(function(){
+        showToast(ps.length === 1 ? ps[0].naam + " staat in het archief" : ps.length + " spelers staan in het archief");
+        renderAll(); if (state.tab === "instellingen") renderInstellingen();
+      }).catch(function(err){ console.error(err); showToast("Archiveren mislukt"); });
+    });
+  }
+
+  // Privacy en opruimen (Instellingen, hoofdtrainer): herinnering scout-accounts.
+  function vulPrivacy(){
+    var el = $("privacyBody"); if (!el) return;
+    var scouts = Store.getProfiles().filter(function(p){ return p.role === "scout"; });
+    el.innerHTML = '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:0 0 10px;">Bewaar niet langer gegevens van kinderen dan nodig. Gastspelers zet je in het Archief (Spelers beheren); daar zien trainers en scouts ze niet.</div>' +
+      '<div class="card" style="padding:14px; display:flex; flex-direction:column; gap:8px;">' +
+      '<b>Scout-accounts</b><div class="tr-note">' + (scouts.length ? scouts.length + (scouts.length === 1 ? " scout-account" : " scout-accounts") + ": " + scouts.map(function(p){ return esc(p.naam); }).join(", ") + ". Zet een account uit zodra het bezoek voorbij is." : "Geen scout-accounts.") + '</div>' +
+      (scouts.length ? '<button type="button" class="btn ghost small" id="naarAccounts" style="align-self:flex-start;">Naar Accounts</button>' : '') + '</div>';
+    if ($("naarAccounts")) $("naarAccounts").onclick = function(){ settingsOpen.accounts = true; settingsOpen.privacy = false; renderInstellingen(); };
+  }
+
+  // Spelerskaart (hoofdtrainer): alles over één speler op een tijdlijn — per blok de letters van trainers en scouts,
+  // en per toernooi het gemiddelde oordeel met de toelichting.
+  var OORDEEL_SYM = { "2": "++", "1": "+", "0": "+−", "-1": "−", "-2": "−−" };
+  function tijdlijnHtml(p){
+    var regels = [];
+    BLOKKEN.forEach(function(b){
+      var g = gradeSummary(p.id, b.blok);
+      if (!(g.tW || g.tP || g.sW || g.sP)) return;
+      regels.push({ d: b.start, html: '<div class="tl-r"><span class="tl-k">' + esc(blokLabel(b.blok)) + '</span><span class="tl-v">Trainers ' + (g.tW || g.tP ? letterPair(g.tW, g.tP) : '–') + ' &nbsp; Scouts ' + (g.sW || g.sP ? letterPair(g.sW, g.sP) : '–') + '</span></div>' });
+    });
+    Store.toernooiDatums().forEach(function(d){
+      var o = Store.getOordelen(d).filter(function(x){ return x.player_id === p.id; });
+      if (!o.length) return;
+      var gem = o.reduce(function(a, x){ return a + x.waarde; }, 0) / o.length;
+      var tot = Math.abs(gem) < 0.005 ? "0,0" : (gem > 0 ? "+" : "−") + (Math.round(Math.abs(gem) * 10) / 10).toFixed(1).replace(".", ",");
+      var sc = o.filter(function(x){ return x.rol === "scout"; }).map(function(x){ return OORDEEL_SYM[String(x.waarde)]; }).join(" ");
+      var notitie = Store.getNotitie(d, p.id);
+      regels.push({ d: d, html: '<div class="tl-r"><span class="tl-k">Toernooi ' + esc(formatDateShort(d)) + '</span><span class="tl-v"><b class="' + (gem > 0.05 ? "tl-plus" : gem < -0.05 ? "tl-min" : "") + '">' + tot + '</b>' + (sc ? ' · scouts ' + esc(sc) : '') + (notitie ? '<br><small>' + esc(notitie) + '</small>' : '') + '</span></div>' });
+    });
+    regels.sort(function(a, b){ return a.d < b.d ? -1 : 1; });
+    return '<div class="tl"><div class="tl-h">Tijdlijn</div>' + (regels.length ? regels.map(function(r){ return r.html; }).join("") : '<div class="tl-r"><span class="tl-v">Nog geen beoordelingen of toernooi-oordelen.</span></div>') + '</div>';
+  }
+
   /* Vormenbank: alle gedeelde oefenvormen doorzoeken (vaardigheid, droog/small-sided game, werkte het?), bekijken met
      tekening, evaluatie en reflectie, en met "Gebruik als basis" kopiëren naar een vorm van de eerstvolgende training.
      De kopie is een nieuwe vorm (status "nog bezig"); het origineel blijft ongewijzigd. De tekening gaat mee als
@@ -4339,6 +4561,7 @@
   function openOef(d, o, v, mode){
     var row = Store.getOef(d, o, v), per = trainingPeriod(d) || {}, p = per[o] || {};
     var editable = canEditOef(d, o, row);
+    if (row) markeerGezien(sleutelsVoorVorm(row.id));
     oefState = { d: d, o: o, v: v, mode: mode, row: row, terug: row ? row.eval_terug : null, newBlob: null, removeTek: false, editable: editable, tekJson: row ? row.tekening_json : null };
     $("oefTitle").textContent = (mode === "evaluatie" ? "Evaluatie " : "") + o + v + " · " + vormSub(v) + " · " + formatDateShort(d);
     $("oAantallen").placeholder = v === 1 ? "1v0 (droog, zonder weerstand)" : "bv. 2v1 of 3v2";
@@ -5334,7 +5557,24 @@
             '</div>';
         }).join("");
 
-    var allPlayers = Store.getPlayers().concat(Store.getTrash());
+    var allPlayers = Store.getPlayers().concat(Store.getTrash(), Store.getArchief());
+    var archief = Store.getArchief().sort(function(a, b){ return a.lichting === b.lichting ? a.naam.localeCompare(b.naam) : String(b.lichting).localeCompare(String(a.lichting)); });
+    var archiefHtml = !archief.length
+      ? '<div class="card" style="padding:14px; font-size:13px; color:var(--ink-muted);">Het archief is leeg.</div>'
+      : archief.map(function(p){
+          return '<div class="player-row">' +
+            '<div class="player-info">' + playerIdentHtml(p) +
+            '<div class="player-meta"><div class="name">' + esc(p.naam) + '</div>' +
+            '<div class="sub">Lichting ' + esc(lichtingLabel(p.lichting)) + (p.q ? ' &middot; ' + esc(p.q) : '') + ' &middot; sinds ' + esc(formatDateShort(p.archivedAt.slice(0, 10))) + '</div></div></div>' +
+            '<div class="row-actions"><button class="btn primary small" data-unarch="' + p.id + '">Terugzetten</button></div></div>';
+        }).join("");
+    var kiesHtml = LICHTINGEN.map(function(l){
+      var ps = Store.getPlayers().filter(function(p){ return p.lichting === l.key; }).sort(function(a, b){ return Number(a.hesje || 9999) - Number(b.hesje || 9999) || a.naam.localeCompare(b.naam); });
+      if (!ps.length) return "";
+      return '<div style="font-weight:700; margin-top:6px;">' + esc(l.label) + '</div>' + ps.map(function(p){
+        return '<label class="arch-k"><input type="checkbox" data-arch-k="' + p.id + '"> ' + (p.hesje ? '<b>' + esc(p.hesje) + '</b> ' : '<span class="arch-geen">geen hesje</span> ') + esc(p.naam) + '</label>';
+      }).join("");
+    }).join("");
     var trash = Store.getTrash().sort(function(a, b){ return (b.deletedAt || "").localeCompare(a.deletedAt || ""); });
     var trashHtml = !trash.length
       ? '<div class="card" style="padding:14px; font-size:13px; color:var(--ink-muted);">De prullenbak is leeg.</div>'
@@ -5388,6 +5628,12 @@
       '<div class="hint" id="bulkFotoHint">' + esc(bulkFotoStatus) + '</div>' +
       '<button class="btn primary" id="bulkFotoBtn" disabled>Foto\'s uploaden</button>' +
       '</div>' +
+      '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Archief</h2></div>' +
+      '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Spelers die nu niet meedoen, bijvoorbeeld gastspelers van een toernooi. Ze staan nergens meer in beeld en trainers en scouts zien ze niet, maar al hun gegevens blijven bewaard. Wordt iemand weer uitgenodigd, dan zet je hem met één tik terug.</div>' +
+      '<div id="archiefList" style="display:flex; flex-direction:column; gap:10px;">' + archiefHtml + '</div>' +
+      '<details class="arch-kies"><summary>Meerdere spelers tegelijk archiveren</summary>' +
+      '<div class="card" style="padding:14px; display:flex; flex-direction:column; gap:6px; margin-top:8px;">' + kiesHtml +
+      '<button class="btn primary" id="archKiesBtn" style="margin-top:8px;">Gekozen spelers archiveren</button></div></details>' +
       '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Prullenbak</h2></div>' +
       '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Verwijderde spelers blijven hier 30 dagen staan, met al hun gegevens. Daarna worden ze automatisch definitief verwijderd.</div>' +
       '<div id="trashList" style="display:flex; flex-direction:column; gap:10px;">' + trashHtml + '</div>' +
@@ -5430,6 +5676,7 @@
       '<button class="btn primary" id="saveScoutDrempelBtn">Opslaan</button>' +
       '</div>' +
       '</div></details>' +
+      '<details class="set-group" data-group="privacy"' + (settingsOpen.privacy ? ' open' : '') + '><summary>Privacy en opruimen</summary><div class="set-body" id="privacyBody"></div></details>' +
       '<details class="set-group" data-group="app"' + (settingsOpen.app ? ' open' : '') + '><summary>App</summary><div class="set-body">' +
       '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Back-ups</h2></div>' +
       '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Elke maandagnacht wordt automatisch een back-up gemaakt van alle spelers, beoordelingen, aanwezigheid en scoutrapporten (de laatste 26 blijven bewaard). Daarnaast maakt Supabase dagelijks een volledige back-up.</div>' +
@@ -5466,7 +5713,22 @@
       d.addEventListener("toggle", function(){ settingsOpen[d.getAttribute("data-group")] = d.open; });
     });
     $("settingsAddPlayerBtn").addEventListener("click", function(){ openPlayerSheet(null); });
+    vulPrivacy();
     fillPlayerPhotos($("trashList"));
+    fillPlayerPhotos($("archiefList"));
+    Array.prototype.forEach.call(body.querySelectorAll("[data-unarch]"), function(b){
+      b.addEventListener("click", function(){
+        var p = archief.filter(function(x){ return x.id === b.getAttribute("data-unarch"); })[0];
+        b.disabled = true;
+        Store.setArchived([p.id], false).then(function(){ showToast(p.naam + " staat weer bij de spelers"); renderInstellingen(); renderAll(); })
+          .catch(function(err){ console.error(err); showToast("Terugzetten mislukt"); b.disabled = false; });
+      });
+    });
+    $("archKiesBtn").addEventListener("click", function(){
+      var ids = Array.prototype.map.call(body.querySelectorAll("[data-arch-k]:checked"), function(c){ return c.getAttribute("data-arch-k"); });
+      if (!ids.length){ showToast("Vink eerst spelers aan"); return; }
+      archiveerSpelers(Store.getPlayers().filter(function(p){ return ids.indexOf(p.id) !== -1; }));
+    });
     Array.prototype.forEach.call(body.querySelectorAll("[data-restore]"), function(b){
       b.addEventListener("click", function(){
         var p = trash.filter(function(x){ return x.id === b.getAttribute("data-restore"); })[0];
@@ -5689,13 +5951,38 @@
         var u = byId[p.id];
         if (!u) return;
         var sub = body.querySelector('[data-account-sub="' + p.id + '"]');
-        if (sub){
+        // Scouts: toegang per bezoek (24 uur), daarna zet de database het account vanzelf uit.
+        var isScout = p.role === "scout", tot = u.toegang_tot ? new Date(u.toegang_tot) : null;
+        var heeftToegang = isScout && !u.disabled && tot && tot > new Date();
+        if (isScout && sub){
+          sub.innerHTML = 'Gebruikersnaam: <b>' + esc(u.username) + '</b> &middot; ' + (heeftToegang
+            ? '<span style="color:var(--good); font-weight:600;">toegang tot ' + esc(tot.toLocaleString("nl-NL", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })) + '</span>'
+            : u.disabled ? '<span style="color:var(--low); font-weight:600;">geen toegang</span>' : '<span style="font-weight:600;">altijd toegang</span>');
+        } else if (sub){
           sub.innerHTML = (p.id === myUserId() ? 'Dit ben jij &middot; ' : '') + 'Gebruikersnaam: <b>' + esc(u.username) + '</b>' +
             (u.disabled ? ' &middot; <span style="color:var(--low); font-weight:600;">staat uit</span>' : '');
         }
         var t = body.querySelector('[data-toggle-account="' + p.id + '"]');
         if (!t) return;
         t.disabled = false;
+        if (isScout){
+          t.textContent = heeftToegang ? "Nu uitzetten" : "Toegang voor vandaag";
+          if (heeftToegang){ t.style.color = "var(--low)"; t.style.borderColor = "var(--low-soft)"; }
+          t.addEventListener("click", function(){
+            var actie = function(naam, extra, melding){
+              t.disabled = true;
+              Store.manageUsers(naam, Object.assign({ id: p.id }, extra)).then(function(){ showToast(melding); renderInstellingen(); })
+                .catch(function(err){ console.error(err); showToast(err.message || "Mislukt"); t.disabled = false; });
+            };
+            if (!heeftToegang){ actie("grant_day", {}, p.naam + " heeft 24 uur toegang"); return; }
+            confirmDialog({
+              title: "Toegang nu uitzetten?",
+              messageHtml: "<b>" + esc(p.naam) + "</b> kan daarna niet meer inloggen (een open app stopt binnen een uur). Zijn beoordelingen blijven bewaard; volgende keer geef je weer toegang voor vandaag.",
+              confirmLabel: "Uitzetten"
+            }).then(function(ok){ if (ok) actie("set_disabled", { disabled: true }, "Toegang uitgezet"); });
+          });
+          return;
+        }
         t.textContent = u.disabled ? "Account aanzetten" : "Account uitzetten";
         if (!u.disabled){ t.style.color = "var(--low)"; t.style.borderColor = "var(--low-soft)"; }
         t.addEventListener("click", function(){
@@ -6372,7 +6659,7 @@
       bl.forEach(function(b, i){ orde[b.naam] = i; });
       var avs = [], q4 = [], q1 = [], oneens = [];
       var secties = LICHTINGEN.map(function(l){
-        var rows = Store.getPlayers().filter(function(p){ return p.lichting === l.key; }).map(function(p){
+        var rows = Store.getPlayers().concat(Store.getArchief()).filter(function(p){ return p.lichting === l.key; }).map(function(p){
           var o = oo.filter(function(x){ return x.player_id === p.id; }).sort(function(a, b){ return (orde[a.beoordelaar] != null ? orde[a.beoordelaar] : 99) - (orde[b.beoordelaar] != null ? orde[b.beoordelaar] : 99); });
           if (!o.length) return null;
           var sc = o.filter(function(x){ return x.rol === "scout"; }), tr = o.filter(function(x){ return x.rol === "trainer"; });
@@ -6425,21 +6712,10 @@
       var tr = PERIODISERING.trainingen || {}, t = todayISO();
       return Object.keys(tr).filter(function(d){ return tr[d] && tr[d].toernooi && d >= addDaysISO(t, -1) && d <= addDaysISO(t, 7); }).sort()[0] || null;
     } });
-  /* AVS (eenmalig, 5 okt 2026): eigen teams met eigen spelers (geen ART-spelers, staan dus niet in het smoelenboek).
-     Teams en spelers in app_settings.periodisering.avs[datum].def; instellingen per team in .teams (zelfde motor). */
-  var AVS = maakSchema({ key: "art-avs-", pad: "avs", wrap: "avsWrap", nab: false, leeg: "Er staat geen AVS-wedstrijd op het programma.",
-    datum: function(){
-      var a = PERIODISERING.avs || {}, t = todayISO();
-      return Object.keys(a).filter(function(d){ return d >= addDaysISO(t, -1) && d <= addDaysISO(t, 7); }).sort()[0] || null;
-    },
-    teams: function(d){ return (((PERIODISERING.avs || {})[d] || {}).def) || []; },
-    spelers: function(l){ return l.spelers || []; } });
-
   function tabAllowedForRole(tab, role, isHoofd){
     if (isHoofd) return true;
     if (tab === "spelers") return true;
     if (tab === "toernooi") return (isHoofd || role === "trainer") && Toernooi.actief();
-    if (tab === "avs") return isHoofd && AVS.actief(); // AVS: alleen de hoofdtrainer (besluit Sofian)
     if (tab === "training" || tab === "aanwezig") return role === "trainer";
     return false; // overzicht, instellingen: alleen hoofdtrainer
   }
@@ -6473,14 +6749,15 @@
   /* ---------- render orchestration ---------- */
   function renderAll(){
     updateTabVisibility();
+    var vjN = voorJouItems().filter(function(it){ return it.key; }).length; // alleen nieuwe berichten tellen mee
+    $("trainingBadge").hidden = !vjN; $("trainingBadge").textContent = vjN;
     // Lichting-knoppen bovenin hebben in Toernooi geen functie (daar kies je het team in het tabblad zelf).
-    $("lichtingChips").style.display = state.tab === "toernooi" || state.tab === "avs" ? "none" : "";
+    $("lichtingChips").style.display = state.tab === "toernooi" ? "none" : "";
     if (state.tab === "spelers") renderSpelers();
     else if (state.tab === "overzicht"){ renderOverzicht(); Toernooi.lijst(); }
     else if (state.tab === "training") renderTraining();
     else if (state.tab === "aanwezig") renderAbsenties();
     else if (state.tab === "toernooi") Toernooi.render();
-    else if (state.tab === "avs") AVS.render();
     else if (state.tab === "instellingen") renderInstellingen();
   }
 
@@ -6533,6 +6810,7 @@
   }
   function closePwSheet(){ $("pwOverlay").hidden = true; }
   $("menuPwBtn").addEventListener("click", function(){ closeAccountMenu(); openPwSheet(); });
+  $("menuUitlegBtn").addEventListener("click", function(){ closeAccountMenu(); Uitleg.start(Auth.myRole()); });
   $("savePwBtn").addEventListener("click", function(){
     var pw1 = $("fNewPw1").value;
     var pw2 = $("fNewPw2").value;
@@ -6582,6 +6860,7 @@
       var b = {
         select: function(){ return b; },
         eq: function(c, v){ q.filters.push([c, v]); return b; },
+        in: function(c, vs){ q.filters.push([c, vs, "in"]); return b; },
         order: function(c, o){ q.order = [c, !(o && o.ascending === false)]; return b; },
         single: function(){ q.one = "single"; return b; },
         maybeSingle: function(){ q.one = "maybe"; return b; },
@@ -6591,7 +6870,7 @@
         delete: function(){ q.op = "delete"; return b; },
         then: function(ok, fail){ return Promise.resolve().then(run).then(ok, fail); }
       };
-      function match(r){ return q.filters.every(function(f){ return String(r[f[0]]) === String(f[1]); }); }
+      function match(r){ return q.filters.every(function(f){ return f[2] === "in" ? f[1].map(String).indexOf(String(r[f[0]])) !== -1 : String(r[f[0]]) === String(f[1]); }); }
       function run(){
         var t = T[table] = T[table] || [], out = [], now = new Date().toISOString();
         if (q.op === "select") out = t.filter(match);
@@ -6869,6 +7148,7 @@
     if (DEMO){ startDemo(); return; }
     renderAll();
     Store.init();
+    setTimeout(function(){ Uitleg.misschien(); }, 900);
   });
   Auth.boot();
   Branding.load();
@@ -6926,7 +7206,7 @@
   (function(){
     var CLOSERS = { playerCardOverlay: "closePlayerCard", nameGameOverlay: "closeNameGame", scoreOverlay: "closeScoreSheet",
       evalOverlay: "closeEvalSheet", scoutOverlay: "closeScoutSheet", pwOverlay: "closePwSheet", oefOverlay: "closeOefSheet",
-      tvOverlay: "closeTv", rosterOverlay: "closeRoster", rolesOverlay: "closeRoles", trapOverlay: "closeTrap", bankOverlay: "closeBank",
+      tvOverlay: "closeTv", rosterOverlay: "closeRoster", rolesOverlay: "closeRoles", trapOverlay: "closeTrap", bankOverlay: "closeBank", uitlegOverlay: "uitlegOverslaan",
       playerOverlay: "closePlayerSheet", fotoLightbox: "closeFotoLightbox", drawOverlay: "drawCancel" };
     var open = [], pushed = false, ignorePop = false;
     function sync(){

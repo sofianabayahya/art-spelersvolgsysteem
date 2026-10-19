@@ -5,6 +5,8 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 const USERNAME_DOMAIN = "artsvs.nl";
 const ALLOWED_ROLES = ["trainer", "scout"];
+const TOEGANG_UREN = 24; // scout-toegang per bezoek; daarna zet de databasetaak art-scout-toegang het account uit
+const toegangTot = () => new Date(Date.now() + TOEGANG_UREN * 3600 * 1000).toISOString();
 const WORDS = [
   "bal", "doel", "hoek", "pass", "sprint", "keeper", "veld", "net", "lat", "paal",
   "kopbal", "dribbel", "assist", "corner", "vrije", "schot", "bocht", "flank", "spits", "libero",
@@ -75,6 +77,7 @@ Deno.serve(async (req) => {
           username: usernameFromEmail(u.email),
           disabled: !!u.banned_until && new Date(u.banned_until) > new Date(),
           last_sign_in_at: u.last_sign_in_at,
+          toegang_tot: (u.app_metadata as Record<string, unknown> | undefined)?.toegang_tot || null,
         })),
       });
     }
@@ -95,6 +98,8 @@ Deno.serve(async (req) => {
         password,
         email_confirm: true,
         user_metadata: { naam },
+        // Een nieuwe scout krijgt meteen toegang voor vandaag (hij wordt meestal op de bezoekdag aangemaakt).
+        app_metadata: role === "scout" ? { toegang_tot: toegangTot() } : {},
       });
       if (error) {
         if (/already|exists|registered/i.test(error.message)) return json({ error: "Deze gebruikersnaam bestaat al" }, 409);
@@ -121,9 +126,23 @@ Deno.serve(async (req) => {
       const id = String(body.id || "");
       await assertManageable(id);
       const disabled = !!body.disabled;
-      const { error } = await admin.auth.admin.updateUserById(id, { ban_duration: disabled ? "876000h" : "none" });
+      const { error } = await admin.auth.admin.updateUserById(id, disabled
+        ? { ban_duration: "876000h", app_metadata: { toegang_tot: null } }
+        : { ban_duration: "none" });
       if (error) throw error;
       return json({ id, disabled });
+    }
+
+    // Scout: toegang voor vandaag (24 uur). Zet het account aan; de databasetaak zet het daarna vanzelf uit.
+    if (action === "grant_day") {
+      const id = String(body.id || "");
+      await assertManageable(id);
+      const { data: p } = await admin.from("profiles").select("role").eq("id", id).maybeSingle();
+      if (p?.role !== "scout") return json({ error: "Toegang per dag is alleen voor scouts" }, 400);
+      const tot = toegangTot();
+      const { error } = await admin.auth.admin.updateUserById(id, { ban_duration: "none", app_metadata: { toegang_tot: tot } });
+      if (error) throw error;
+      return json({ id, toegang_tot: tot });
     }
 
     return json({ error: "Onbekende actie" }, 400);

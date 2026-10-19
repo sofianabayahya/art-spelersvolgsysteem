@@ -19,8 +19,10 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
    (Op 2026-09-27 ging de site offline door twee losse `vercel deploy`-uploads; hersteld door 7cfd654 te promoten.)
 2. Eén werkplek: Claude Code in deze map. Geen wijzigingen meer vanuit Claude Chat/Cowork.
 3. Werkwijze per wijziging: Sofian beschrijft → Claude past lokaal aan en controleert → push naar main → Vercel deployt
-   → Claude controleert www.artsvs.nl → Sofian test live. Geen tussenstap via de test-branch zolang de app nog niet
-   in gebruik is (besluit Sofian 2026-09-27). Zodra trainers/scouts de app echt gebruiken: weer eerst via `push-test`.
+   → Claude controleert www.artsvs.nl → Sofian test live; bevalt het niet, dan passen we het aan.
+   Besluit Sofian 2026-10-19: rechtstreeks live, geen tussenstap via de testversie meer. Uitzondering die Claude zelf
+   bewaakt: grote of riskante wijzigingen (databasewijzigingen die bestaande data raken, inloggen, veel tegelijk
+   ombouwen) eerst via `push-test`, en dat dan vooraf even melden.
 4. Sofian doet inloggen en klikken in dashboards (Vercel, Supabase, GitHub); Claude doet code, testen, pushen, controleren.
 5. Supabase-schema niet wijzigen zonder eerst te vragen (backend is live en in gebruik).
 6. Sofian is geen developer: leg stap voor stap uit, één stap tegelijk, en controleer zelf na elke stap.
@@ -168,23 +170,22 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
 - 4 okt ingevoerd (137 oordelen, 32 spelers, 29 toelichtingen) uit de nabespreking + correcties Sofian. Welke scout/trainer
   welk oordeel gaf is uit de opname benaderd; de totalen kloppen met het PowerPoint-rapport (~/Downloads).
 
-## AVS-tabblad (eenmalig, 5 okt 2026)
-- Zelfde motor als Toernooi (`maakSchema(B)`; Toernooi = B met LICHTINGEN + ART-spelers, AVS = B met eigen teams).
-- AVS-teams en -spelers (Ajax Voetbalschool, geen ART-spelers, dus niet in `players`) in
-  `app_settings.periodisering.avs["2026-10-05"].def` = [{key, label, sub, F, P, pl, rust, spelers:[{id, naam, q}]}];
-  instellingen per team in `.teams[key]` (keeper, kAlles, uit = speelt niet mee). Tabblad zichtbaar t/m 7 dagen erna.
-- AVS-tabblad alleen zichtbaar voor de hoofdtrainer (besluit Sofian). Wedstrijdklok telt af (nog te spelen), met
-  "gespeeld m:ss" eronder (geldt ook voor Toernooi).
-- Trainer heet Othman (eerst verkeerd verstaan als "Uitman"). 6v6 = 4 x 15 min (rust 2-5-2). Schema heeft een kolom "Nr"
-  (rugnummer of leeg vak om zelf in te schrijven).
-- 2017 team Othman (8, 6v6): Safouan, Royal, Isaac Fonseca, Eldin, Jarnel, Derwin (gekozen door Sofian) + Carlos Herrera
-  en Kai van Dijk (gekozen door Claude); 2017 team Tommy (10, Nathan Eckhardt afgemeld → 9, 6v6); 2016 team Sofian (12, 8v8).
-  Speeltijd 4x15 voor alle drie de teams (aanpasbaar in het tabblad).
+## AVS (eenmalig, 5 okt 2026) — opgeruimd 2026-10-19
+- AVS-tabblad en -gegevens verwijderd op verzoek van Sofian (back-up nr. 8 ervoor, bevat de namen nog tot hij
+  uit de wekelijkse rotatie valt). De motor `maakSchema(B)` ondersteunt nog `B.spelers` (eigen teams), maar er is geen
+  instantie meer.
+
+## Spelersarchief (2026-10-19)
+- Kolom `players.archived_at` (migratie 20261019_spelers_archief.sql). RLS: alleen de hoofdtrainer leest gearchiveerde
+  (en verwijderde) spelers. Store: `players` = niet verwijderd en niet gearchiveerd, `getArchief()`, `setArchived(ids, aan)`.
+- Spelerskaart (hoofdtrainer): knop "Archiveren". Instellingen → Spelers beheren → Archief: lijst met "Terugzetten" en
+  "Meerdere spelers tegelijk archiveren" (vinkjes per lichting). Bedoeld voor gastspelers van toernooien: oordelen,
+  notities en beoordelingen blijven; het toernooirapport neemt gearchiveerde spelers mee.
+- Niet de prullenbak gebruiken voor gasten: die verwijdert na 30 dagen definitief (met hun toernooi-oordelen).
 
 ## Na het platformdocument (2026-10-17)
 - Sofian deelde een generieke "Voetbaltrainersplatform"-spec (Desktop). Besluit: niet herbouwen (geen React/Konva, geen
-  animatie, geen multi-club); alleen overnemen wat ART helpt. Vanaf nu werken we weer EERST via `push-test` (de app is in
-  gebruik bij Tommy, Kai en Simon) en pas na Sofians akkoord naar main.
+  animatie, geen multi-club); alleen overnemen wat ART helpt. (Werkwijze inmiddels: rechtstreeks live, zie afspraak 3.)
 - Tekentool-magneet (`snapPt`): bij neerzetten/slepen springt een item horizontaal/verticaal op één lijn met andere items
   (binnen 12 px), blauwe hulplijnen tijdens slepen; schakelaar "Magneet: netjes uitlijnen" (localStorage art-draw-magneet);
   Alt/Option = even vrij.
@@ -302,6 +303,25 @@ Zodra `git` beschikbaar is: overstappen op een gewone clone.
   Sofian denkt nog na.
 - Tekening: upload screenshot/foto van de oefenvorm (verkleind); tekst in vaste velden in de app. Eenvoudig tekenbord pas later.
 - Periodisering Blok 1+2 aangeleverd als pptx (Downloads).
+
+## Na de UX-analyse (gebouwd 2026-10-17, eerst op de testversie)
+- Zoeken in Spelers (`#spelersZoek`, `zoekSpelers`): op hesjenummer of naam, over alle lichtingen; exact nummer eerst
+  en met blauwe rand (`pc-hit`); Enter opent de kaart, Esc wist. Scouts krijgen een cijfertoetsenbord.
+- "Voor jou" bovenaan Voorbereiden (`voorJouItems`): nieuwe reactie van de hoofdtrainer, tips/tops van collega's op
+  eigen vormen (weg zodra gelezen, of met ×; localStorage `art-gezien-<uid>`), eigen vormen van de eerstvolgende training
+  die nog niet klaar zijn, en nog te evalueren vormen van de vorige training (vervangt het oude evaluatie-balkje).
+  Rode badge op het tabblad Training = aantal nieuwe berichten.
+- Spelerskaart (hoofdtrainer): "Tijdlijn" (`tijdlijnHtml`) per blok de letters trainers/scouts en per toernooi het
+  gemiddelde oordeel, scoutsymbolen en toelichting (vervangt de rijen Trainers/Scouts van één blok).
+- Uitleg bij de eerste keer inloggen (`Uitleg`): 3 kaartjes voor trainer of scout, één keer per account en rol per
+  toestel (`art-uitleg-<uid>-<rol>`), opnieuw via accountmenu → "Uitleg bekijken". Niet in de demo.
+- Instellingen → "Privacy en opruimen" (`vulPrivacy`): AVS-teams per datum verwijderen (uit
+  `app_settings.periodisering.avs`, met bevestiging) en overzicht van scout-accounts met knop naar Accounts.
+- Scout-toegang per bezoek (besluit Sofian 2026-10-17): scout-account staat normaal uit; Accounts → "Toegang voor vandaag"
+  (`manage-users` actie `grant_day`: unban + `app_metadata.toegang_tot` = nu + 24 u; nieuwe scout krijgt dat meteen).
+  pg_cron `art-scout-toegang` (elk kwartier, `scout_toegang_verlopen()`, migratie 20261017_scout_toegang.sql) zet verlopen
+  accounts uit (ban) en wist hun sessies; open app stopt binnen een uur. Zelfde wachtwoord blijft werken. "Nu uitzetten"
+  = set_disabled (wist toegang_tot). Scout zonder toegang_tot en niet uitgezet = "altijd toegang" (oude manier).
 
 ## Openstaand werk
 - [x] 2026-09-27: testdata opgeschoond (alle beoordelingen, scoutrapporten, favorieten) en alle accounts behalve Sofian
