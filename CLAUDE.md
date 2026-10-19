@@ -210,6 +210,13 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   Kopie neemt tekening_json mee, nooit tekening_path (anders verwijdert een nieuwe upload het origineel).
 - "Training overnemen" (hoofdtrainer, Voorbereiden): alle vormen van een eerdere datum kopiëren; bestaande blijven staan.
 
+## Laptopweergave (2026-10-19)
+- Vanaf 1024px breed (laptop, tablet liggend) één CSS-blok aan het EINDE van de stylesheet (moet na de basisregels staan):
+  tabbalk bovenin onder de kop (`order`), knoppen naast elkaar met streepje onder; panelen tot 1280px (Instellingen 900px);
+  Spelers auto-fill kolommen (min 160px); Aanwezig rijen in kolommen (min 360px) en bedieningskaart op één regel;
+  Training: weekstrook (`#trWeeks`, alle trainingen van het blok met "x van 5", klik = naar die training) en A/B/C
+  naast elkaar (`.tr-ocols`, per kolom 2 tegels naast elkaar: hele training op één scherm). Telefoon ongewijzigd (weekstrook verborgen).
+
 ## Git zonder git
 De Command Line Developer Tools (en dus `git`) zijn nog niet geïnstalleerd. Tot die tijd:
 - `perl tools/gh.pl status` — verschil tussen lokale bestanden en GitHub `main`.

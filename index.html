@@ -988,6 +988,39 @@
   .account-menu button.danger{ color:var(--low); }
   #appRoot{ display:flex; flex-direction:column; height:100%; min-height:0; }
   #authScreen, #authLoading{ flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  /* Laptop en tablet liggend (>= 1024px): de ruimte gebruiken. Tabbalk bovenin, panelen breder, meer kolommen.
+     Op de telefoon verandert niets. */
+  .tr-weeks{ display:none; }
+  @media (min-width:1024px){
+    header.top{ order:0; }
+    nav.tabbar{ order:1; border-top:none; border-bottom:1px solid var(--border); padding:0 16px; justify-content:center; gap:4px; }
+    main{ order:2; padding:20px 28px 32px; }
+    nav.tabbar button{ flex:0 0 auto; flex-direction:row; gap:8px; padding:13px 18px; font-size:15px; }
+    nav.tabbar button svg{ width:19px; height:19px; }
+    nav.tabbar button.active::before{ top:auto; bottom:0; left:12px; right:12px; border-radius:3px 3px 0 0; }
+    .tab-badge{ top:6px; left:auto; right:4px; }
+    .toast, .update-banner{ bottom:24px; }
+    .panel{ max-width:1280px; }
+    #panel-instellingen{ max-width:900px; }
+    .player-grid{ grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:14px; }
+    #absentiesList{ display:grid !important; grid-template-columns:repeat(auto-fill, minmax(360px, 1fr)); gap:10px; align-items:start; }
+    #panel-absenties > .card{ flex-direction:row !important; align-items:flex-end; flex-wrap:wrap; gap:14px !important; }
+    #panel-absenties > .card > .field{ flex:0 1 260px; }
+    #panel-absenties > .card > #absDownloadWrap{ margin-left:auto; }
+    .tr-weeks{ display:flex; gap:8px; align-items:stretch; overflow-x:auto; padding-bottom:2px; }
+    .trw-blok{ align-self:center; font-weight:700; color:var(--ink-muted); margin-right:4px; white-space:nowrap; }
+    .trw{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; padding:8px 14px; border-radius:12px; border:1px solid var(--border);
+      background:var(--surface); color:var(--ink); font:inherit; cursor:pointer; white-space:nowrap; }
+    .trw small{ color:var(--ink-muted); font-size:12px; }
+    .trw.ok small{ color:var(--good); }
+    .trw.voorbij{ opacity:.7; }
+    .trw.active{ border:2px solid var(--accent); background:var(--surface-alt); opacity:1; }
+    .tr-ocols{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:16px; align-items:start; margin-top:4px; }
+    .tr-ocols .tr-orow{ border-top:none; padding:12px; border-radius:14px; background:var(--surface-alt); border:1px solid var(--border); }
+    .tr-ocols .tr-row-mine{ border:2px solid var(--accent); margin-left:0; padding-left:12px; }
+    .tr-ocols .tr-tiles{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
+    .tr-ocols .tr-tile{ background:var(--surface); }
+  }
 </style>
 </head>
 <body>
@@ -1103,6 +1136,7 @@
       <h2>Training</h2>
       <select id="trainingPick" aria-label="Trainingsdatum"></select>
     </div>
+    <div class="tr-weeks" id="trWeeks"></div>
     <div class="ng-tabs tr-tabs" role="tablist">
       <button type="button" data-tr-sub="plan">Voorbereiden</button>
       <button type="button" data-tr-sub="evaluatie">Evaluatie</button>
@@ -3902,6 +3936,16 @@
     }
     pick.value = state.trainingDate;
     state.evalDate = state.trainingDate;
+    // Laptop: alle trainingen van dit blok naast elkaar, met hoeveel vormen klaar zijn (telefoon: alleen de keuzelijst).
+    var cur = TRAINING_DATES.filter(function(t){ return t.date === state.trainingDate; })[0];
+    $("trWeeks").innerHTML = !cur ? "" : '<span class="trw-blok">' + esc(blokLabel(cur.blok)) + '</span>' + TRAINING_DATES.filter(function(t){ return t.blok === cur.blok; }).map(function(t){
+      var stt = trainingStatus(t.date), per = trainingPeriod(t.date) || {};
+      var sub = per.toernooi ? "toernooi" : stt.compleet ? "&#10003; compleet" : stt.klaar + " van " + stt.total;
+      return '<button type="button" class="trw' + (t.date === state.trainingDate ? " active" : "") + (t.date < todayISO() ? " voorbij" : "") + (stt && stt.compleet ? " ok" : "") + '" data-trw="' + t.date + '"><b>' + esc(formatDateShort(t.date)) + '</b><small>' + sub + '</small></button>';
+    }).join("");
+    Array.prototype.forEach.call($("trWeeks").querySelectorAll("[data-trw]"), function(b){
+      b.onclick = function(){ state.trainingDate = b.getAttribute("data-trw"); renderTraining(); };
+    });
     Array.prototype.forEach.call(document.querySelectorAll("[data-tr-sub]"), function(b){ b.classList.toggle("active", b.getAttribute("data-tr-sub") === state.trainingSub); });
     $("panel-plan").hidden = state.trainingSub !== "plan";
     $("panel-evaluatie").hidden = state.trainingSub !== "evaluatie";
@@ -4012,7 +4056,7 @@
       // De training als kleine Ajax-planner: per onderdeel wie, welke vaardigheid, en de tekeningen als tegels.
       html += '<div class="card tr-card"><div class="tr-card-h">De training' +
         (st.compleet ? ' <span class="tr-status ok" style="margin-left:auto;">&#10003; Compleet</span>'
-                     : ' <small style="margin-left:auto;">' + st.klaar + ' van ' + st.total + ' klaar</small>') + '</div>';
+                     : ' <small style="margin-left:auto;">' + st.klaar + ' van ' + st.total + ' klaar</small>') + '</div><div class="tr-ocols">';
       ["A", "B", "C"].forEach(function(o){
         var p = thema(d, o), ownerId = plan[ROLE_FIELD[o]], owner = ownerId ? profNaam(ownerId) : "";
         var remind = "";
@@ -4026,7 +4070,7 @@
           '<small>' + (owner ? esc(owner) : "Nog niet ingedeeld") + ' · ' + ROLE_LABEL[o].toLowerCase() + '</small></div>' + remind + '</div>' +
           vormTiles(d, o, "plan") + '</div>';
       });
-      html += '<div class="btn-row"><button type="button" class="btn primary" id="viewTrainingBtn">Bekijk hele training</button>' +
+      html += '</div><div class="btn-row"><button type="button" class="btn primary" id="viewTrainingBtn">Bekijk hele training</button>' +
         '<button type="button" class="btn ghost" id="printTrainingBtn">Downloaden</button>' +
         (isHoofd ? '<button type="button" class="btn ghost" id="rolesBtn">Rollen wijzigen</button><button type="button" class="btn ghost" id="copyTrainingBtn">Training overnemen</button>' : '') + '</div></div>';
     }
@@ -4642,12 +4686,12 @@
     var order = ["A", "B", "C"].filter(function(o){ return rows.some(function(r){ return r.onderdeel === o; }); })
       .sort(function(a, b){ return (mineO(a) ? 0 : 1) - (mineO(b) ? 0 : 1) || a.localeCompare(b); }); // eigen onderdeel eerst
     wrap.innerHTML = '<div class="card tr-card"><div class="tr-card-h">Oefenvormen evalueren</div>' +
-      '<div class="tr-note">Per oefenvorm: kwam de doelvaardigheid terug, hoe ging het bij groep 1, wat heb je aangepast en hoe ging het bij groep 2? En je reflectie op jezelf.</div>' +
+      '<div class="tr-note">Per oefenvorm: kwam de doelvaardigheid terug, hoe ging het bij groep 1, wat heb je aangepast en hoe ging het bij groep 2? En je reflectie op jezelf.</div><div class="tr-ocols">' +
       order.map(function(o){
         var p = thema(d, o), r0 = rows.filter(function(r){ return r.onderdeel === o; })[0];
         return '<div class="tr-orow' + (mineO(o) ? " tr-row-mine" : "") + '"><div class="tr-orow-head"><span class="tr-letter">' + o + '</span><div class="tr-orow-main">' +
           esc(p.v || ("Onderdeel " + o)) + '<small>' + esc(vormOwner(d, o, r0) || "") + '</small></div></div>' + vormTiles(d, o, "evaluatie", true) + '</div>';
-      }).join("") + '</div>';
+      }).join("") + '</div></div>';
     bindVormButtons(wrap, d);
   }
   function bindVormButtons(wrap, d){
