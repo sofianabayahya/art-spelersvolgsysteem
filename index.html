@@ -741,6 +741,9 @@
   .draw-stage{ flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:12px; background:#3f8a41; position:relative; }
   #drawSvg{ width:100%; height:100%; max-height:calc(100% - 40px); touch-action:none; user-select:none; cursor:crosshair; }
   .draw-hint{ color:#fff; font-size:13px; opacity:.9; }
+  .draw-kleur{ display:inline-flex; gap:6px; align-items:center; padding:0 4px; }
+  .draw-swatch{ width:26px; height:26px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px #888; cursor:pointer; padding:0; }
+  .draw-swatch.active{ box-shadow:0 0 0 3px #00B3FF; }
   .draw-selbar{ display:flex; gap:8px; background:var(--surface); padding:6px; border-radius:12px; box-shadow:var(--shadow); }
   @media (max-width:899px){
     .draw-body{ flex-direction:column; }
@@ -1460,6 +1463,7 @@
       <b class="draw-title">Tekentool</b>
       <div class="draw-top-act">
         <button type="button" class="btn ghost small" id="drawUndo" title="Ongedaan maken (Ctrl/Cmd+Z)">Ongedaan maken</button>
+        <button type="button" class="btn ghost small" id="drawRedo" title="Opnieuw (Ctrl/Cmd+Shift+Z)">Opnieuw</button>
         <button type="button" class="btn primary small" id="drawSave">Opslaan</button>
       </div>
     </div>
@@ -1475,6 +1479,8 @@
           <button type="button" class="btn ghost small" id="drawEditText">Tekst wijzigen</button>
           <button type="button" class="btn ghost small" id="drawNumber">Rugnummer +1</button>
           <button type="button" class="btn ghost small" id="drawRotate">Draaien</button>
+          <button type="button" class="btn ghost small" id="drawMaat">Maat verbergen</button>
+          <span class="draw-kleur" id="drawKleur" hidden></span>
           <button type="button" class="btn ghost small" id="drawDelete" style="color:var(--low); border-color:var(--low-soft);">Verwijderen</button>
         </div>
       </div>
@@ -3429,7 +3435,7 @@
       var p = pt.matrixTransform(svg.getScreenCTM().inverse());
       return { x: Math.round(p.x), y: Math.round(p.y) };
     }
-    function snapshot(){ st.undo.push(JSON.stringify({ field: st.field, items: st.items })); if (st.undo.length > 60) st.undo.shift(); }
+    function snapshot(){ st.undo.push(JSON.stringify({ field: st.field, items: st.items })); if (st.undo.length > 60) st.undo.shift(); st.redo = []; }
 
     function fieldSvg(){
       var f = FIELDS[st.field], w = f.w, h = f.h, s = "", n = 10, i;
@@ -3498,8 +3504,10 @@
         case "num":
           return '<g' + a + hl + ' transform="translate(' + it.x + ' ' + it.y + ')"><circle r="14" fill="#fff" stroke="#111" stroke-width="2.5"/><text y="5.5" text-anchor="middle" font-family="Arial" font-weight="700" font-size="16" fill="#111">' + it.n + '</text></g>';
         case "zone":
-          var zx = Math.min(it.x1, it.x2), zy = Math.min(it.y1, it.y2);
-          return '<rect' + a + hl + ' x="' + zx + '" y="' + zy + '" width="' + Math.abs(it.x2 - it.x1) + '" height="' + Math.abs(it.y2 - it.y1) + '" fill="rgba(245,124,0,.18)" stroke="#F57C00" stroke-width="3" stroke-dasharray="10 7"/>';
+          var zx = Math.min(it.x1, it.x2), zy = Math.min(it.y1, it.y2), zw = Math.abs(it.x2 - it.x1), zh = Math.abs(it.y2 - it.y1);
+          // Maat in meters (ongeveer 10 beeldpunten per meter); nieuwe vakken tonen hem (oude tekeningen niet), bij "vak met hoedjes" alleen tijdens het slepen.
+          var maat = ((it.maat === true || it.hz) && zw >= 30 && zh >= 20) ? '<text pointer-events="none" x="' + (zx + zw / 2) + '" y="' + (zy + zh / 2 + 7) + '" text-anchor="middle" font-family="Arial" font-weight="700" font-size="20" fill="#111" stroke="#fff" stroke-width="4" paint-order="stroke">' + Math.round(zw / 10) + ' x ' + Math.round(zh / 10) + ' m</text>' : '';
+          return '<g' + a + hl + '><rect x="' + zx + '" y="' + zy + '" width="' + zw + '" height="' + zh + '" fill="' + (it.hz ? 'none' : 'rgba(245,124,0,.18)') + '" stroke="#F57C00" stroke-width="3" stroke-dasharray="10 7"/>' + maat + '</g>';
         case "wall":
           return '<line' + a + hl + ' x1="' + it.x1 + '" y1="' + it.y1 + '" x2="' + it.x2 + '" y2="' + it.y2 + '" stroke="#111" stroke-width="8" stroke-linecap="round"/>';
         case "arrow":
@@ -3533,6 +3541,17 @@
       el("drawRotate").hidden = !it || (it.t !== "goal" && it.t !== "board");
       el("drawNumber").hidden = !it || !((it.t === "p" && !TEAM[it.c].letter) || it.t === "shirt");
       el("drawEditText").hidden = !it || it.t !== "text";
+      el("drawMaat").hidden = !it || it.t !== "zone";
+      if (it && it.t === "zone") el("drawMaat").textContent = it.maat === true ? "Maat verbergen" : "Maat tonen";
+      // Kleur achteraf wijzigen: spelers, hoedjes en schijfjes (ook meerdere tegelijk, zelfde soort).
+      var gekozen = (meer ? st.multi : (st.sel != null ? [st.sel] : [])).map(function(j){ return st.items[j]; }).filter(Boolean);
+      var soort = gekozen.length && gekozen.every(function(g){ return g.t === gekozen[0].t; }) ? gekozen[0].t : null;
+      var palet = soort === "p" && gekozen.every(function(g){ return !TEAM[g.c].letter; }) ? { rood: TEAM.rood.fill, lichtblauw: TEAM.lichtblauw.fill, geel: TEAM.geel.fill, blauw: TEAM.blauw.fill }
+        : soort === "cone" ? HAT : soort === "dish" ? DISH : null;
+      el("drawKleur").hidden = !palet;
+      el("drawKleur").innerHTML = palet ? Object.keys(palet).map(function(k){
+        return '<button type="button" class="draw-swatch' + (gekozen.every(function(g){ return g.c === k; }) ? ' active' : '') + '" data-kleur="' + k + '" title="' + k + '" style="background:' + palet[k] + '"></button>';
+      }).join("") : "";
       Array.prototype.forEach.call(document.querySelectorAll("[data-draw-tool]"), function(b){
         b.classList.toggle("active", st.tool != null && b.getAttribute("data-draw-tool") === String(st.tool));
       });
@@ -3669,6 +3688,7 @@
           p = snapPt(p.x, p.y, -1, evt);
           var it = t.t === "arrow" ? { t: "arrow", k: t.k, x1: p.x, y1: p.y, x2: p.x, y2: p.y }
             : (t.t === "hatzone" ? { t: "zone", hz: true, x1: p.x, y1: p.y, x2: p.x, y2: p.y } : { t: t.t, x1: p.x, y1: p.y, x2: p.x, y2: p.y });
+          if (t.t === "zone") it.maat = true;
           st.items.push(it);
           st.drag = { mode: "draw", i: st.items.length - 1 };
         } else {
@@ -3765,7 +3785,9 @@
       }
       if (st.sel == null) return; snapshot(); st.items.splice(st.sel, 1); st.sel = null; render();
     }
-    function undo(){ var s = st.undo.pop(); if (!s) return; var o = JSON.parse(s); st.field = o.field; st.items = o.items; st.sel = null; st.multi = null; render(); }
+    function undo(){ var s = st.undo.pop(); if (!s) return; (st.redo = st.redo || []).push(JSON.stringify({ field: st.field, items: st.items })); var o = JSON.parse(s); st.field = o.field; st.items = o.items; st.sel = null; st.multi = null; render(); }
+    // Opnieuw: wat met "ongedaan maken" is teruggedraaid weer terugzetten (tot je iets nieuws doet).
+    function redo(){ var s = (st.redo || []).pop(); if (!s) return; st.undo.push(JSON.stringify({ field: st.field, items: st.items })); var o = JSON.parse(s); st.field = o.field; st.items = o.items; st.sel = null; st.multi = null; render(); }
 
     /* Inzoomen bij opslaan: alleen het stuk waar spelers, spullen en pijlen staan (met ruimte eromheen), in 3:2 zoals
        de tegels. Gebruikt de tekening bijna het hele veld (of staat er niets), dan blijft het hele veld zichtbaar. */
@@ -3813,7 +3835,7 @@
 
     function open(initial, onSave){
       st = { field: (initial && FIELDS[initial.field]) ? initial.field : "liggend", items: initial && initial.items ? JSON.parse(JSON.stringify(initial.items)) : [],
-             tool: null, sel: null, drag: null, undo: [], onSave: onSave, num: 0, zoom: !(initial && initial.zoom === false) };
+             tool: null, sel: null, drag: null, undo: [], redo: [], onSave: onSave, num: 0, zoom: !(initial && initial.zoom === false) };
       st.items.forEach(function(it){ if (it.t === "num") st.num = Math.max(st.num, it.n); });
       if (!el("drawTools").innerHTML) buildTools();
       el("drawZoom").checked = st.zoom;
@@ -3831,6 +3853,20 @@
     svg.addEventListener("pointercancel", onUp);
     svg.addEventListener("contextmenu", function(e){ if (!st) return; e.preventDefault(); st.tool = null; st.sel = null; render(); });
     el("drawDelete").addEventListener("click", removeSel);
+    el("drawMaat").addEventListener("click", function(){ var it = st.items[st.sel]; if (!it || it.t !== "zone") return; snapshot(); it.maat = it.maat !== true; render(); });
+    el("drawKleur").addEventListener("click", function(e){
+      var b = e.target.closest("[data-kleur]"); if (!b) return;
+      var k = b.getAttribute("data-kleur"), idx = st.multi && st.multi.length > 1 ? st.multi : (st.sel != null ? [st.sel] : []);
+      if (!idx.length) return; snapshot();
+      idx.forEach(function(j){
+        var g = st.items[j]; if (!g || g.c === k || !/^(p|cone|dish)$/.test(g.t) || (g.t === "p" && TEAM[g.c] && TEAM[g.c].letter)) return;
+        // Speler naar een ander team: volgend vrij rugnummer in dat team.
+        if (g.t === "p") g.n = 1 + st.items.reduce(function(mx, x){ return x.t === "p" && x.c === k ? Math.max(mx, x.n || 0) : mx; }, 0);
+        g.c = k;
+        if (g.t === "cone") lastHat = k;
+      });
+      render();
+    });
     el("drawRotate").addEventListener("click", function(){ var it = st.items[st.sel]; if (!it) return; snapshot(); it.r = ((it.r || 0) + 90) % 180; render(); });
     el("drawNumber").addEventListener("click", function(){
       var it = st.items[st.sel]; if (!it) return;
@@ -3864,6 +3900,7 @@
       if (txt && txt.trim()){ snapshot(); it.s = txt.trim().slice(0, 30); render(); }
     });
     el("drawUndo").addEventListener("click", undo);
+    el("drawRedo").addEventListener("click", redo);
     el("drawPhoneX").addEventListener("click", function(){ el("drawPhone").hidden = true; });
     el("drawCancel").addEventListener("click", close);
     el("drawSave").addEventListener("click", function(){
@@ -3879,6 +3916,7 @@
       if (e.key === "Delete" || e.key === "Backspace"){ removeSel(); e.preventDefault(); }
       else if (e.key === "Escape"){ if (st.tool != null){ st.tool = null; render(); } else { st.sel = null; st.multi = null; render(); } e.stopPropagation(); }
       else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "a"){ st.tool = null; st.sel = null; st.multi = st.items.map(function(x, j){ return j; }); render(); e.preventDefault(); }
+      else if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === "y" || (e.shiftKey && e.key.toLowerCase() === "z"))){ redo(); e.preventDefault(); }
       else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z"){ undo(); e.preventDefault(); }
       else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "d"){ duplicate(); e.preventDefault(); }
       else if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key.length === 1){

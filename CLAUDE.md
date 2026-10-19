@@ -219,6 +219,10 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
 - Oefenvorm-venster op de laptop schermvullend (KNVB-indeling): tekening links in een groot vak (leeg = gestippeld vak met
   "Tekening maken"), velden rechts in twee kolommen en compact (Sofian: zo min mogelijk scrollen). Let op: de basisregel
   `.sheet{max-width:520px}` staat laat in de stylesheet; brede vensters daarom met `.sheet.oef-sheet` / `.sheet.tv-sheet`.
+- Tekentool (2026-10-19): "Opnieuw" (redo; Cmd/Ctrl+Shift+Z of Ctrl+Y; `st.redo`, gewist bij nieuwe actie); nieuwe vakken
+  ("Vak markeren") tonen hun maat in meters ("20 x 15 m", 10 px = 1 m; `it.maat`, knop "Maat verbergen/tonen"; oude vakken
+  zonder maat), "vak met hoedjes" toont de maat tijdens het slepen; kleur achteraf wijzigen in de selectiebalk
+  (`#drawKleur`) voor spelers (4 teamkleuren, krijgen volgend rugnummer), hoedjes en schijfjes, ook voor meerdere tegelijk.
 
 ## Git zonder git
 De Command Line Developer Tools (en dus `git`) zijn nog niet geïnstalleerd. Tot die tijd:
