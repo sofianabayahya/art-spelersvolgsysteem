@@ -450,6 +450,9 @@
     .oef-left .oef-tek img{ max-height:70vh; }
   }
   .oef-meta{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+  .oef-kort{ display:flex; gap:10px; }
+  .oef-kort > .field:first-child{ flex:1; min-width:0; }
+  .oef-duur{ flex:0 0 96px; }
   .oef-tek-leeg{ aspect-ratio:3 / 2; max-height:360px; width:100%; border:2px dashed var(--border); border-radius:12px; display:flex; flex-direction:column;
     align-items:center; justify-content:center; gap:10px; color:var(--ink-muted); font-size:14px; background:var(--surface-alt); }
   .oef-tek img{ width:100%; max-height:360px; object-fit:contain; border-radius:10px; background:#fff; display:block; }
@@ -1040,7 +1043,8 @@
     .oef-sheet .field label{ font-size:12.5px; }
     .oef-sheet .field textarea{ min-height:62px; }
     #oefPlanFields, #oefEvalFields{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); column-gap:14px; }
-    #oefPlanFields .field-row, #oefEvalFields .field-row{ display:contents; }
+    #oefPlanFields .field-row:not(.oef-kort), #oefEvalFields .field-row{ display:contents; }
+    #oefPlanFields > .hint{ grid-column:span 2; }
     #oefEvalFields > .field:first-child, #oefEvalFields > .oef-h, #oefEvalFields > .tr-note{ grid-column:span 2; }
     #oefEvalFields[hidden], #oefPlanFields[hidden]{ display:none !important; }
     .sheet.tv-sheet{ max-width:1280px; }
@@ -1330,7 +1334,11 @@
     <div class="oef-right">
     <div id="oefPlanFields">
       <div class="field"><label for="oVaardigheid">Doelvaardigheid</label><input type="text" id="oVaardigheid"></div>
-      <div class="field"><label for="oAantallen">Aantallen</label><input type="text" id="oAantallen" placeholder="bv. 4v4 of 5v5"></div>
+      <div class="field-row oef-kort">
+        <div class="field"><label for="oAantallen">Aantallen</label><input type="text" id="oAantallen" placeholder="bv. 4v4 of 5v5"></div>
+        <div class="field oef-duur"><label for="oDuur">Duur (min)</label><input type="number" id="oDuur" min="1" max="90" step="1" inputmode="numeric"></div>
+      </div>
+      <div class="hint" id="oDuurHint" style="margin:-8px 0 8px;"></div>
       <div class="field"><label for="oVar1" id="oVar1Label">Ronde 1</label><textarea id="oVar1"></textarea></div>
       <div class="field"><label for="oVar2" id="oVar2Label">Ronde 2</label><textarea id="oVar2"></textarea></div>
       <div class="field"><label for="oOrganisatie">Organisatie en ruimte</label><textarea id="oOrganisatie" placeholder="Veldgrootte, pionnen, goals, hoe start het, wie draait door…"></textarea></div>
@@ -4422,7 +4430,7 @@
      De kopie is een nieuwe vorm (status "nog bezig"); het origineel blijft ongewijzigd. De tekening gaat mee als
      tekengegevens, niet als gedeeld plaatje (anders zou het origineel bij een nieuwe upload worden verwijderd). */
   var bankF = { q: "", v: "", soort: "", terug: "" };
-  var KOPIE_VELDEN = ["aantallen", "variatie_1", "variatie_2", "organisatie", "regels", "wedstrijdelement", "aanpassing_jong", "aanpassing_oud", "als_niet_loopt", "coachaccenten"];
+  var KOPIE_VELDEN = ["aantallen", "duur", "variatie_1", "variatie_2", "organisatie", "regels", "wedstrijdelement", "aanpassing_jong", "aanpassing_oud", "als_niet_loopt", "coachaccenten"];
   function bankAlle(){ return Store.getAllOefs().filter(function(o){ return o.status === "gedeeld"; }); }
   function bankLijst(){
     return bankAlle().filter(function(o){
@@ -4439,7 +4447,7 @@
   function bankTile(o){
     var img = o.tekening_path ? '<img alt="" data-tek-path="' + esc(o.tekening_path) + '">' : (o.tekening_json ? DrawTool.staticSvg(o.tekening_json) : '<span class="tr-tile-empty">Geen tekening</span>');
     return '<button type="button" class="tr-tile" data-bank="' + o.training_date + '|' + o.onderdeel + '|' + o.volgnr + '"><span class="tr-tile-img">' + img + '</span>' +
-      '<span class="tr-tile-cap"><b>' + esc(o.vaardigheid || "Vorm") + '</b> <small>' + vormSub(o.volgnr) + (o.aantallen ? ' · ' + esc(o.aantallen) : '') + '</small></span>' +
+      '<span class="tr-tile-cap"><b>' + esc(o.vaardigheid || "Vorm") + '</b> <small>' + vormSub(o.volgnr) + (o.aantallen ? ' · ' + esc(o.aantallen) : '') + (o.duur ? ' · ' + o.duur + ' min' : '') + '</small></span>' +
       '<span class="tr-tile-st">' + (o.eval_terug ? terugPill(o) : '<span class="pill none">nog niet geëvalueerd</span>') + ' <span class="pill none">' + esc(formatDateShort(o.training_date)) + '</span></span></button>';
   }
   function renderBank(){
@@ -4479,7 +4487,7 @@
     var eig = vormOwner(d, o, r);
     var html = '<div class="tv-meta">' + o + v + ' · training ' + esc(formatDateShort(d) + " " + d.slice(0, 4)) + (eig ? ' · ' + esc(eig) : '') + '</div>' +
       (r.tekening_path ? '<div class="oef-tek"><img alt="Tekening" data-tek-path="' + esc(r.tekening_path) + '"></div>' : (r.tekening_json ? '<div class="tv-svg">' + DrawTool.staticSvg(r.tekening_json) + '</div>' : '')) +
-      b("Aantallen", r.aantallen) + b(o + v + ".1 · " + vormSub(v), r.variatie_1) + b(o + v + ".2 · contextvariatie", r.variatie_2) +
+      b("Aantallen", r.aantallen) + b("Duur", r.duur ? r.duur + " minuten" : "") + b(o + v + ".1 · " + vormSub(v), r.variatie_1) + b(o + v + ".2 · contextvariatie", r.variatie_2) +
       b("Organisatie en ruimte", r.organisatie) + b("Regels", r.regels) + b("Wedstrijdelement", r.wedstrijdelement) +
       b("Aanpassing jongste lichting", r.aanpassing_jong) + b("Aanpassing oudste lichting", r.aanpassing_oud) +
       b("Als het niet loopt", r.als_niet_loopt) + b("Coachaccenten", r.coachaccenten);
@@ -4557,6 +4565,7 @@
       return '<div class="tv-deel">' + head +
         (r.tekening_path ? '<img alt="Tekening ' + code + '" data-tek-path="' + esc(r.tekening_path) + '">' : (r.tekening_json ? '<div class="tv-svg">' + DrawTool.staticSvg(r.tekening_json) + '</div>' : '')) +
         b("Aantallen", r.aantallen) +
+        b("Duur", r.duur ? r.duur + " minuten" : "") +
         b(code + ".1 · " + vormSub(v), r.variatie_1) +
         b(code + ".2 · contextvariatie", r.variatie_2) +
         b("Organisatie en ruimte", r.organisatie) + b("Regels", r.regels) + b("Wedstrijdelement", r.wedstrijdelement) +
@@ -4702,7 +4711,7 @@
           : (r.tekening_json ? '<div class="tp-svg">' + DrawTool.staticSvg(r.tekening_json) + '</div>' : '');
         var l1 = o + v + ".1 · " + vormSub(v), l2 = o + v + ".2 · contextvariatie";
         return '<td>' + img +
-          (r.aantallen ? '<div class="tp-k">' + esc(r.aantallen) + '</div>' : '') +
+          (r.aantallen || r.duur ? '<div class="tp-k">' + esc([r.aantallen, r.duur ? r.duur + " min" : ""].filter(Boolean).join(" · ")) + '</div>' : '') +
           (r.variatie_1 ? '<div class="tp-b"><b>' + l1 + '</b><br>' + nl(r.variatie_1) + '</div>' : '') +
           (r.variatie_2 ? '<div class="tp-b"><b>' + l2 + '</b><br>' + nl(r.variatie_2) + '</div>' : '') +
           (r.organisatie ? '<div class="tp-b"><b>Organisatie</b><br>' + nl(r.organisatie) + '</div>' : '') +
@@ -4766,9 +4775,16 @@
   /* Oefenvorm-venster: voorbereiden of evalueren. Bewerken: eigenaar (of ingedeelde trainer) en hoofdtrainer. */
   var oefState = null;
   var OEF_FIELDS = { oVaardigheid: "vaardigheid", oAantallen: "aantallen", oOrganisatie: "organisatie", oRegels: "regels",
-    oWedstrijd: "wedstrijdelement", oJong: "aanpassing_jong", oOud: "aanpassing_oud", oNietLoopt: "als_niet_loopt", oCoach: "coachaccenten", oVar1: "variatie_1", oVar2: "variatie_2",
+    oWedstrijd: "wedstrijdelement", oJong: "aanpassing_jong", oOud: "aanpassing_oud", oNietLoopt: "als_niet_loopt", oCoach: "coachaccenten", oVar1: "variatie_1", oVar2: "variatie_2", oDuur: "duur",
     eGroep1: "eval_groep1", eAangepast: "eval_aangepast", eGroep2: "eval_groep2", eRuimte: "eval_ruimte", eLichting: "eval_lichting", eVolgende: "eval_volgende",
     rGoed: "reflectie_goed", rAnders: "reflectie_anders" };
+  // Duur: Ajax gaat uit van max. 6 minuten voor vorm 1 (droog) en max. 8 minuten voor vorm 2 (contextvorm).
+  var DUUR_MAX = { 1: 6, 2: 8 };
+  function duurHint(){
+    var n = parseInt($("oDuur").value, 10), max = oefState ? DUUR_MAX[oefState.v] : 8;
+    $("oDuurHint").textContent = n > max ? "Let op: Ajax gaat uit van maximaal " + max + " minuten voor " + (oefState && oefState.v === 1 ? "een droge vorm." : "een contextvorm.") : "";
+  }
+  $("oDuur").addEventListener("input", duurHint);
   function canEditOef(d, o, row){
     if (Auth.isHoofdtrainer()) return true;
     if (row && row.eigenaar_id) return row.eigenaar_id === myUserId();
@@ -4793,6 +4809,7 @@
       $(id).value = val;
       $(id).disabled = !editable;
     });
+    $("oDuur").placeholder = "max. " + DUUR_MAX[v]; duurHint();
     Array.prototype.forEach.call(document.querySelectorAll("[data-terug]"), function(b){
       b.classList.toggle("selected", b.getAttribute("data-terug") === oefState.terug);
       b.disabled = !editable;
@@ -4895,6 +4912,7 @@
     var row = { training_date: s.d, onderdeel: s.o, volgnr: s.v,
       eigenaar_id: s.row && s.row.eigenaar_id ? s.row.eigenaar_id : (plan[ROLE_FIELD[s.o]] || myUserId()) };
     Object.keys(OEF_FIELDS).forEach(function(id){ row[OEF_FIELDS[id]] = $(id).value.trim() || null; });
+    var duur = parseInt($("oDuur").value, 10); row.duur = duur > 0 && duur <= 90 ? duur : null;
     if (kind === "eval") row.eval_terug = s.terug || null;
     else row.status = kind === "gedeeld" ? "gedeeld" : (s.row ? s.row.status : "concept");
     if (kind === "eval" && s.row) row.status = s.row.status;

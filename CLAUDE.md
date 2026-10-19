@@ -223,6 +223,9 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   ("Vak markeren") tonen hun maat in meters ("20 x 15 m", 10 px = 1 m; `it.maat`, knop "Maat verbergen/tonen"; oude vakken
   zonder maat), "vak met hoedjes" toont de maat tijdens het slepen; kleur achteraf wijzigen in de selectiebalk
   (`#drawKleur`) voor spelers (4 teamkleuren, krijgen volgend rugnummer), hoedjes en schijfjes, ook voor meerdere tegelijk.
+- Oefenvorm: veld "Duur (min)" naast Aantallen (kolom `oefenvormen.duur` smallint, migratie 20261019_oefenvorm_duur.sql);
+  waarschuwing boven Ajax-maximum (`DUUR_MAX`: vorm 1 = 6, vorm 2 = 8 min); op tegels in de vormenbank, "Bekijk hele
+  training", vormenbank-venster en afdruk; wordt meegekopieerd. "Wanneer is het gelukt?" bewust NIET (besluit Sofian).
 
 ## Git zonder git
 De Command Line Developer Tools (en dus `git`) zijn nog niet geïnstalleerd. Tot die tijd:
