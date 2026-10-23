@@ -930,6 +930,14 @@
     body.kop-klein .kop-tab{ display:block; }
   }
   @media (prefers-reduced-motion:no-preference){ header.top{ transition:padding .15s ease; } }
+  .opv-lijst{ display:flex; flex-direction:column; }
+  .opv-r{ display:flex; gap:8px; align-items:flex-start; padding:8px 0; border-bottom:1px solid var(--border); font-size:15px; }
+  .opv-r > div{ flex:1; min-width:0; }
+  .opv-r small{ color:var(--ink-muted); }
+  .opv-bron{ color:var(--ink-muted); font-weight:600; }
+  .opv-form{ display:grid; grid-template-columns:1fr; gap:8px; margin-top:10px; }
+  .opv-form select, .opv-form input, .opv-form textarea{ font:16px "Barlow",sans-serif; padding:9px 10px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--ink); width:100%; box-sizing:border-box; }
+  @media (min-width:1024px){ .opv-form{ grid-template-columns:minmax(0, 1.2fr) minmax(0, 1fr); } .opv-form textarea, .opv-form .btn-row{ grid-column:span 2; } }
   .net-banner{ background:#5a3b00; color:#ffd27a; border-radius:10px; padding:7px 10px; font-size:14px; font-weight:600; }
   .wr-mark{ color:#ffd27a; font-size:12px; font-weight:600; white-space:nowrap; }
   .update-banner{
@@ -1191,6 +1199,7 @@
   </section>
 
   <section class="panel" id="panel-evaluatie" hidden>
+    <div id="opvWrap"></div>
     <div id="oefEvalList" style="display:flex; flex-direction:column; gap:10px;"></div>
     <!-- Oude evaluaties (voor fase 2): alleen tonen als er voor deze datum een is. Het oude formulier is uit beeld. -->
     <div id="oldEvalWrap" hidden style="margin-top:14px;">
@@ -2184,12 +2193,14 @@
     function onTraining(fn){ listeners.training.push(fn); }
 
     // Toernooi-nabespreking: alleen de hoofdtrainer (RLS). Oordelen -2..+2 per speler per beoordelaar + één toelichting.
-    var tBeoordelaars = {}, tOordelen = [], tNotities = [];
+    var tBeoordelaars = {}, tOordelen = [], tNotities = [], opv = [];
     function loadToernooi(){
       if (!Auth.isRealHoofdtrainer()) return Promise.resolve();
       return Promise.all([
-        sb.from("toernooi_nabespreking").select("*"), sb.from("toernooi_oordelen").select("*"), sb.from("toernooi_notities").select("*")
+        sb.from("toernooi_nabespreking").select("*"), sb.from("toernooi_oordelen").select("*"), sb.from("toernooi_notities").select("*"),
+        sb.from("opvallend").select("*").order("created_at")
       ]).then(function(r){
+        opv = r[3].data || [];
         tBeoordelaars = {}; (r[0].data || []).forEach(function(x){ tBeoordelaars[x.toernooi_datum] = x.beoordelaars || []; });
         tOordelen = r[1].data || []; tNotities = r[2].data || [];
         emit("training");
@@ -2216,6 +2227,19 @@
       tNotities.push({ toernooi_datum: d, player_id: pid, tekst: tekst });
       return sb.from("toernooi_notities").upsert({ toernooi_datum: d, player_id: pid, tekst: tekst || null, updated_at: new Date().toISOString() }, { onConflict: "toernooi_datum,player_id" })
         .then(function(res){ if (res.error) throw res.error; });
+    }
+    // Opvallende spelers per training (alleen hoofdtrainer): wat scouts of trainers na de training opviel.
+    function getOpvallend(d){ return opv.filter(function(x){ return x.training_date === d; }); }
+    function getOpvallendSpeler(pid){ return opv.filter(function(x){ return x.player_id === pid; }); }
+    function getOpvallendBronnen(){ var m = {}; opv.forEach(function(x){ if (x.bron) m[x.bron] = 1; }); return Object.keys(m).sort(); }
+    function addOpvallend(d, pid, bron, tekst){
+      return sb.from("opvallend").insert({ training_date: d, player_id: pid, bron: bron || null, tekst: tekst }).select().then(function(res){
+        if (res.error) throw res.error;
+        opv = opv.concat(res.data || []); emit("training");
+      });
+    }
+    function delOpvallend(id){
+      return sb.from("opvallend").delete().eq("id", id).then(function(res){ if (res.error) throw res.error; opv = opv.filter(function(x){ return x.id !== id; }); emit("training"); });
     }
     function toernooiDatums(){
       var m = {}; tOordelen.forEach(function(o){ m[o.toernooi_datum] = 1; }); Object.keys(tBeoordelaars).forEach(function(d){ m[d] = 1; });
@@ -2561,7 +2585,7 @@
       getPlan: getPlan, savePlan: savePlan, savePlans: savePlans, getOefs: getOefs, getAllOefs: getAllOefs, getOef: getOef, saveOef: saveOef, getFeedback: getFeedback,
       addFeedback: addFeedback, deleteFeedback: deleteFeedback, getReactie: getReactie, saveReactie: saveReactie, getAllFeedback: getAllFeedback, getAllReacties: getAllReacties,
       getBeoordelaars: getBeoordelaars, saveBeoordelaars: saveBeoordelaars, getOordelen: getOordelen, setOordeel: setOordeel,
-      getNotitie: getNotitie, setNotitie: setNotitie, toernooiDatums: toernooiDatums, uploadTekening: uploadTekening, getTekeningUrl: getTekeningUrl, onTraining: onTraining,
+      getNotitie: getNotitie, setNotitie: setNotitie, getOpvallend: getOpvallend, getOpvallendSpeler: getOpvallendSpeler, getOpvallendBronnen: getOpvallendBronnen, addOpvallend: addOpvallend, delOpvallend: delOpvallend, toernooiDatums: toernooiDatums, uploadTekening: uploadTekening, getTekeningUrl: getTekeningUrl, onTraining: onTraining,
       init: init, onWachtrij: onWachtrij, wachtrij: wachtrij, inWachtrij: inWachtrij, onPlayers: onPlayers, onScores: onScores, onSettings: onSettings, onEvals: onEvals, onScoutReports: onScoutReports, onModeReady: onModeReady,
       getPlayers: getPlayers, getScores: getScores, getCancelled: getCancelled, getEvaluations: getEvaluations, getScoutReports: getScoutReports, getMode: getMode,
       getProfiles: getProfiles, updateProfileRole: updateProfileRole, manageUsers: manageUsers, listBackups: listBackups, getBackupData: getBackupData, makeBackup: makeBackup,
@@ -4099,7 +4123,7 @@
     $("panel-bank").hidden = state.trainingSub !== "bank";
     if (state.trainingSub === "plan") renderPlan();
     else if (state.trainingSub === "bank") renderBank();
-    else { renderOefEval(); renderEvaluatie(); }
+    else { renderOpvallend(); renderOefEval(); renderEvaluatie(); }
   }
   $("trainingPick").addEventListener("change", function(){ state.trainingDate = this.value; state.trainingSub = null; trainingDefaults(); renderTraining(); });
   Array.prototype.forEach.call(document.querySelectorAll("[data-tr-sub]"), function(b){
@@ -4501,8 +4525,13 @@
       var notitie = Store.getNotitie(d, p.id);
       regels.push({ d: d, html: '<div class="tl-r"><span class="tl-k">Toernooi ' + esc(formatDateShort(d)) + '</span><span class="tl-v"><b class="' + (gem > 0.05 ? "tl-plus" : gem < -0.05 ? "tl-min" : "") + '">' + tot + '</b>' + (sc ? ' · scouts ' + esc(sc) : '') + (notitie ? '<br><small>' + esc(notitie) + '</small>' : '') + '</span></div>' });
     });
+    var opvPer = {};
+    Store.getOpvallendSpeler(p.id).forEach(function(r){ (opvPer[r.training_date] = opvPer[r.training_date] || []).push(r); });
+    Object.keys(opvPer).forEach(function(d){
+      regels.push({ d: d, html: '<div class="tl-r"><span class="tl-k">Opvallend ' + esc(formatDateShort(d)) + '</span><span class="tl-v">' + opvPer[d].map(function(r){ return (r.bron ? '<b>' + esc(r.bron) + ':</b> ' : '') + esc(r.tekst); }).join('<br>') + '</span></div>' });
+    });
     regels.sort(function(a, b){ return a.d < b.d ? -1 : 1; });
-    return '<div class="tl"><div class="tl-h">Tijdlijn</div>' + (regels.length ? regels.map(function(r){ return r.html; }).join("") : '<div class="tl-r"><span class="tl-v">Nog geen beoordelingen of toernooi-oordelen.</span></div>') + '</div>';
+    return '<div class="tl"><div class="tl-h">Tijdlijn</div>' + (regels.length ? regels.map(function(r){ return r.html; }).join("") : '<div class="tl-r"><span class="tl-v">Nog geen beoordelingen, notities of toernooi-oordelen.</span></div>') + '</div>';
   }
 
   /* Vormenbank: alle gedeelde oefenvormen doorzoeken (vaardigheid, droog/small-sided game, werkte het?), bekijken met
@@ -4822,6 +4851,60 @@
     });
   }
 
+  /* Opvallende spelers (hoofdtrainer, Evaluatie): wat de scouts na de training noemen (of trainers zagen), per speler
+     genoteerd. "Kopieer voor SoccerLab" zet alles van deze training als nette tekst klaar om te plakken. */
+  function opvSpeler(pid){ return Store.getPlayers().concat(Store.getArchief()).filter(function(p){ return p.id === pid; })[0]; }
+  function opvTekst(d){
+    var rows = Store.getOpvallend(d), per = {}, volg = [];
+    rows.forEach(function(r){ if (!per[r.player_id]){ per[r.player_id] = []; volg.push(r.player_id); } per[r.player_id].push(r); });
+    return "Opvallende spelers ART 1 AS'80 · training " + formatDateShort(d) + " " + d.slice(0, 4) + "\n\n" + volg.map(function(pid){
+      var p = opvSpeler(pid);
+      return (p ? p.naam + " (" + lichtingLabel(p.lichting) + (p.hesje ? ", #" + p.hesje : "") + ")" : "Speler") + "\n" +
+        per[pid].map(function(r){ return "- " + (r.bron ? r.bron + ": " : "") + r.tekst; }).join("\n");
+    }).join("\n\n");
+  }
+  function renderOpvallend(){
+    var wrap = $("opvWrap"), d = state.trainingDate;
+    if (!Auth.isHoofdtrainer() || (trainingPeriod(d) || {}).toernooi){ wrap.innerHTML = ""; return; }
+    var rows = Store.getOpvallend(d), spelers = Store.getPlayers().slice().sort(function(a, b){ return String(b.lichting).localeCompare(String(a.lichting)) || Number(a.hesje || 999) - Number(b.hesje || 999) || a.naam.localeCompare(b.naam); });
+    var vorige = $("opvBron") ? $("opvBron").value : "";
+    wrap.innerHTML = '<div class="card tr-card"><div class="tr-card-h">Opvallende spelers' + (rows.length ? ' <small style="margin-left:auto;">' + rows.length + '</small>' : '') + '</div>' +
+      '<div class="tr-note">Wat de scouts (of trainers) na de training opviel. Alleen jij ziet dit.</div>' +
+      (rows.length ? '<div class="opv-lijst">' + rows.map(function(r){
+        var p = opvSpeler(r.player_id);
+        return '<div class="opv-r"><div><b>' + (p ? (p.hesje ? esc(p.hesje) + ' · ' : '') + esc(p.naam) : 'Speler') + '</b>' + (p ? ' <small>' + esc(lichtingLabel(p.lichting)) + '</small>' : '') +
+          '<div>' + (r.bron ? '<span class="opv-bron">' + esc(r.bron) + ':</span> ' : '') + esc(r.tekst) + '</div></div>' +
+          '<button type="button" class="vj-x" data-opv-weg="' + r.id + '" aria-label="Verwijderen">&times;</button></div>';
+      }).join("") + '</div>' : '') +
+      '<div class="opv-form">' +
+      '<select id="opvSpeler" aria-label="Speler"><option value="">Kies een speler…</option>' + spelers.map(function(p){ return '<option value="' + p.id + '">' + (p.hesje ? esc(p.hesje) + ' · ' : '') + esc(p.naam) + ' (' + esc(lichtingLabel(p.lichting)) + ')</option>'; }).join("") + '</select>' +
+      '<input type="text" id="opvBron" list="opvBronnen" placeholder="Wie (bv. Johan, scout)" value="' + esc(vorige) + '" aria-label="Wie zei het">' +
+      '<datalist id="opvBronnen">' + Store.getOpvallendBronnen().map(function(b){ return '<option value="' + esc(b) + '">'; }).join("") + '</datalist>' +
+      '<textarea id="opvTekst" rows="2" placeholder="Wat viel op?" aria-label="Wat viel op"></textarea>' +
+      '<div class="btn-row"><button type="button" class="btn primary small" id="opvAdd">Toevoegen</button>' +
+      (rows.length ? '<button type="button" class="btn ghost small" id="opvCopy">Kopieer voor SoccerLab</button>' : '') + '</div></div></div>';
+    $("opvAdd").onclick = function(){
+      var pid = $("opvSpeler").value, tekst = $("opvTekst").value.trim(), bron = $("opvBron").value.trim();
+      if (!pid || !tekst){ showToast(!pid ? "Kies eerst een speler" : "Schrijf op wat er opviel"); return; }
+      $("opvAdd").disabled = true;
+      Store.addOpvallend(d, pid, bron, tekst).then(function(){ renderOpvallend(); $("opvSpeler").focus(); })
+        .catch(function(err){ console.error(err); showToast("Opslaan mislukt"); $("opvAdd").disabled = false; });
+    };
+    if ($("opvCopy")) $("opvCopy").onclick = function(){
+      var t = opvTekst(d), klaar = function(){ showToast("Gekopieerd: plak het in SoccerLab"); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(klaar, function(){ kopieerOud(t); klaar(); });
+      else { kopieerOud(t); klaar(); }
+    };
+    Array.prototype.forEach.call(wrap.querySelectorAll("[data-opv-weg]"), function(b){
+      b.onclick = function(){
+        var id = b.getAttribute("data-opv-weg"), r = rows.filter(function(x){ return x.id === id; })[0], p = r && opvSpeler(r.player_id);
+        confirmDialog({ title: "Notitie verwijderen?", messageHtml: "De notitie over <b>" + esc(p ? p.naam : "deze speler") + "</b> wordt verwijderd.", confirmLabel: "Verwijderen" }).then(function(ok){
+          if (ok) Store.delOpvallend(id).then(renderOpvallend).catch(function(){ showToast("Verwijderen mislukt"); });
+        });
+      };
+    });
+  }
+  function kopieerOud(t){ var ta = document.createElement("textarea"); ta.value = t; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); } catch(e){} document.body.removeChild(ta); }
   function renderOefEval(){
     var d = state.trainingDate, per = trainingPeriod(d), wrap = $("oefEvalList");
     var rows = Store.getOefs(d);
@@ -7037,6 +7120,7 @@
     teams: function(){ return LICHTINGEN; },
     datum: function(){
       var tr = PERIODISERING.trainingen || {}, t = todayISO();
+      if (DEMO){ var alle = Object.keys(tr).filter(function(d){ return tr[d] && tr[d].toernooi; }).sort(); return alle[alle.length - 1] || null; } // demo: laatste toernooi laten zien
       return Object.keys(tr).filter(function(d){ return tr[d] && tr[d].toernooi && d >= addDaysISO(t, -1) && d <= addDaysISO(t, 7); }).sort()[0] || null;
     } });
   function tabAllowedForRole(tab, role, isHoofd){
@@ -7346,6 +7430,41 @@
       T.reflectie_reacties = [{ id: uid(), oefenvorm_id: a2.id, trainer_id: "demo-t1", auteur_id: me.id,
         tekst: "Goed dat je het zelf zag. Neem volgende keer ook een regel mee die het passeren beloont, bijvoorbeeld een punt extra na een geslaagde actie.",
         created_at: new Date().toISOString(), updated_at: new Date().toISOString() }];
+      T.oefenvormen.forEach(function(o){ o.duur = o.volgnr === 1 ? 6 : 8; });
+      var nu = new Date().toISOString(), P = function(i){ return T.players[i].id; };
+      // Opvallende spelers na de training van 27 sep (wat de scouts noemden).
+      T.opvallend = [
+        { id: uid(), training_date: d, player_id: P(0), bron: "Johan (scout)", tekst: "Sterk in 1 tegen 1, zoekt steeds de diepte.", created_at: nu, updated_at: nu },
+        { id: uid(), training_date: d, player_id: P(0), bron: "Erik (scout)", tekst: "Durft het duel aan, ook tegen oudere spelers.", created_at: nu, updated_at: nu },
+        { id: uid(), training_date: d, player_id: P(5), bron: "Johan (scout)", tekst: "Mooie eerste aanname, speelt met het hoofd omhoog.", created_at: nu, updated_at: nu },
+        { id: uid(), training_date: d, player_id: P(10), bron: "Tim (trainer)", tekst: "Pakte de passeeractie uit A1 direct op in de small-sided game.", created_at: nu, updated_at: nu }
+      ];
+      // Toernooi (laatste toernooi uit de periodisering): nabespreking met oordelen en toelichting.
+      var trn = Object.keys((PERIODISERING || {}).trainingen || {}).filter(function(x){ return PERIODISERING.trainingen[x] && PERIODISERING.trainingen[x].toernooi; }).sort().pop();
+      T.toernooi_nabespreking = []; T.toernooi_oordelen = []; T.toernooi_notities = [];
+      if (trn){
+        var bo = [{ naam: "Johan", rol: "scout", lichtingen: [] }, { naam: "Erik", rol: "scout", lichtingen: [] }, { naam: "Tim", rol: "trainer", lichtingen: [] }, { naam: "Kevin", rol: "trainer", lichtingen: [] }];
+        T.toernooi_nabespreking = [{ toernooi_datum: trn, beoordelaars: bo, updated_at: nu }];
+        T.players.forEach(function(p, i){
+          bo.forEach(function(b){
+            var w = Math.max(-2, Math.min(2, Math.round(kracht[p.id] - 1.5 + (rnd() - 0.5) * 1.4)));
+            T.toernooi_oordelen.push({ id: uid(), toernooi_datum: trn, player_id: p.id, beoordelaar: b.naam, rol: b.rol, waarde: w, updated_at: nu });
+          });
+        });
+        T.toernooi_notities = [{ toernooi_datum: trn, player_id: P(0), tekst: "Beslissend in de laatste wedstrijd, twee keer gescoord.", updated_at: nu },
+          { toernooi_datum: trn, player_id: P(5), tekst: "Rustig aan de bal, goede keuzes onder druk.", updated_at: nu }];
+      }
+      // "Voor jou": de hoofdtrainer is Trainer A in de eerstvolgende training; A1 is nog concept en heeft een tip.
+      var vd = TRAINING_DATES.map(function(x){ return x.date; }).filter(function(x){ return x >= todayISO() && !(trainingPeriod(x) || {}).toernooi; })[0];
+      if (vd){
+        T.training_plans.push({ training_date: vd, hoofd_a: me.id, hoofd_b: "demo-t2", assistent: "demo-t3", deadline: null });
+        var a1 = Object.assign({}, clone(DEMO_VORMEN.find(function(v){ return v.onderdeel === "A" && v.volgnr === 1; })), { id: "demo-vj-a1", training_date: vd, eigenaar_id: me.id, eigenaar_naam: me.naam || "Hoofdtrainer", status: "concept", tekening_path: null, duur: 6 });
+        T.oefenvormen.push(a1);
+        DEMO_VORMEN.filter(function(v){ return v.onderdeel === "B"; }).forEach(function(v){
+          T.oefenvormen.push(Object.assign({}, clone(v), { id: "demo-vj-b" + v.volgnr, training_date: vd, eigenaar_id: "demo-t2", eigenaar_naam: "Kevin Postma", status: "gedeeld", tekening_path: null, duur: v.volgnr === 1 ? 6 : 8 }));
+        });
+        T.oefenvorm_feedback.push({ id: uid(), oefenvorm_id: a1.id, auteur_id: "demo-t3", auteur_naam: "Rick Verhoef", soort: "tip", tekst: "Laat de beweging eerst zonder bal voordoen.", created_at: nu });
+      }
     }
     return { client: client, seed: seed };
   })();
@@ -7359,30 +7478,35 @@
     function firstPlayer(){ return filteredPlayers()[0]; }
     function closeAll(){
       if (!$("drawOverlay").hidden) $("drawCancel").click();
-      ["playerCardOverlay", "scoreOverlay", "nameGameOverlay", "tvOverlay", "rolesOverlay", "rosterOverlay"].forEach(function(id){ $(id).hidden = true; });
+      ["playerCardOverlay", "scoreOverlay", "nameGameOverlay", "tvOverlay", "rolesOverlay", "rosterOverlay", "trapOverlay", "bankOverlay"].forEach(function(id){ $(id).hidden = true; });
       if (!$("oefOverlay").hidden) closeOef();
       $("accountMenu").hidden = true;
       if (Auth.getViewAs()){ Auth.setViewAs(null); renderAll(); }
     }
     function training(sub){ state.trainingDate = DEMO_DATE; state.trainingSub = sub; switchTab("training"); }
     steps = [
-      { title: "ART Spelersvolgsysteem", text: "Alles rond de ART-training op één plek: <b>spelers volgen</b>, <b>trainingen voorbereiden volgens de Ajax-opbouw</b> en <b>scouting</b>. Gemaakt voor ART 1 bij AS’80.<br><br>Links ziet u de app zoals trainers hem gebruiken. <small>Alle spelers en trainers in deze demo zijn verzonnen.</small>", go: function(){ switchTab("spelers"); } },
-      { sel: ".tabbar", title: "Vier tabbladen", text: "In de volgorde van de week: <b>Spelers</b>, <b>Aanwezig</b>, <b>Training</b> en <b>Rapport</b>.<br><br>Ieder ziet alleen wat hij nodig heeft: trainers de eerste drie, scouts alleen Spelers, het rapport is voor de hoofdtrainer.", go: function(){ switchTab("spelers"); } },
-      { sel: "#spelersList", title: "Spelers: het smoelenboek", text: "Per lichting, met foto, <b>hesjenummer</b> en <b>geboortekwartaal</b>: zo wegen trainers en scouts de relatieve leeftijd direct mee.<br><br>Een ster betekent: deze speler wordt vaak met A of B beoordeeld.", go: function(){ switchTab("spelers"); } },
-      { sel: "#rateBar", title: "Beoordelen per blok", text: "Iedere trainer en scout ziet hoeveel spelers hij in dit blok al heeft beoordeeld. Een groen vinkje op de foto betekent: gedaan.", go: function(){ switchTab("spelers"); } },
-      { sel: "#playerCardOverlay .sheet", title: "De spelerskaart", text: "Aanwezigheid, het gemiddelde oordeel van de <b>trainers</b> en van de <b>scouts</b>, de ster en het advies, in één oogopslag.", go: function(){ switchTab("spelers"); openPlayerCard(firstPlayer().id); } },
-      { sel: "#scoreOverlay .sheet", title: "A, B, C of D", text: "Wedstrijdbeoordeling en potentieel op dezelfde schaal als de Ajax-scoutingslijst.<br><br><b>Scouts zien alleen hun eigen beoordelingen</b>, niet die van elkaar of van de trainers.", go: function(){ switchTab("spelers"); openScoreSheet(firstPlayer().id); } },
+      { title: "ART 1 · AS’80", text: "Deze app helpt ons bij drie dingen:<br><br>1. <b>Wat we trainen</b>: elke training volgens de Ajax-opbouw, zichtbaar voor iedereen.<br>2. <b>Trainers ontwikkelen</b>: voorbereiden, evalueren, reflecteren en van elkaar leren.<br>3. <b>Wat opvalt bij spelers</b>: aanwezigheid, beoordelingen, toernooien en wat scouts na de training noemen.<br><br>Links ziet u de app zoals wij hem gebruiken. <small>Alle spelers en trainers in deze demo zijn verzonnen.</small>", go: function(){ training("plan"); } },
+      { sel: "#trWeeks", title: "Wat we trainen: het seizoen", text: "Alle trainingen van het blok op een rij, gekoppeld aan de <b>periodisering van Ajax</b>. Per training ziet u hoeveel vormen al klaar zijn.", go: function(){ training("plan"); } },
+      { sel: "#planWrap .tr-card", title: "Eén training", text: "Drie onderdelen: <b>Trainer A</b> en <b>Trainer B</b> hebben elk een vaardigheid, de <b>assistent</b> de small-sided game.<br><br>Elke vorm staat als tegel met tekening. Staan alle vormen op klaar, dan is de training <b>compleet</b>. De deadline is vrijdagavond.", go: function(){ training("plan"); } },
+      { sel: "#oefOverlay .sheet", title: "Een vorm volgens de Ajax-planner", text: "Vorm 1 is <b>droog</b> (bewegingsvariaties), vorm 2 de <b>contextvorm</b> met weerstand; x.2 is steeds de contextvariatie.<br><br>Met tekening, duur (Ajax: max. 6 en 8 minuten), organisatie, regels, wedstrijdelement, aanpassing per lichting en ‘als het niet loopt’.", go: function(){ training("plan"); openOef(DEMO_DATE, "A", 2, "plan"); } },
+      { sel: ".draw-app", title: "De tekentool", text: "Spelers in vier kleuren, trainingshoedjes, pupillen- en minidoelen op schaal, pijlen voor loopactie, pass, dribbel en schot.<br><br>Snel werken op de laptop: sneltoetsen, een <b>magneet</b> die alles netjes uitlijnt, meerdere items tegelijk verplaatsen of van kleur wisselen, en de <b>maat van een vak</b> in meters.", go: function(){ training("plan"); openOef(DEMO_DATE, "A", 2, "plan"); setTimeout(function(){ $("oDrawBtn").click(); }, 50); } },
+      { sel: "#tvOverlay .sheet", title: "De hele training", text: "Alle vormen samen in de opbouw van de Ajax-planner. Met één klik af te drukken of als pdf te delen.", go: function(){ training("plan"); openTrainingView(DEMO_DATE); } },
+      { sel: "#bankWrap", title: "De vormenbank", text: "Alle vormen van eerdere trainingen, te zoeken op vaardigheid, droog of small-sided game, en of het werkte.<br><br>Een goede vorm gebruikt een trainer als basis voor een nieuwe training: zo groeit onze eigen oefenstof.", go: function(){ training("bank"); } },
+      { sel: "#planWrap", title: "Trainers ontwikkelen: rollen rouleren", text: "Per training heeft iedere trainer een rol. Het <b>rooster</b> laat de rollen per week doorschuiven, zodat iedere trainer elke rol doet: een vaardigheid uitwerken, de small-sided game, en assisteren.", go: function(){ training("plan"); } },
+      { sel: ".vj", title: "Voor jou", text: "Bovenaan ziet elke trainer wat er voor hem klaarstaat: een tip van een collega, een reactie van de hoofdtrainer, een vorm die nog niet klaar is (met deadline) of nog geëvalueerd moet worden.<br><br>Is het gedaan, dan verdwijnt het vanzelf.", go: function(){ training("plan"); } },
+      { sel: "#oefFeedback", title: "Tips en tops", text: "Alle trainers zien elkaars vormen en geven elkaar een <b>tip</b> of een <b>top</b>. Zo leren ze van elkaar, ook buiten de training om.", go: function(){ training("plan"); openOef(DEMO_DATE, "A", 2, "plan"); setTimeout(function(){ var el = $("oefFeedback"); if (el && el.scrollIntoView) el.scrollIntoView({ block: "center" }); }, 150); } },
+      { sel: "#oefOverlay .sheet", title: "Evalueren en reflecteren", text: "Na de training per vorm: kwam de vaardigheid terug? Groep 1 → wat pas je aan → groep 2. En een <b>reflectie op zichzelf</b> als trainer: wat deed ik goed, wat pak ik anders aan?", go: function(){ training("evaluatie"); openOef(DEMO_DATE, "A", 2, "evaluatie"); } },
+      { sel: "#oefReactie", title: "Reactie van de hoofdtrainer", text: "De hoofdtrainer reageert op de reflectie. <b>Alleen die trainer ziet de reactie</b>: zo is er ruimte voor eerlijke feedback en wordt de app een leeromgeving voor de trainers.", go: function(){ training("evaluatie"); openOef(DEMO_DATE, "A", 2, "evaluatie"); setTimeout(function(){ var el = $("oefReactie"); if (el && el.scrollIntoView) el.scrollIntoView({ block: "center" }); }, 150); } },
+      { sel: "#absentiesList", title: "Wat opvalt: aanwezigheid", text: "Op het veld in één tik: afwezig, met reden. Het werkt ook <b>zonder internet</b>; zodra er weer verbinding is, gaat alles vanzelf door.<br><br>Wie vaker dan 20% mist, krijgt een waarschuwing in het rapport.", go: function(){ switchTab("aanwezig"); } },
+      { sel: "#opvWrap", title: "Opvallende spelers", text: "Na de training vraag ik de scouts: <b>welke spelers zijn je opgevallen?</b> Dat noteer ik hier per speler, met wie het zei.<br><br>Met één knop staat alles klaar om in <b>SoccerLab</b> te plakken.", go: function(){ training("evaluatie"); } },
+      { sel: "#scoreOverlay .sheet", title: "Beoordelen per blok", text: "Iedere trainer beoordeelt de spelers per blok op <b>wedstrijd</b> en <b>potentieel</b>, met A, B, C of D: dezelfde schaal als de Ajax-lijst.", go: function(){ switchTab("spelers"); openScoreSheet(firstPlayer().id); } },
+      { sel: "#playerCardOverlay .sheet", title: "De spelerskaart", text: "Per speler een <b>tijdlijn</b>: de letters van de trainers per blok, wat er na trainingen opviel, en het oordeel op het toernooi. Zo ziet u in één oogopslag hoe een speler zich ontwikkelt.", go: function(){ switchTab("spelers"); openPlayerCard(firstPlayer().id); } },
+      { sel: "#toernooiWrap", title: "Het toernooi", text: "Op toernooidagen een <b>wisselschema</b> per lichting met exact gelijke speeltijd: iedereen speelt even lang en iedereen keept. Met een wedstrijdklok op de telefoon die aangeeft wie erin en eruit gaat.", go: function(){ switchTab("toernooi"); } },
+      { sel: "#trapOverlay .sheet", title: "Nabespreking en rapport", text: "Na het toernooi bespreken scouts en trainers elke speler (−− tot ++). De app maakt er een <b>rapport</b> van: top 3 en onderkant per lichting, wie scouts en trainers verschillend zagen, en het effect van het geboortekwartaal.", go: function(){ switchTab("overzicht"); var ds = Store.toernooiDatums(); if (ds.length) setTimeout(function(){ var b = document.querySelector("[data-trap]"); if (b) b.click(); }, 50); } },
+      { sel: "#overzichtWrap", title: "Het rapport per blok", text: "Per speler het gemiddelde van de trainers, de ster en het advies. Met één klik de <b>Ajax-lijst</b> per lichting, klaar om af te drukken of als pdf te versturen.", go: function(){ switchTab("overzicht"); } },
       { sel: "#ngEntry", title: "Namen oefenen", text: "Nieuwe trainers leren de namen met een spelletje: foto koppelen aan naam, of ‘Wie is dit?’. Een naam is pas ‘gekend’ na drie keer goed, verspreid over twee dagen.", go: function(){ switchTab("spelers"); } },
-      { sel: "#absentiesList", title: "Aanwezigheid", text: "Op het veld in één tik: afwezig, met reden. Wie vaker dan 20% mist, krijgt een waarschuwing in het rapport.", go: function(){ switchTab("aanwezig"); } },
-      { sel: "#planWrap", title: "Training: het weekplan", text: "Per training de <b>periodisering van Ajax</b>, met rollen (trainer A, trainer B, assistent) die per week rouleren.<br><br>Elke vorm staat als tegel met tekening. Staan alle vormen op klaar, dan is de training <b>compleet</b>; de deadline is vrijdagavond.", go: function(){ training("plan"); } },
-      { sel: "#oefOverlay .sheet", title: "Een oefenvorm", text: "Volgens de Ajax-planner: <b>droog</b> (x.1) → spacing → <b>contextvariatie</b> (x.2), daarna de <b>small-sided game</b>.<br><br>Met tekening, organisatie, regels, wedstrijdelement, aanpassing per lichting en ‘als het niet loopt’. Collega’s geven tips en tops.", go: function(){ training("plan"); openOef(DEMO_DATE, "A", 2, "plan"); } },
-      { sel: ".draw-app", title: "De tekentool", text: "Spelers in vier kleuren, trainingshoedjes, pupillen- en minidoelen op schaal, pijlen voor loopactie, pass, dribbel en schot.<br><br>Sneltoetsen en ‘vak met hoedjes’ maken tekenen snel; bij opslaan zoomt hij vanzelf in op het stuk waar getekend is.", go: function(){ training("plan"); DrawTool.open(JSON.parse(JSON.stringify(Store.getOef(DEMO_DATE, "A", 2).tekening_json)), function(){}); } },
-      { sel: "#oefOverlay .sheet", title: "Evalueren en reflecteren", text: "Na de training: kwam de vaardigheid terug? Groep 1 → wat pas je aan → groep 2. Plus een reflectie van de trainer op zichzelf.<br><br>De hoofdtrainer reageert; <b>alleen die trainer ziet de reactie</b>. Zo is de app ook een leeromgeving voor de trainers.", go: function(){ training("evaluatie"); openOef(DEMO_DATE, "A", 2, "evaluatie"); } },
-      { sel: "#tvOverlay .sheet", title: "De hele training", text: "Alle vormen samen in de opbouw van de Ajax-planner. Met één klik te downloaden als pdf.", go: function(){ training("plan"); openTrainingView(DEMO_DATE); } },
-      { sel: "#overzichtWrap", title: "Rapport", text: "Per blok per speler het gemiddelde van trainers en scouts, de ster en het advies. Tik op een speler voor alle afzonderlijke beoordelingen.", go: function(){ switchTab("overzicht"); } },
-      { sel: "#ajaxListBtn", title: "De Ajax-lijst", text: "In één klik de lijst in Ajax-opmaak per lichting, klaar om af te drukken of als pdf te versturen.", go: function(){ switchTab("overzicht"); } },
-      { sel: "#spelersList", title: "Zo ziet een scout het", text: "Een scout krijgt een eigen account voor de duur van zijn bezoek. Hij ziet alleen het smoelenboek met hesjenummers en beoordeelt met de Ajax-scoutingslijst, met advies en onderbouwing.<br><br>Geen tabbladen, geen beoordelingen van anderen.", go: function(){ Auth.setViewAs("scout"); switchTab("spelers"); renderAll(); } },
-      { title: "Veilig en praktisch", text: "Iedereen logt in met een eigen account; scouts alleen tijdens hun bezoek. Foto’s zijn afgeschermd, er worden automatisch back-ups gemaakt en de app werkt als app op telefoon en laptop.<br><br>Klik nu gerust zelf rond. <small>Niets wordt opgeslagen; verversen zet de demo terug.</small>", go: function(){ switchTab("spelers"); } }
+      { sel: "#ajaxCompareBtn", title: "Het seizoen bijhouden", text: "Een nieuwe lijst van scouting? Plak hem in de app: die ziet zelf wie er nieuw is, wie er niet meer op staat en waar de spelling anders is.<br><br>Gastspelers van een toernooi gaan naar het <b>archief</b>: uit beeld, maar met één tik terug als ze weer komen.", go: function(){ settingsOpen.spelers = true; switchTab("instellingen"); } },
+      { title: "Veilig en praktisch", text: "Iedereen logt in met een eigen account. Notities over spelers, beoordelingen en de toernooi-nabespreking zijn alleen voor de hoofdtrainer; foto’s zijn afgeschermd en er worden automatisch back-ups gemaakt. De app werkt als app op telefoon en laptop.<br><br>Klik nu gerust zelf rond. <small>Niets wordt opgeslagen; verversen zet de demo terug.</small>", go: function(){ training("plan"); } }
     ];
     function build(){
       layer = document.createElement("div"); layer.className = "tour-layer";

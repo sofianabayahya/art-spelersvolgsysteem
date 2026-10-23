@@ -121,6 +121,20 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   Pijltjestoetsen, Esc = paneel dicht. Smal scherm: paneel onderin (niet het doel).
   Gele "DEMO"-pil bovenaan met knop "Rondleiding". Stappen zijn in `Tour` aan te passen (sel, title, text, go).
 - Wijzigt de app, controleer dan of de selectors van de rondleiding nog kloppen.
+- Rondleiding herschreven 2026-10-24 voor iemand uit de Ajax-gemeenschap (Sofian: het gaat om de trainers, scouts zijn nog
+  niet toe aan digitaal). 22 stappen in drie lijnen: Wat we trainen (weekstrook, training, vorm, tekentool, hele training,
+  vormenbank) → Trainers ontwikkelen (rollen rouleren, Voor jou, tips/tops, evaluatie+reflectie, reactie) → Wat opvalt bij
+  spelers (aanwezig offline, opvallende spelers/SoccerLab, beoordelen, spelerskaart-tijdlijn, toernooi, nabespreking-rapport,
+  rapport/Ajax-lijst) → Namen oefenen, seizoen bijhouden, veilig. Scout-kant weggelaten.
+- Demo-seed aangevuld: duur bij de vormen, `opvallend` (27 sep), toernooi-nabespreking met oordelen voor het laatste
+  toernooi uit de periodisering, en voor "Voor jou" een eigen concept-A1 + tip in de eerstvolgende training.
+  In de demo is het Toernooi-tabblad altijd zichtbaar (laatste toernooi).
+
+## Opvallende spelers (2026-10-23)
+- Tabel `opvallend` (training_date, player_id, bron, tekst; migratie 20261023_opvallend.sql; RLS alleen hoofdtrainer).
+- Training → Evaluatie, kaart bovenaan (hoofdtrainer): per speler noteren wat scouts/trainers na de training noemden
+  (wie = vrije tekst met eerder gebruikte namen), "Kopieer voor SoccerLab" (tekst per speler met lichting en hesje).
+  Verschijnt ook op de tijdlijn van de spelerskaart.
 
 ## Toernooi-tabblad (gebouwd 2026-10-03 voor het toernooi van 4 okt)
 - Eigen tabblad "Toernooi" (trainers + hoofdtrainer), alleen zichtbaar van 1 dag vóór tot 7 dagen ná een datum met
