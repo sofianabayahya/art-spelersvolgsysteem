@@ -923,6 +923,15 @@
     max-width:88vw; text-align:center;
   }
   .toast.show{ opacity:1; transform:translateX(-50%) translateY(-4px); }
+  .kop-tab{ display:none; background:none; border:none; color:var(--ink); font:700 19px "Barlow Condensed",sans-serif; padding:2px 0; cursor:pointer; text-align:left; }
+  @media (max-width:1023px){
+    body.kop-klein header.top{ padding-top:calc(6px + env(safe-area-inset-top,0px)) !important; padding-bottom:8px; gap:8px; }
+    body.kop-klein .brand, body.kop-klein .header-logo{ display:none !important; }
+    body.kop-klein .kop-tab{ display:block; }
+  }
+  @media (prefers-reduced-motion:no-preference){ header.top{ transition:padding .15s ease; } }
+  .net-banner{ background:#5a3b00; color:#ffd27a; border-radius:10px; padding:7px 10px; font-size:14px; font-weight:600; }
+  .wr-mark{ color:#ffd27a; font-size:12px; font-weight:600; white-space:nowrap; }
   .update-banner{
     position:fixed; left:12px; right:12px; bottom:calc(80px + env(safe-area-inset-bottom,0px)); z-index:65;
     display:flex; align-items:center; justify-content:space-between; gap:10px;
@@ -1090,9 +1099,10 @@
         <h1>ART Spelersvolgsysteem</h1>
         <span class="sub">ART 1 &middot; AS&rsquo;80</span>
       </div>
+      <button type="button" class="kop-tab" id="kopTab" aria-label="Terug naar boven"></button>
     </div>
     <div style="display:flex; align-items:center; gap:8px;">
-      <span class="mode-pill local" id="modePill"><span class="dot"></span><span id="modePillText">laden&hellip;</span></span>
+      <span class="mode-pill local" id="modePill" hidden><span class="dot"></span><span id="modePillText">laden&hellip;</span></span>
       <div class="account-menu-wrap">
         <button type="button" class="icon-btn" id="accountMenuBtn" title="Account" aria-haspopup="true" aria-expanded="false">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c1.5-4 4.5-6 7-6s5.5 2 7 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -1112,6 +1122,7 @@
       </div>
     </div>
   </div>
+  <div class="net-banner" id="netBanner" role="status" hidden></div>
   <div class="chips" id="lichtingChips" role="tablist" aria-label="Lichting"></div>
   <div class="role-banner" id="roleBanner" hidden>
     <span>Testmodus: je ziet de app als <b id="roleBannerRole"></b></span>
@@ -2006,7 +2017,7 @@
   var Store = (function(){
     var trash = [], archief = [];
     var players = [], scores = [], evaluations = [], scoutReports = [], cancelled = [], profiles = {};
-    var listeners = { players: [], scores: [], settings: [], evals: [], scout: [], training: [] };
+    var listeners = { players: [], scores: [], settings: [], evals: [], scout: [], training: [], wachtrij: [] };
     var modeCb = function(){};
     var channel = null;
 
@@ -2056,6 +2067,7 @@
         if (res.error){ console.error(res.error); return; }
         var all = (res.data || []).map(mapPlayer);
         players = all.filter(function(p){ return !p.deletedAt && !p.archivedAt; });
+        wachtrij().forEach(function(x){ zetLokaal(x.playerId, x.date, x.value); }); // nog niet verstuurd: blijft zichtbaar
         archief = all.filter(function(p){ return !p.deletedAt && p.archivedAt; }); // alleen gevuld voor de hoofdtrainer (RLS)
         trash = all.filter(function(p){ return p.deletedAt; }); // alleen gevuld voor de hoofdtrainer (RLS)
         emit("players");
@@ -2234,6 +2246,7 @@
       }).then(function(){
         modeCb("db");
         subscribeRealtime();
+        verstuurWachtrij();
       }).catch(function(err){ console.error(err); });
     }
 
@@ -2353,12 +2366,62 @@
         return updatePlayer(playerId, { foto_path: null });
       });
     }
+    /* Aanwezigheid werkt ook zonder (goed) internet: de wijziging staat meteen in beeld en gaat in een wachtrij op dit
+       toestel. Zodra er verbinding is, wordt alles alsnog verstuurd (laatste keuze per speler en datum telt). */
+    var WR_KEY = "art-wachtrij-aanwezig";
+    function wachtrij(){ try { return JSON.parse(localStorage.getItem(WR_KEY) || "[]") || []; } catch(e){ return []; } }
+    function zetWachtrij(q){ try { localStorage.setItem(WR_KEY, JSON.stringify(q)); } catch(e){} emit("wachtrij"); }
+    function netFout(err){ return !navigator.onLine || !err || !err.code && /fetch|network|load failed|timeout|offline/i.test(String(err.message || err)); }
+    function zetLokaal(playerId, date, value){
+      var p = players.find(function(x){ return x.id === playerId; }); if (!p) return;
+      p.attendance = Object.assign({}, p.attendance || {});
+      if (value) p.attendance[date] = value; else delete p.attendance[date];
+    }
+    function stuur(item){
+      return sb.rpc("set_attendance", { p_player_id: item.playerId, p_date: item.date, p_value: item.value }).then(function(res){ if (res.error) throw res.error; });
+    }
+    var wrSeq = 0;
+    function zelfde(a, b){ return a.playerId === b.playerId && a.date === b.date; }
     function setAttendance(playerId, date, value){
-      return sb.rpc("set_attendance", { p_player_id: playerId, p_date: date, p_value: value }).then(function(res){
-        if (res.error) throw res.error;
-        return loadPlayers();
+      zetLokaal(playerId, date, value); emit("players");
+      var item = { playerId: playerId, date: date, value: value, user: myUserId(), t: Date.now() * 1000 + (++wrSeq % 1000) };
+      var q = wachtrij(), wacht = q.length > 0 || !navigator.onLine;
+      // Staat er al iets in de wachtrij (of is er geen internet), dan achteraan aansluiten: zo blijft de volgorde kloppen.
+      if (wacht){ q = q.filter(function(x){ return !zelfde(x, item); }); q.push(item); zetWachtrij(q); verstuurWachtrij(); return Promise.resolve(); }
+      return stuur(item).then(function(){ return loadPlayers(); }).catch(function(err){
+        if (netFout(err)){
+          var q2 = wachtrij();
+          if (!q2.some(function(x){ return zelfde(x, item) && x.t > item.t; })){ q2 = q2.filter(function(x){ return !zelfde(x, item); }); q2.push(item); zetWachtrij(q2); }
+          return;
+        }
+        console.error(err); showToast("Opslaan mislukt; probeer het nog eens"); return loadPlayers();
       });
     }
+    var bezigMetSturen = false;
+    function verstuurWachtrij(){
+      var me = myUserId(), q = wachtrij().filter(function(x){ return x.user === me; });
+      if (bezigMetSturen || !q.length || !navigator.onLine) return;
+      bezigMetSturen = true;
+      var stap = Promise.resolve(), klaar = 0;
+      q.forEach(function(item){
+        stap = stap.then(function(){ return stuur(item); }).then(function(){
+          klaar++; zetWachtrij(wachtrij().filter(function(x){ return x.t !== item.t; })); // een nieuwere keuze blijft staan
+        }, function(err){
+          if (netFout(err)) throw err; // straks opnieuw
+          console.error(err); zetWachtrij(wachtrij().filter(function(x){ return x.t !== item.t; }));
+        });
+      });
+      stap.catch(function(){}).then(function(){
+        bezigMetSturen = false;
+        if (wachtrij().some(function(x){ return x.user === me; }) && navigator.onLine) setTimeout(verstuurWachtrij, 1000); // tijdens het sturen bijgekomen
+        if (klaar) { showToast(klaar === 1 ? "Bewaarde afmelding verstuurd" : klaar + " bewaarde wijzigingen verstuurd"); loadPlayers(); }
+      });
+    }
+    window.addEventListener("online", function(){ emit("wachtrij"); verstuurWachtrij(); });
+    window.addEventListener("offline", function(){ emit("wachtrij"); });
+    setInterval(verstuurWachtrij, 30000);
+    function inWachtrij(playerId, date){ return wachtrij().some(function(x){ return x.playerId === playerId && x.date === date; }); }
+    function onWachtrij(fn){ listeners.wachtrij.push(fn); }
     function toggleCancelled(date){
       var isCancelled = cancelled.indexOf(date) !== -1;
       var action = isCancelled
@@ -2499,7 +2562,7 @@
       addFeedback: addFeedback, deleteFeedback: deleteFeedback, getReactie: getReactie, saveReactie: saveReactie, getAllFeedback: getAllFeedback, getAllReacties: getAllReacties,
       getBeoordelaars: getBeoordelaars, saveBeoordelaars: saveBeoordelaars, getOordelen: getOordelen, setOordeel: setOordeel,
       getNotitie: getNotitie, setNotitie: setNotitie, toernooiDatums: toernooiDatums, uploadTekening: uploadTekening, getTekeningUrl: getTekeningUrl, onTraining: onTraining,
-      init: init, onPlayers: onPlayers, onScores: onScores, onSettings: onSettings, onEvals: onEvals, onScoutReports: onScoutReports, onModeReady: onModeReady,
+      init: init, onWachtrij: onWachtrij, wachtrij: wachtrij, inWachtrij: inWachtrij, onPlayers: onPlayers, onScores: onScores, onSettings: onSettings, onEvals: onEvals, onScoutReports: onScoutReports, onModeReady: onModeReady,
       getPlayers: getPlayers, getScores: getScores, getCancelled: getCancelled, getEvaluations: getEvaluations, getScoutReports: getScoutReports, getMode: getMode,
       getProfiles: getProfiles, updateProfileRole: updateProfileRole, manageUsers: manageUsers, listBackups: listBackups, getBackupData: getBackupData, makeBackup: makeBackup,
       addPlayer: addPlayer, updatePlayer: updatePlayer, deletePlayer: deletePlayer,
@@ -2691,6 +2754,23 @@
   Array.prototype.forEach.call(document.querySelectorAll(".tab-btn"), function(btn){
     btn.addEventListener("click", function(){ switchTab(btn.getAttribute("data-tab")); });
   });
+  /* Krimpende titel (telefoon): na een stukje scrollen verdwijnt de grote kop en staat de naam van het tabblad klein
+     bovenin; tik erop = terug naar boven. Met speling (aan na 60 px, uit onder 10 px) zodat hij niet heen en weer springt. */
+  (function(){
+    var main = document.querySelector("main"), klein = false, smal = window.matchMedia("(max-width: 1023px)");
+    function naam(){
+      var b = document.querySelector("nav.tabbar .tab-btn.active .tab-label");
+      return state.tab === "instellingen" ? "Instellingen" : (b ? b.textContent : "");
+    }
+    function zet(aan){ if (aan === klein) return; klein = aan; document.body.classList.toggle("kop-klein", aan); if (aan) $("kopTab").textContent = naam(); }
+    main.addEventListener("scroll", function(){
+      if (!smal.matches){ zet(false); return; }
+      var y = main.scrollTop;
+      if (!klein && y > 60) zet(true); else if (klein && y < 10) zet(false);
+    }, { passive: true });
+    $("kopTab").addEventListener("click", function(){ main.scrollTo({ top: 0, behavior: "smooth" }); });
+    document.addEventListener("click", function(e){ if (e.target.closest && e.target.closest(".tab-btn")){ main.scrollTop = 0; zet(false); } });
+  })();
 
   /* ---------- SPELERS tab ---------- */
   var personSvg = '<svg width="44" height="44" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="20" r="8" fill="currentColor" opacity=".45"/><path d="M11 43c2.5-8 8.5-12 15-12s12.5 4 15 12" fill="currentColor" opacity=".45"/></svg>';
@@ -5223,7 +5303,8 @@
         '<div style="display:flex; align-items:center; gap:12px;">' +
         playerIdentHtml(p) +
         '<div class="player-meta" style="flex:1;"><div class="name">' + esc(p.naam) + '</div>' +
-        '<div class="sub">Lichting ' + esc(lichtingLabel(p.lichting)) + (p.q ? ' <span class="q-inline">' + esc(p.q) + '</span>' : '') + '</div></div>' +
+        '<div class="sub">Lichting ' + esc(lichtingLabel(p.lichting)) + (p.q ? ' <span class="q-inline">' + esc(p.q) + '</span>' : '') +
+        (Store.inWachtrij(p.id, state.absDate) ? ' <span class="wr-mark" title="Bewaard op dit toestel, wordt verstuurd zodra er verbinding is">&#9203; nog niet verstuurd</span>' : '') + '</div></div>' +
         '<button type="button" class="pill attendance-btn ' + (afwezig ? "low" : "good") + '" data-toggle="' + p.id + '">' + (afwezig ? "Afwezig" : "Aanwezig") + '</button>' +
         '</div>' +
         (afwezig ? '<div class="chips">' + REDEN_OPTIONS.map(function(r){
@@ -7013,6 +7094,16 @@
   Store.onEvals(renderAll);
   Store.onScoutReports(renderAll);
   Store.onTraining(renderAll);
+  // Alleen een regel als er iets mis is: geen verbinding, of bewaarde wijzigingen die nog verstuurd moeten worden.
+  function renderNet(){
+    var n = Store.wachtrij().length, off = !navigator.onLine, b = $("netBanner");
+    b.hidden = !off && !n;
+    b.textContent = off ? "Geen verbinding" + (n ? " · " + n + (n === 1 ? " wijziging" : " wijzigingen") + " bewaard, wordt straks verstuurd" : " · afmeldingen worden bewaard en straks verstuurd")
+      : n ? "Bezig met versturen van " + n + (n === 1 ? " bewaarde wijziging" : " bewaarde wijzigingen") + "…" : "";
+    if (state.tab === "aanwezig") renderAbsenties();
+  }
+  Store.onWachtrij(renderNet);
+  renderNet();
   Store.onModeReady(function(mode){
     var pill = $("modePill"), text = $("modePillText");
     pill.className = "mode-pill db";
