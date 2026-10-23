@@ -227,6 +227,21 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   waarschuwing boven Ajax-maximum (`DUUR_MAX`: vorm 1 = 6, vorm 2 = 8 min); op tegels in de vormenbank, "Bekijk hele
   training", vormenbank-venster en afdruk; wordt meegekopieerd. "Wanneer is het gelukt?" bewust NIET (besluit Sofian).
 
+## Uit Sofians starterspakket (2026-10-23)
+- Sofian heeft een starterspakket (Desktop: app-controle.md, brein.md, lessen-uit-fouten.md, herbruikbare-onderdelen.md,
+  stappenplan-techniek.md) uit zijn app mijnrijlesplanner. Werkwijze daaruit: eerst een voorbeeld (mockup) met voordelen,
+  nadelen en advies, pas bouwen na zijn ja; "een status zonder knop is ruis"; meldingen verdwijnen vanzelf als het gedaan is.
+- "Live"-pil rechtsboven weg (`#modePill` hidden). In de plaats: `#netBanner` (gele regel) alleen bij geen verbinding of
+  bewaarde wijzigingen (`renderNet`).
+- Aanwezig offline: `Store.setAttendance` zet de wijziging meteen in beeld en bij geen/slecht internet in een wachtrij
+  (localStorage `art-wachtrij-aanwezig`, items {playerId, date, value, user, t}); `verstuurWachtrij` bij `online`, bij start
+  en elke 30 s; nieuwste keuze per speler+datum wint; rij toont "⏳ nog niet verstuurd". `loadPlayers` legt de wachtrij
+  over de geladen data. Andere schrijfacties (beoordelen, vormen) zijn niet offline.
+- Krimpende titel op de telefoon (< 1024 px): na 60 px scrollen `body.kop-klein`: grote kop weg, tabnaam klein (`#kopTab`,
+  tik = naar boven); terug onder 10 px. Bij tabwissel bovenaan beginnen.
+- Agenda-abonnement voor trainers: voorgesteld en akkoord, nog te bouwen (nodig: begin- en eindtijd training, per trainer
+  een geheime link → kolom in `profiles` + Edge Function die een .ics teruggeeft).
+
 ## Git zonder git
 De Command Line Developer Tools (en dus `git`) zijn nog niet geïnstalleerd. Tot die tijd:
 - `perl tools/gh.pl status` — verschil tussen lokale bestanden en GitHub `main`.
