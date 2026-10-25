@@ -180,9 +180,10 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
 ## Scoutlijst op papier (2026-10-25)
 - Knop "Scoutlijst afdrukken" (Aanwezig, bij Download CSV) en "Scoutlijst" (Training → Voorbereiden): `printScoutlijst(d)`.
   A4 liggend. Stijl (Sofian 2026-10-25, combinatie van twee voorbeelden): titel + datum/tijd links, "Scout: ____" en
-  legenda rechts; per groep van de training een donkere balk "Groep 2019 · x aanwezig · y afwezig"; rijen met kleine foto,
-  hesjenummer rood/geel, naam, jaar, Q, Oordeel om te omcirkelen (−− − +− + ++, zelfde schaal als de toernooi-nabespreking)
+  legenda rechts; per groep van de training een balk "Groep 2019 · x aanwezig · y afwezig"; rijen met kleine foto,
+  hesjenummer in een kader, naam, jaar, Q, Oordeel om te omcirkelen (−− − +− + ++, zelfde schaal als de toernooi-nabespreking)
   en breed vak "Opvallend". Afgemelde spelers grijs onderaan hun groep met reden. Geen A-D, TIPS, rank of advies.
+  Alles zwart op wit (geen gekleurde vlakken): goed leesbaar op een zwart-witprinter.
 - De knop toont eerst een voorbeeld op het scherm (venster `#slOverlay`, wit "papier"; .sl-regels gelden op scherm én
   bij afdrukken), daaronder "Afdrukken of als pdf opslaan". Demo-rondleiding: stap "De scoutlijst op papier" (na
   Opvallende spelers) opent dit voorbeeld voor 27 sep.

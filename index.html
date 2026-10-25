@@ -312,8 +312,9 @@
   .sl-sub{ font-size:10pt; color:#444; }
   .sl-scout{ font-size:10.5pt; text-align:right; }
   .sl-leg{ font-size:8.5pt; color:#555; margin-top:1.5mm; }
-  .sl-groep{ display:flex; justify-content:space-between; background:#16223F !important; color:#fff !important; font:700 12pt "Barlow Condensed",Arial,sans-serif;
-    padding:1.2mm 3mm; border-radius:1.5mm; margin:4mm 0 0; -webkit-print-color-adjust:exact; print-color-adjust:exact; page-break-after:avoid; }
+  /* Zwart op wit: goed leesbaar op een zwart-witprinter (Sofian 2026-10-25). */
+  .sl-groep{ display:flex; justify-content:space-between; background:#fff; color:#000; font:700 13pt "Barlow Condensed",Arial,sans-serif;
+    padding:1mm 0.5mm; border-top:2.5px solid #000; border-bottom:2.5px solid #000; margin:5mm 0 0; page-break-after:avoid; }
   .sl-t{ width:100%; border-collapse:collapse; font-size:10.5pt; page-break-inside:auto; }
   .sl-t thead{ display:table-header-group; }
   .sl-t th{ text-align:left; font-size:8.5pt; color:#333; border-bottom:1.5px solid #000; padding:1.2mm 1.5mm; }
@@ -322,7 +323,7 @@
   .sl-t .sl-f{ width:11mm; padding:0.6mm !important; }
   .sl-t td.sl-f img{ width:10mm; height:12mm; object-fit:cover; border-radius:1mm; display:block; }
   .sl-t .sl-nrc{ width:13mm; }
-  .sl-nr{ background:#C62828 !important; color:#FFE600 !important; font-weight:800; font-size:11pt; border-radius:1mm; padding:0.4mm 1.4mm; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .sl-nr{ background:#fff; color:#000; font-weight:800; font-size:12pt; border:1.5px solid #000; border-radius:1mm; padding:0.2mm 1.4mm; }
   .sl-t .sl-naam{ font-weight:600; }
   .sl-t th.sl-pm, .sl-t td.sl-pm{ width:58mm; white-space:nowrap; }
   .sl-t td.sl-pm span{ display:inline-block; min-width:9mm; text-align:center; font-weight:700; font-size:12pt; }
