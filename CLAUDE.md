@@ -183,6 +183,9 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   legenda rechts; per groep van de training een donkere balk "Groep 2019 · x aanwezig · y afwezig"; rijen met kleine foto,
   hesjenummer rood/geel, naam, jaar, Q, Oordeel om te omcirkelen (−− − +− + ++, zelfde schaal als de toernooi-nabespreking)
   en breed vak "Opvallend". Afgemelde spelers grijs onderaan hun groep met reden. Geen A-D, TIPS, rank of advies.
+- De knop toont eerst een voorbeeld op het scherm (venster `#slOverlay`, wit "papier"; .sl-regels gelden op scherm én
+  bij afdrukken), daaronder "Afdrukken of als pdf opslaan". Demo-rondleiding: stap "De scoutlijst op papier" (na
+  Opvallende spelers) opent dit voorbeeld voor 27 sep.
 
 ## Opvallende spelers (2026-10-23)
 - Tabel `opvallend` (training_date, player_id, bron, tekst; migratie 20261023_opvallend.sql; RLS alleen hoofdtrainer).

@@ -303,6 +303,33 @@
   .rp-empty{ font-size:13px; color:var(--ink-muted); }
   .rp-bottom{ display:flex; flex-direction:column; align-items:center; gap:8px; margin-top:6px; }
 
+  /* Scoutlijst: zelfde opmaak op het scherm (voorbeeld in een venster, wit papier) en bij afdrukken */
+  .sl-scherm{ background:#fff; color:#000; border-radius:10px; padding:16px; overflow-x:auto; }
+  .sl-scherm .sl{ min-width:760px; }
+  .sl{ font-family:"Barlow",Arial,sans-serif; color:#000; }
+  .sl-kop{ display:flex; justify-content:space-between; align-items:flex-end; gap:6mm; margin-bottom:3mm; }
+  .sl-titel{ font:700 18pt "Barlow Condensed",Arial,sans-serif; }
+  .sl-sub{ font-size:10pt; color:#444; }
+  .sl-scout{ font-size:10.5pt; text-align:right; }
+  .sl-leg{ font-size:8.5pt; color:#555; margin-top:1.5mm; }
+  .sl-groep{ display:flex; justify-content:space-between; background:#16223F !important; color:#fff !important; font:700 12pt "Barlow Condensed",Arial,sans-serif;
+    padding:1.2mm 3mm; border-radius:1.5mm; margin:4mm 0 0; -webkit-print-color-adjust:exact; print-color-adjust:exact; page-break-after:avoid; }
+  .sl-t{ width:100%; border-collapse:collapse; font-size:10.5pt; page-break-inside:auto; }
+  .sl-t thead{ display:table-header-group; }
+  .sl-t th{ text-align:left; font-size:8.5pt; color:#333; border-bottom:1.5px solid #000; padding:1.2mm 1.5mm; }
+  .sl-t tr{ page-break-inside:avoid; }
+  .sl-t td{ border-bottom:0.5px solid #aaa; padding:0.8mm 1.5mm; height:13mm; vertical-align:middle; }
+  .sl-t .sl-f{ width:11mm; padding:0.6mm !important; }
+  .sl-t td.sl-f img{ width:10mm; height:12mm; object-fit:cover; border-radius:1mm; display:block; }
+  .sl-t .sl-nrc{ width:13mm; }
+  .sl-nr{ background:#C62828 !important; color:#FFE600 !important; font-weight:800; font-size:11pt; border-radius:1mm; padding:0.4mm 1.4mm; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .sl-t .sl-naam{ font-weight:600; }
+  .sl-t th.sl-pm, .sl-t td.sl-pm{ width:58mm; white-space:nowrap; }
+  .sl-t td.sl-pm span{ display:inline-block; min-width:9mm; text-align:center; font-weight:700; font-size:12pt; }
+  .sl-t .sl-o{ width:34%; }
+  .sl-t tr.sl-afw td{ height:auto; color:#888; font-size:9pt; padding:1mm 1.5mm; border-bottom:none; }
+  .sl-voet{ font-size:9pt; color:#444; margin-top:2mm; }
+
   /* Ajax-lijst: alleen zichtbaar bij afdrukken / PDF */
   #printArea{ display:none; }
   @media print{
@@ -329,29 +356,6 @@
     .tt-page .tt-wlist{ columns:2; font-size:9.5pt; margin-top:4mm; }
     .tt-page .tt-w{ break-inside:avoid; padding:0.8mm 0; border-bottom:1px solid #ccc; }
     .pa-legend{ display:flex; justify-content:space-between; font-size:10pt; margin-bottom:6mm; }
-    .sl{ font-family:"Barlow",Arial,sans-serif; color:#000; }
-    .sl-kop{ display:flex; justify-content:space-between; align-items:flex-end; gap:6mm; margin-bottom:3mm; }
-    .sl-titel{ font:700 18pt "Barlow Condensed",Arial,sans-serif; }
-    .sl-sub{ font-size:10pt; color:#444; }
-    .sl-scout{ font-size:10.5pt; text-align:right; }
-    .sl-leg{ font-size:8.5pt; color:#555; margin-top:1.5mm; }
-    .sl-groep{ display:flex; justify-content:space-between; background:#16223F !important; color:#fff !important; font:700 12pt "Barlow Condensed",Arial,sans-serif;
-      padding:1.2mm 3mm; border-radius:1.5mm; margin:4mm 0 0; -webkit-print-color-adjust:exact; print-color-adjust:exact; page-break-after:avoid; }
-    .sl-t{ width:100%; border-collapse:collapse; font-size:10.5pt; page-break-inside:auto; }
-    .sl-t thead{ display:table-header-group; }
-    .sl-t th{ text-align:left; font-size:8.5pt; color:#333; border-bottom:1.5px solid #000; padding:1.2mm 1.5mm; }
-    .sl-t tr{ page-break-inside:avoid; }
-    .sl-t td{ border-bottom:0.5px solid #aaa; padding:0.8mm 1.5mm; height:13mm; vertical-align:middle; }
-    .sl-t .sl-f{ width:11mm; padding:0.6mm !important; }
-    .sl-t td.sl-f img{ width:10mm; height:12mm; object-fit:cover; border-radius:1mm; display:block; }
-    .sl-t .sl-nrc{ width:13mm; }
-    .sl-nr{ background:#C62828 !important; color:#FFE600 !important; font-weight:800; font-size:11pt; border-radius:1mm; padding:0.4mm 1.4mm; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-    .sl-t .sl-naam{ font-weight:600; }
-    .sl-t th.sl-pm, .sl-t td.sl-pm{ width:58mm; white-space:nowrap; }
-    .sl-t td.sl-pm span{ display:inline-block; min-width:9mm; text-align:center; font-weight:700; font-size:12pt; }
-    .sl-t .sl-o{ width:34%; }
-    .sl-t tr.sl-afw td{ height:auto; color:#888; font-size:9pt; padding:1mm 1.5mm; border-bottom:none; }
-    .sl-voet{ font-size:9pt; color:#444; margin-top:2mm; }
     .pa-title{ text-align:center; font-family:"Barlow Condensed",Arial,sans-serif; font-size:22pt; margin:0 0 1mm; color:#000; }
     .pa-sub{ text-align:center; font-size:9pt; color:#444; margin-bottom:5mm; }
     .pa-table{ width:100%; border-collapse:collapse; margin-bottom:7mm; page-break-inside:avoid; font-size:10.5pt; }
@@ -1526,6 +1530,17 @@
       <button class="icon-btn" id="closeBank" aria-label="Sluiten">&times;</button>
     </div>
     <div id="bankBody"></div>
+  </div>
+</div>
+
+<div class="overlay" id="slOverlay" hidden>
+  <div class="sheet tv-sheet">
+    <div class="sheet-head">
+      <h3>Scoutlijst</h3>
+      <button class="icon-btn" id="closeSl" aria-label="Sluiten">&times;</button>
+    </div>
+    <div class="sl-scherm" id="slBody"></div>
+    <button type="button" class="btn primary block" id="slPrint" style="margin-top:10px;">Afdrukken of als pdf opslaan</button>
   </div>
 </div>
 
@@ -5810,7 +5825,7 @@
     });
     var opNr = function(a, b){ return Number(a.hesje || 9999) - Number(b.hesje || 9999) || a.naam.localeCompare(b.naam); };
     var paden = Store.getPlayers().map(function(p){ return p.fotoPath; }).filter(Boolean);
-    showToast("Scoutlijst wordt klaargezet…");
+
     Store.getFotoUrls(paden).catch(function(){ return {}; }).then(function(urls){
       var dag = new Date(d + "T12:00:00").toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
       var html = '<div class="sl">' +
@@ -5831,11 +5846,17 @@
             '</tbody></table>';
         }).join("") +
         '<div class="sl-voet">Omcirkel per speler één oordeel. Schrijf bij Opvallend kort wat je zag.</div></div>';
-      $("printArea").innerHTML = html;
-      var imgs = Array.prototype.slice.call($("printArea").querySelectorAll("img"));
-      Promise.all(imgs.map(function(img){ return img.complete ? 1 : new Promise(function(ok){ img.onload = img.onerror = ok; setTimeout(ok, 4000); }); })).then(function(){ window.print(); });
+      // Eerst laten zien (ook in de demo-rondleiding); afdrukken met de knop eronder.
+      $("slBody").innerHTML = html;
+      $("slOverlay").hidden = false;
+      $("slPrint").onclick = function(){
+        $("printArea").innerHTML = html;
+        var imgs = Array.prototype.slice.call($("printArea").querySelectorAll("img"));
+        Promise.all(imgs.map(function(img){ return img.complete ? 1 : new Promise(function(ok){ img.onload = img.onerror = ok; setTimeout(ok, 4000); }); })).then(function(){ window.print(); });
+      };
     });
   }
+  $("closeSl").addEventListener("click", function(){ $("slOverlay").hidden = true; });
 
   /* ---------- ABSENTIES tab ---------- */
   function defaultAbsDate(){
@@ -8044,7 +8065,7 @@
     function firstPlayer(){ return filteredPlayers()[0]; }
     function closeAll(){
       if (!$("drawOverlay").hidden) $("drawCancel").click();
-      ["playerCardOverlay", "scoreOverlay", "nameGameOverlay", "tvOverlay", "rolesOverlay", "rosterOverlay", "trapOverlay", "bankOverlay"].forEach(function(id){ $(id).hidden = true; });
+      ["playerCardOverlay", "scoreOverlay", "nameGameOverlay", "tvOverlay", "rolesOverlay", "rosterOverlay", "trapOverlay", "bankOverlay", "slOverlay"].forEach(function(id){ $(id).hidden = true; });
       if (!$("oefOverlay").hidden) closeOef();
       $("accountMenu").hidden = true;
       if (Auth.getViewAs()){ Auth.setViewAs(null); renderAll(); }
@@ -8066,6 +8087,7 @@
       { sel: "#reflWrap", title: "Reflectie van de trainer", text: "Los van de nabespreking schrijft elke trainer één korte reflectie per training: welke knop draaide ik om en waarom, wat zag ik bij de spelers, wanneer greep ik in met woorden?<br><br>De hoofdtrainer geeft elke trainer een <b>werkpunt</b> en reageert; <b>alleen die trainer ziet de reactie</b>. Zo ontwikkelen de trainers zich als ontwerpers van oefenvormen.", go: function(){ training("evaluatie"); setTimeout(function(){ var el = $("reflWrap"); if (el && el.scrollIntoView) el.scrollIntoView({ block: "start" }); }, 150); } },
       { sel: "#absentiesList", title: "Wat opvalt: aanwezigheid", text: "Op het veld in één tik: afwezig, met reden. Het werkt ook <b>zonder internet</b>; zodra er weer verbinding is, gaat alles vanzelf door.<br><br>Wie vaker dan 20% mist, krijgt een waarschuwing in het rapport.", go: function(){ switchTab("aanwezig"); } },
       { sel: "#opvWrap", title: "Opvallende spelers", text: "Na de training vraag ik de scouts: <b>welke spelers zijn je opgevallen?</b> Dat noteer ik hier per speler, met wie het zei.<br><br>Met één knop staat alles klaar om in <b>SoccerLab</b> te plakken.", go: function(){ training("evaluatie"); } },
+      { sel: "#slOverlay .sheet", title: "De scoutlijst op papier", text: "Scouts werken op papier. Op de ochtend van de training druk ik de <b>scoutlijst</b> af: per groep de spelers die er zijn, met foto, hesjenummer, geboortejaar en kwartaal.<br><br>De scout omcirkelt per speler een oordeel van <b>−−</b> tot <b>++</b> en schrijft op wat opviel. Afgemelde spelers staan grijs onderaan, zodat iedereen weet wie er niet is.", go: function(){ switchTab("aanwezig"); state.absDate = DEMO_DATE; renderAbsenties(); printScoutlijst(DEMO_DATE); } },
       { sel: "#scoreOverlay .sheet", title: "Beoordelen per blok", text: "Iedere trainer beoordeelt de spelers per blok op <b>wedstrijd</b> en <b>potentieel</b>, met A, B, C of D: dezelfde schaal als de Ajax-lijst.", go: function(){ switchTab("spelers"); openScoreSheet(firstPlayer().id); } },
       { sel: "#playerCardOverlay .sheet", title: "De spelerskaart", text: "Per speler een <b>tijdlijn</b>: de letters van de trainers per blok, wat er na trainingen opviel, en het oordeel op het toernooi. Zo ziet u in één oogopslag hoe een speler zich ontwikkelt.", go: function(){ switchTab("spelers"); openPlayerCard(firstPlayer().id); } },
       { sel: "#toernooiWrap", title: "Het toernooi", text: "Op toernooidagen een <b>wisselschema</b> per lichting met exact gelijke speeltijd: iedereen speelt even lang en iedereen keept. Met een wedstrijdklok op de telefoon die aangeeft wie erin en eruit gaat.", go: function(){ switchTab("toernooi"); } },
@@ -8234,7 +8256,7 @@
   (function(){
     var CLOSERS = { playerCardOverlay: "closePlayerCard", nameGameOverlay: "closeNameGame", scoreOverlay: "closeScoreSheet",
       evalOverlay: "closeEvalSheet", scoutOverlay: "closeScoutSheet", pwOverlay: "closePwSheet", oefOverlay: "closeOefSheet",
-      tvOverlay: "closeTv", rosterOverlay: "closeRoster", rolesOverlay: "closeRoles", trapOverlay: "closeTrap", bankOverlay: "closeBank", uitlegOverlay: "uitlegOverslaan",
+      tvOverlay: "closeTv", rosterOverlay: "closeRoster", rolesOverlay: "closeRoles", trapOverlay: "closeTrap", slOverlay: "closeSl", bankOverlay: "closeBank", uitlegOverlay: "uitlegOverslaan",
       playerOverlay: "closePlayerSheet", fotoLightbox: "closeFotoLightbox", drawOverlay: "drawCancel" };
     var open = [], pushed = false, ignorePop = false;
     function sync(){
