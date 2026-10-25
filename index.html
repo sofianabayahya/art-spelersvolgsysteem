@@ -934,6 +934,8 @@
   .opv-r{ display:flex; gap:8px; align-items:flex-start; padding:8px 0; border-bottom:1px solid var(--border); font-size:15px; }
   .opv-r > div{ flex:1; min-width:0; }
   .opv-r small{ color:var(--ink-muted); }
+  .opv-wijzig{ flex:0 0 auto; background:none; border:1px solid var(--border); border-radius:8px; color:var(--ink-muted); font:600 13px "Barlow",sans-serif; padding:6px 10px; min-height:36px; cursor:pointer; }
+  .opv-edit{ display:block; }
   .opv-bron{ color:var(--ink-muted); font-weight:600; }
   .opv-form{ display:grid; grid-template-columns:1fr; gap:8px; margin-top:10px; }
   .opv-form select, .opv-form input, .opv-form textarea{ font:16px "Barlow",sans-serif; padding:9px 10px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--ink); width:100%; box-sizing:border-box; }
@@ -2258,6 +2260,12 @@
         opv = opv.concat(res.data || []); emit("training");
       });
     }
+    function updOpvallend(id, patch){
+      return sb.from("opvallend").update(Object.assign({}, patch, { updated_at: new Date().toISOString() })).eq("id", id).then(function(res){
+        if (res.error) throw res.error;
+        opv = opv.map(function(x){ return x.id === id ? Object.assign({}, x, patch) : x; }); emit("training");
+      });
+    }
     function delOpvallend(id){
       return sb.from("opvallend").delete().eq("id", id).then(function(res){ if (res.error) throw res.error; opv = opv.filter(function(x){ return x.id !== id; }); emit("training"); });
     }
@@ -2605,7 +2613,7 @@
       getPlan: getPlan, savePlan: savePlan, savePlans: savePlans, getOefs: getOefs, getAllOefs: getAllOefs, getOef: getOef, saveOef: saveOef, getFeedback: getFeedback,
       addFeedback: addFeedback, deleteFeedback: deleteFeedback, getReactie: getReactie, saveReactie: saveReactie, getAllFeedback: getAllFeedback, getAllReacties: getAllReacties,
       getBeoordelaars: getBeoordelaars, saveBeoordelaars: saveBeoordelaars, getOordelen: getOordelen, setOordeel: setOordeel,
-      getNotitie: getNotitie, setNotitie: setNotitie, getOpvallend: getOpvallend, getOpvallendSpeler: getOpvallendSpeler, getOpvallendBronnen: getOpvallendBronnen, addOpvallend: addOpvallend, delOpvallend: delOpvallend, toernooiDatums: toernooiDatums, uploadTekening: uploadTekening, getTekeningUrl: getTekeningUrl, onTraining: onTraining,
+      getNotitie: getNotitie, setNotitie: setNotitie, getOpvallend: getOpvallend, getOpvallendSpeler: getOpvallendSpeler, getOpvallendBronnen: getOpvallendBronnen, addOpvallend: addOpvallend, updOpvallend: updOpvallend, delOpvallend: delOpvallend, toernooiDatums: toernooiDatums, uploadTekening: uploadTekening, getTekeningUrl: getTekeningUrl, onTraining: onTraining,
       init: init, onWachtrij: onWachtrij, wachtrij: wachtrij, inWachtrij: inWachtrij, onPlayers: onPlayers, onScores: onScores, onSettings: onSettings, onEvals: onEvals, onScoutReports: onScoutReports, onModeReady: onModeReady,
       getPlayers: getPlayers, getScores: getScores, getCancelled: getCancelled, getEvaluations: getEvaluations, getScoutReports: getScoutReports, getMode: getMode,
       getProfiles: getProfiles, updateProfileRole: updateProfileRole, manageUsers: manageUsers, listBackups: listBackups, getBackupData: getBackupData, makeBackup: makeBackup,
@@ -4893,17 +4901,33 @@
       '<div class="tr-note">Wat de scouts (of trainers) na de training opviel. Alleen jij ziet dit.</div>' +
       (rows.length ? '<div class="opv-lijst">' + rows.map(function(r){
         var p = opvSpeler(r.player_id);
+        if (state.opvEdit === r.id) return '<div class="opv-r opv-edit"><div class="opv-form" style="margin:0;">' +
+          '<select id="opvESpeler" aria-label="Speler">' + spelers.map(function(q){ return '<option value="' + q.id + '"' + (q.id === r.player_id ? ' selected' : '') + '>' + (q.hesje ? esc(q.hesje) + ' · ' : '') + esc(q.naam) + ' (' + esc(lichtingLabel(q.lichting)) + ')</option>'; }).join("") + '</select>' +
+          '<input type="text" id="opvEBron" list="opvBronnen" value="' + esc(r.bron || "") + '" aria-label="Wie zei het">' +
+          '<textarea id="opvETekst" rows="2" aria-label="Wat viel op">' + esc(r.tekst) + '</textarea>' +
+          '<div class="btn-row"><button type="button" class="btn primary small" id="opvESave">Opslaan</button><button type="button" class="btn ghost small" id="opvECancel">Annuleren</button></div></div></div>';
         return '<div class="opv-r"><div><b>' + (p ? (p.hesje ? esc(p.hesje) + ' · ' : '') + esc(p.naam) : 'Speler') + '</b>' + (p ? ' <small>' + esc(lichtingLabel(p.lichting)) + '</small>' : '') +
           '<div>' + (r.bron ? '<span class="opv-bron">' + esc(r.bron) + ':</span> ' : '') + esc(r.tekst) + '</div></div>' +
+          '<button type="button" class="opv-wijzig" data-opv-edit="' + r.id + '">Wijzigen</button>' +
           '<button type="button" class="vj-x" data-opv-weg="' + r.id + '" aria-label="Verwijderen">&times;</button></div>';
       }).join("") + '</div>' : '') +
       '<div class="opv-form">' +
       '<select id="opvSpeler" aria-label="Speler"><option value="">Kies een speler…</option>' + spelers.map(function(p){ return '<option value="' + p.id + '">' + (p.hesje ? esc(p.hesje) + ' · ' : '') + esc(p.naam) + ' (' + esc(lichtingLabel(p.lichting)) + ')</option>'; }).join("") + '</select>' +
       '<input type="text" id="opvBron" list="opvBronnen" placeholder="Wie (bv. Johan, scout)" value="' + esc(vorige) + '" aria-label="Wie zei het">' +
-      '<datalist id="opvBronnen">' + Store.getOpvallendBronnen().map(function(b){ return '<option value="' + esc(b) + '">'; }).join("") + '</datalist>' +
+      '<datalist id="opvBronnen">' + Store.getOpvallendBronnen().concat(Store.getProfiles().filter(function(x){ return x.role === "trainer" || x.role === "hoofdtrainer"; }).map(function(x){ return (x.naam || "").split(" ")[0]; }))
+        .filter(function(b, i, a){ return b && a.indexOf(b) === i; }).map(function(b){ return '<option value="' + esc(b) + '">'; }).join("") + '</datalist>' +
       '<textarea id="opvTekst" rows="2" placeholder="Wat viel op?" aria-label="Wat viel op"></textarea>' +
       '<div class="btn-row"><button type="button" class="btn primary small" id="opvAdd">Toevoegen</button>' +
       (rows.length ? '<button type="button" class="btn ghost small" id="opvCopy">Kopieer voor SoccerLab</button>' : '') + '</div></div></div>';
+    Array.prototype.forEach.call(wrap.querySelectorAll("[data-opv-edit]"), function(b){ b.onclick = function(){ state.opvEdit = b.getAttribute("data-opv-edit"); renderOpvallend(); if ($("opvETekst")) $("opvETekst").focus(); }; });
+    if ($("opvECancel")) $("opvECancel").onclick = function(){ state.opvEdit = null; renderOpvallend(); };
+    if ($("opvESave")) $("opvESave").onclick = function(){
+      var tekst = $("opvETekst").value.trim(); if (!tekst){ showToast("Schrijf op wat er opviel"); return; }
+      $("opvESave").disabled = true;
+      Store.updOpvallend(state.opvEdit, { player_id: $("opvESpeler").value, bron: $("opvEBron").value.trim() || null, tekst: tekst })
+        .then(function(){ state.opvEdit = null; renderOpvallend(); showToast("Gewijzigd"); })
+        .catch(function(err){ console.error(err); showToast("Opslaan mislukt"); $("opvESave").disabled = false; });
+    };
     $("opvAdd").onclick = function(){
       var pid = $("opvSpeler").value, tekst = $("opvTekst").value.trim(), bron = $("opvBron").value.trim();
       if (!pid || !tekst){ showToast(!pid ? "Kies eerst een speler" : "Schrijf op wat er opviel"); return; }

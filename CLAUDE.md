@@ -147,6 +147,8 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
 - Training → Evaluatie, kaart bovenaan (hoofdtrainer): per speler noteren wat scouts/trainers na de training noemden
   (wie = vrije tekst met eerder gebruikte namen), "Kopieer voor SoccerLab" (tekst per speler met lichting en hesje).
   Verschijnt ook op de tijdlijn van de spelerskaart.
+- 2026-10-25: notities zijn te wijzigen (knop "Wijzigen": speler, wie, tekst; `Store.updOpvallend`). Bij "wie" staan
+  eerder gebruikte namen én de voornamen van de trainers als keuze (trainers vertellen ook wat opviel).
 
 ## Toernooi-tabblad (gebouwd 2026-10-03 voor het toernooi van 4 okt)
 - Eigen tabblad "Toernooi" (trainers + hoofdtrainer), alleen zichtbaar van 1 dag vóór tot 7 dagen ná een datum met
