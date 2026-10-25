@@ -329,6 +329,20 @@
     .tt-page .tt-wlist{ columns:2; font-size:9.5pt; margin-top:4mm; }
     .tt-page .tt-w{ break-inside:avoid; padding:0.8mm 0; border-bottom:1px solid #ccc; }
     .pa-legend{ display:flex; justify-content:space-between; font-size:10pt; margin-bottom:6mm; }
+    .sl-scout{ font-size:11pt; align-self:flex-end; }
+    .sl-groep{ font:700 13pt "Barlow Condensed",Arial,sans-serif; margin:4mm 0 1.5mm; }
+    .sl-t{ page-break-inside:auto; }
+    .sl-t thead{ display:table-header-group; }
+    .sl-t tr{ page-break-inside:avoid; }
+    .sl-t td{ height:12mm; }
+    .sl-t td.sl-f, .sl-t th.sl-f{ width:11mm; padding:0.8mm !important; }
+    .sl-t td.sl-f img{ width:10mm; height:12mm; object-fit:cover; border-radius:1mm; display:block; }
+    .sl-t td.sl-nr{ font-weight:800; font-size:12pt; }
+    .sl-t td:nth-child(2){ text-align:left; }
+    .sl-t td.sl-abcd{ white-space:nowrap; font-size:11pt; letter-spacing:.5mm; }
+    .sl-t th.sl-o, .sl-t td.sl-o{ width:34%; }
+    .sl-t tr.sl-afw td{ height:auto; color:#888; font-size:9pt; text-align:left; padding:1mm 2mm; }
+    .sl-voet{ font-size:9pt; color:#444; margin-top:2mm; }
     .pa-title{ text-align:center; font-family:"Barlow Condensed",Arial,sans-serif; font-size:22pt; margin:0 0 1mm; color:#000; }
     .pa-sub{ text-align:center; font-size:9pt; color:#444; margin-bottom:5mm; }
     .pa-table{ width:100%; border-collapse:collapse; margin-bottom:7mm; page-break-inside:avoid; font-size:10.5pt; }
@@ -1314,6 +1328,7 @@
           </select>
         </div>
         <button class="btn ghost small" id="downloadAbsentiesBtn" style="flex:0 0 auto;">Download CSV</button>
+        <button class="btn ghost small" id="scoutlijstBtn" style="flex:0 0 auto;">Scoutlijst afdrukken</button>
       </div>
     </div>
     <div id="absVerwacht"></div>
@@ -4362,6 +4377,7 @@
       });
       html += '</div><div class="btn-row"><button type="button" class="btn primary" id="viewTrainingBtn">Bekijk hele training</button>' +
         '<button type="button" class="btn ghost" id="printTrainingBtn">Downloaden</button>' +
+        '<button type="button" class="btn ghost" id="scoutlijstPlanBtn">Scoutlijst</button>' +
         (isHoofd ? '<button type="button" class="btn ghost" id="rolesBtn">Rollen wijzigen</button><button type="button" class="btn ghost" id="copyTrainingBtn">Training overnemen</button>' : '') + '</div></div>';
     }
     if (per.toernooi && isHoofd) html += '<button type="button" class="btn ghost block" id="rolesBtn">Rollen wijzigen</button>';
@@ -4372,6 +4388,7 @@
     var wrap = $("planWrap");
     wrap.innerHTML = html;
     if ($("printTrainingBtn")) $("printTrainingBtn").addEventListener("click", function(){ printTraining(d); });
+    if ($("scoutlijstPlanBtn")) $("scoutlijstPlanBtn").addEventListener("click", function(){ printScoutlijst(d); });
     if ($("viewTrainingBtn")) $("viewTrainingBtn").addEventListener("click", function(){ openTrainingView(d); });
     if ($("rolesBtn")) $("rolesBtn").addEventListener("click", function(){ Roles.open(d); });
     if ($("copyTrainingBtn")) $("copyTrainingBtn").addEventListener("click", function(){ trainingOvernemen(d); });
@@ -5770,6 +5787,49 @@
     window.print();
   });
 
+  /* Scoutlijst op papier (scouts werken op papier): per groep van de training de aanwezige spelers met kleine foto,
+     naam, geboortejaar, Q en hesjenummer, en vakken zoals op het Ajax-formulier (wedstrijd, potentieel) plus "Opvallend".
+     Afgemelde spelers staan grijs onderaan hun groep. */
+  function printScoutlijst(d){
+    var groepen = trainingGroepen(d), per = {}, afw = {};
+    groepen.forEach(function(g){ per[g] = []; afw[g] = []; });
+    var groepVoor = function(lichting){ return groepen.filter(function(g){ return g.split("+").indexOf(lichting) !== -1; })[0] || groepen[0]; };
+    Store.getPlayers().forEach(function(p){
+      var a = (p.attendance || {})[d];
+      if (a && a.afwezig) afw[groepVoor(p.lichting)].push({ p: p, reden: a.reden || "" });
+      else per[groepVoor(groepVan(p, d))].push(p);
+    });
+    var opNr = function(a, b){ return Number(a.hesje || 9999) - Number(b.hesje || 9999) || a.naam.localeCompare(b.naam); };
+    var paden = Store.getPlayers().map(function(p){ return p.fotoPath; }).filter(Boolean);
+    showToast("Scoutlijst wordt klaargezet…");
+    Store.getFotoUrls(paden).catch(function(){ return {}; }).then(function(urls){
+      var dag = new Date(d + "T12:00:00").toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+      var html = '<div class="sl">' +
+        '<div class="pa-legend"><div>A &rarr; absolute benchmark en excelleert<br>B &rarr; bovengemiddeld voor de leeftijdsgroep<br>C &rarr; gemiddeld voor de leeftijdsgroep<br>D &rarr; onder gemiddeld voor de leeftijdsgroep</div>' +
+        '<div class="sl-scout">Scout: ______________________________</div></div>' +
+        '<h1 class="pa-title">Scoutlijst Ajax Regionale Trainingen 1 (AS&rsquo;80)</h1>' +
+        '<div class="pa-sub">Training ' + esc(dag) + ' &middot; 10:45&ndash;12:00</div>' +
+        groepen.map(function(g){
+          var ps = per[g].sort(opNr), weg = afw[g].sort(function(a, b){ return opNr(a.p, b.p); });
+          if (!ps.length && !weg.length) return "";
+          return '<div class="sl-groep">Groep ' + esc(groepLabel(g)) + ' &middot; ' + ps.length + ' aanwezig</div>' +
+            '<table class="pa-table sl-t"><thead><tr><th class="sl-f"></th><th>Voor- en achternaam</th><th>Geboortejaar</th><th>Q</th><th>#</th>' +
+            '<th>Wedstrijdbeoordeling<br><small>(bijdrage)</small></th><th>Potentieel niveau<br><small>(potentie)</small></th><th class="sl-o">Opvallend</th></tr></thead><tbody>' +
+            ps.map(function(p){
+              var foto = p.fotoPath && urls[p.fotoPath] ? '<img src="' + esc(urls[p.fotoPath]) + '" alt="">' : '';
+              return '<tr><td class="sl-f">' + foto + '</td><td>' + esc(p.naam) + '</td><td>' + esc(lichtingLabel(p.lichting)) + '</td><td>' + esc(p.q || "") + '</td>' +
+                '<td class="sl-nr">' + esc(p.hesje || "") + '</td><td class="sl-abcd">A &nbsp;/&nbsp; B &nbsp;/&nbsp; C &nbsp;/&nbsp; D</td><td class="sl-abcd">A &nbsp;/&nbsp; B &nbsp;/&nbsp; C &nbsp;/&nbsp; D</td><td class="sl-o"></td></tr>';
+            }).join("") +
+            weg.map(function(x){ return '<tr class="sl-afw"><td class="sl-f"></td><td colspan="7">' + esc(x.p.naam) + ' &middot; ' + esc(lichtingLabel(x.p.lichting)) + (x.p.hesje ? ' &middot; #' + esc(x.p.hesje) : '') + ' &mdash; afwezig' + (x.reden ? ' (' + esc(x.reden.toLowerCase()) + ')' : '') + '</td></tr>'; }).join("") +
+            '</tbody></table>';
+        }).join("") +
+        '<div class="sl-voet">Omcirkel per speler een letter voor wedstrijd en potentieel. Schrijf bij Opvallend kort wat je zag.</div></div>';
+      $("printArea").innerHTML = html;
+      var imgs = Array.prototype.slice.call($("printArea").querySelectorAll("img"));
+      Promise.all(imgs.map(function(img){ return img.complete ? 1 : new Promise(function(ok){ img.onload = img.onerror = ok; setTimeout(ok, 4000); }); })).then(function(){ window.print(); });
+    });
+  }
+
   /* ---------- ABSENTIES tab ---------- */
   function defaultAbsDate(){
     var t = todayISO();
@@ -5904,6 +5964,7 @@
   }
 
   $("trainingDateSelect").addEventListener("change", function(){ state.absDate = this.value; renderAbsenties(); });
+  $("scoutlijstBtn").addEventListener("click", function(){ printScoutlijst(state.absDate); });
   $("toggleCancelledBtn").addEventListener("click", function(){
     var date = state.absDate;
     var isCancelled = Store.getCancelled().indexOf(date) !== -1;
