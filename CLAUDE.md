@@ -188,6 +188,15 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   bij afdrukken), daaronder "Afdrukken of als pdf opslaan". Demo-rondleiding: stap "De scoutlijst op papier" (na
   Opvallende spelers) opent dit voorbeeld voor 27 sep.
 
+## Oordelen van de scouts bij gewone trainingen (2026-10-25)
+- Training → Evaluatie (hoofdtrainer), kaart "Oordelen van de scouts" (`renderScoutOordelen`): beoordelaars van die
+  training toevoegen (naam + scout/trainer, eerder gebruikte namen als keuze), per groep de aanwezige spelers op hesje met
+  per beoordelaar een keuzelijst · / −− / − / +− / + / ++ (Tab = volgend vak; opslaan zonder het scherm opnieuw op te
+  bouwen: `setOordeel(..., stil)`), gemiddelde per speler. Overnemen van de papieren scoutlijst.
+- Zelfde opslag als de toernooi-nabespreking (`toernooi_nabespreking`, `toernooi_oordelen`); toernooi of training volgt
+  uit de periodisering (`isToernooiDag`). Toernooi-rapporten tonen alleen toernooidagen; tijdlijn zegt "Toernooi" of
+  "Scouts". Rapport: kaart "Oordelen van de scouts bij trainingen" (`renderSoRapport`: gemiddelde, aantal ++, aantal).
+
 ## Opvallende spelers (2026-10-23)
 - Tabel `opvallend` (training_date, player_id, bron, tekst; migratie 20261023_opvallend.sql; RLS alleen hoofdtrainer).
 - Training → Evaluatie, kaart bovenaan (hoofdtrainer): per speler noteren wat scouts/trainers na de training noemden
