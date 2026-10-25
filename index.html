@@ -938,6 +938,17 @@
   .opv-form{ display:grid; grid-template-columns:1fr; gap:8px; margin-top:10px; }
   .opv-form select, .opv-form input, .opv-form textarea{ font:16px "Barlow",sans-serif; padding:9px 10px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--ink); width:100%; box-sizing:border-box; }
   @media (min-width:1024px){ .opv-form{ grid-template-columns:minmax(0, 1.2fr) minmax(0, 1fr); } .opv-form textarea, .opv-form .btn-row{ grid-column:span 2; } }
+  .vw{ padding:12px 14px; }
+  .vw-h{ display:flex; justify-content:space-between; margin-bottom:8px; }
+  .vw-g{ display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:6px; }
+  .vw-t{ background:var(--surface-alt); border-radius:10px; padding:6px 4px; text-align:center; display:flex; flex-direction:column; gap:1px; min-width:0; }
+  .vw-t span{ font-size:13px; color:var(--ink-muted); font-weight:600; }
+  .vw-t b{ font-size:24px; line-height:1.1; }
+  .vw-t small{ font-size:11.5px; color:var(--ink-muted); line-height:1.25; }
+  .mv-btn{ flex:0 0 auto; min-width:44px; min-height:36px; border-radius:10px; border:1px solid var(--border); background:none; color:var(--ink-muted); font:600 14px "Barlow",sans-serif; cursor:pointer; padding:4px 8px; }
+  .mv-btn.on{ border-color:#00B3FF; color:#7fd6ff; }
+  .mv-mark{ color:#7ee2a0; font-size:12px; font-weight:600; white-space:nowrap; }
+  .mv-kies{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:8px; font-size:13px; color:var(--ink-muted); }
   .net-banner{ background:#5a3b00; color:#ffd27a; border-radius:10px; padding:7px 10px; font-size:14px; font-weight:600; }
   .wr-mark{ color:#ffd27a; font-size:12px; font-weight:600; white-space:nowrap; }
   .update-banner{
@@ -1238,6 +1249,7 @@
         <button class="btn ghost small" id="downloadAbsentiesBtn" style="flex:0 0 auto;">Download CSV</button>
       </div>
     </div>
+    <div id="absVerwacht"></div>
     <div id="absentiesList" style="display:flex; flex-direction:column; gap:10px;"></div>
   </section>
 
@@ -4213,6 +4225,7 @@
     var st = trainingStatus(d), mine = myOnderdeel(d), html = "";
     var deadlineTxt = deadlineText(d);
     html += voorJouHtml();
+    html += verwachtHtml(d, d === todayISO() ? "Verwacht vandaag" : "Verwacht op " + formatDateShort(d));
     if (per.toernooi){
       html += '<div class="card tr-card"><div class="tr-card-h">' + esc(per.toernooi) + '</div><div class="tr-note">Geen oefenvormen voor te bereiden.</div></div>';
     } else {
@@ -5350,6 +5363,33 @@
     sel.value = state.absDate;
   }
 
+  /* Verwacht per groep: wie niet is afgemeld, per lichting. Een speler kan voor één training bij een andere groep
+     aansluiten (doorschuiven); dat staat bij zijn aanwezigheid van die datum als { groep: "l2019" }. */
+  function groepVan(p, d){ var a = (p.attendance || {})[d]; return a && !a.afwezig && a.groep ? a.groep : p.lichting; }
+  function verwachting(d){
+    var per = {};
+    LICHTINGEN.forEach(function(l){ per[l.key] = { n: 0, afw: 0, in: {}, uit: 0 }; });
+    Store.getPlayers().forEach(function(p){
+      var a = (p.attendance || {})[d], eigen = per[p.lichting];
+      if (a && a.afwezig){ if (eigen) eigen.afw++; return; }
+      var g = groepVan(p, d), doel = per[g] || eigen; if (!doel) return;
+      doel.n++;
+      if (g !== p.lichting){ doel.in[p.lichting] = (doel.in[p.lichting] || 0) + 1; if (eigen) eigen.uit++; }
+    });
+    return per;
+  }
+  function verwachtHtml(d, titel){
+    if (!d || Store.getCancelled().indexOf(d) !== -1 || (trainingPeriod(d) || {}).toernooi) return "";
+    var per = verwachting(d), tot = 0;
+    var tegels = LICHTINGEN.map(function(l){
+      var x = per[l.key]; tot += x.n;
+      var extra = Object.keys(x.in).map(function(k){ return '+' + x.in[k] + ' uit ' + esc(lichtingLabel(k)); });
+      if (x.uit) extra.push(x.uit + ' naar andere groep');
+      if (x.afw) extra.push(x.afw + ' afwezig');
+      return '<div class="vw-t"><span>' + esc(l.label) + '</span><b>' + x.n + '</b><small>' + (extra.join(' · ') || '&nbsp;') + '</small></div>';
+    }).join("");
+    return '<div class="card vw"><div class="vw-h"><b>' + esc(titel) + '</b><b>' + tot + ' spelers</b></div><div class="vw-g">' + tegels + '</div></div>';
+  }
   function renderAbsenties(){
     populateDateSelect();
     var cancelled = Store.getCancelled();
@@ -5363,6 +5403,7 @@
     $("absentiesCount").textContent = isCancelled ? "" : (players.length - afw) + " aanwezig" + (afw ? " · " + afw + " afwezig" : "");
     var list = $("absentiesList");
     var dlWrap = $("absDownloadWrap");
+    $("absVerwacht").innerHTML = verwachtHtml(state.absDate, state.absDate === todayISO() ? "Verwacht vandaag" : "Verwacht op " + formatDateShort(state.absDate));
     if (isCancelled){
       if (dlWrap) dlWrap.style.display = "none";
       list.innerHTML = '<div class="empty card">' + emptySvg +
@@ -5387,9 +5428,14 @@
         playerIdentHtml(p) +
         '<div class="player-meta" style="flex:1;"><div class="name">' + esc(p.naam) + '</div>' +
         '<div class="sub">Lichting ' + esc(lichtingLabel(p.lichting)) + (p.q ? ' <span class="q-inline">' + esc(p.q) + '</span>' : '') +
+        (!afwezig && groepVan(p, state.absDate) !== p.lichting ? ' <span class="mv-mark">&rarr; traint mee met ' + esc(lichtingLabel(groepVan(p, state.absDate))) + '</span>' : '') +
         (Store.inWachtrij(p.id, state.absDate) ? ' <span class="wr-mark" title="Bewaard op dit toestel, wordt verstuurd zodra er verbinding is">&#9203; nog niet verstuurd</span>' : '') + '</div></div>' +
+        (afwezig ? '' : '<button type="button" class="mv-btn' + (groepVan(p, state.absDate) !== p.lichting ? ' on' : '') + '" data-move="' + p.id + '" title="Bij een andere groep laten aansluiten" aria-label="Doorschuiven naar andere groep">&#8644;' + (groepVan(p, state.absDate) !== p.lichting ? ' ' + esc(lichtingLabel(groepVan(p, state.absDate))) : '') + '</button>') +
         '<button type="button" class="pill attendance-btn ' + (afwezig ? "low" : "good") + '" data-toggle="' + p.id + '">' + (afwezig ? "Afwezig" : "Aanwezig") + '</button>' +
         '</div>' +
+        (!afwezig && state.absMove === p.id ? '<div class="mv-kies"><span>Sluit vandaag aan bij:</span>' + LICHTINGEN.map(function(l){
+          return '<button type="button" class="chip small' + (groepVan(p, state.absDate) === l.key ? ' active' : '') + '" data-move-to="' + p.id + '" data-groep="' + l.key + '">' + esc(l.label) + (l.key === p.lichting ? ' (eigen)' : '') + '</button>';
+        }).join("") + '</div>' : '') +
         (afwezig ? '<div class="chips">' + REDEN_OPTIONS.map(function(r){
           return '<button type="button" class="chip small' + (reden === r ? " active" : "") + '" data-reden="' + p.id + '" data-reden-val="' + esc(r) + '">' + esc(r) + '</button>';
         }).join("") + '</div>' : '') +
@@ -5403,6 +5449,17 @@
         var cur = p && p.attendance && p.attendance[state.absDate];
         if (cur && cur.afwezig) Store.setAttendance(id, state.absDate, null);
         else Store.setAttendance(id, state.absDate, { afwezig:true, reden:"" });
+      });
+    });
+    Array.prototype.forEach.call(list.querySelectorAll("[data-move]"), function(btn2){
+      btn2.addEventListener("click", function(){ var id = btn2.getAttribute("data-move"); state.absMove = state.absMove === id ? null : id; renderAbsenties(); });
+    });
+    Array.prototype.forEach.call(list.querySelectorAll("[data-move-to]"), function(btn2){
+      btn2.addEventListener("click", function(){
+        var id = btn2.getAttribute("data-move-to"), g = btn2.getAttribute("data-groep");
+        var p = Store.getPlayers().find(function(x){ return x.id === id; }); if (!p) return;
+        state.absMove = null;
+        Store.setAttendance(id, state.absDate, g === p.lichting ? null : { groep: g });
       });
     });
     Array.prototype.forEach.call(list.querySelectorAll("[data-reden]"), function(btn2){

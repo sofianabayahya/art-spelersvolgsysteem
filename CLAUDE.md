@@ -130,6 +130,14 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   toernooi uit de periodisering, en voor "Voor jou" een eigen concept-A1 + tip in de eerstvolgende training.
   In de demo is het Toernooi-tabblad altijd zichtbaar (laatste toernooi).
 
+## Verwacht per groep en doorschuiven (2026-10-25)
+- Bovenaan Aanwezig én Training → Voorbereiden: kaart "Verwacht vandaag / op [datum]" met totaal en per lichting het aantal
+  niet-afgemelde spelers (`verwachting`, `verwachtHtml`), met "+1 uit 2018", "1 naar andere groep", "1 afwezig".
+  Niet bij afgelaste trainingen en toernooien.
+- Doorschuiven: knop ⇄ per aanwezige speler in Aanwezig → "Sluit vandaag aan bij" (lichting-chips). Opgeslagen in de
+  aanwezigheid van die datum als { groep: "l2019" } (geen schemawijziging; `groepVan`). Eigen lichting kiezen = wissen.
+  Afwezig zetten vervangt de waarde (doorschuiven vervalt).
+
 ## Opvallende spelers (2026-10-23)
 - Tabel `opvallend` (training_date, player_id, bron, tekst; migratie 20261023_opvallend.sql; RLS alleen hoofdtrainer).
 - Training → Evaluatie, kaart bovenaan (hoofdtrainer): per speler noteren wat scouts/trainers na de training noemden
