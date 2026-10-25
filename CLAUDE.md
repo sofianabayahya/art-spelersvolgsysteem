@@ -131,6 +131,40 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   toernooi uit de periodisering, en voor "Voor jou" een eigen concept-A1 + tip in de eerstvolgende training.
   In de demo is het Toernooi-tabblad altijd zichtbaar (laatste toernooi).
 
+## Evaluatie vanuit impliciet leren (2026-10-25, besluit Sofian)
+- Context: ART is een scoutingsevent. Trainers geven spelers bijna geen feedback; spelers leren impliciet van de vorm
+  (constraints-led approach, Newell: speler/taak/omgeving; challenge point per leeftijd). Trainers ontwikkelen zich als
+  ONTWERPERS en BIJSTUURDERS van vormen. Evalueren gebeurt altijd samen op de laptop; trainers hebben geen telefoon op het veld.
+- We evalueren de VORM, niet de trainer (wie het zegt maakt niet uit). Per groep die de vorm deed: liep het (ja/na
+  aanpassing/nee), kwam de vaardigheid vanzelf terug (bijna nooit/soms/vaak), uitdaging (te makkelijk/goed/te moeilijk),
+  snel aan de beurt/tempo (te veel wachten/goed/te hoog). Per vorm: aan welke knop gedraaid (ruimte, aantallen, regel of
+  scoren, materiaal, tijd, niets) + effect (vaker/hetzelfde/minder) + wat precies; bij vorm 2 wedstrijdecht; volgende keer.
+  Opslag `oefenvormen.evaluatie` (jsonb {per:{groep:{liep,terug,uitd,tempo}}, knoppen, effect, knop_tekst, echt, volgende});
+  `eval_terug` wordt afgeleid (`evTerug`) voor tegels/vormenbank. Eén pagina per vorm met ← vorige / Opslaan · volgende →
+  (`evActies`), daarna de training als geheel (`renderTrEval`: overzicht met bolletjes per groep, transfer droog → context,
+  cijfer 4-10, opmerking; in `training_plans.evaluatie`). Oude evaluatievelden blijven zichtbaar als "Eerdere evaluatie
+  (oude opzet, alleen lezen)". Migratie 20261025_evaluatie_impliciet.sql.
+- Groepen: `training_plans.groepen` (bv. [["l2019"],["l2016","l2017","l2018"]]; hoofdtrainer, Voorbereiden "Groepen:
+  ... Wijzigen"); per vorm `oefenvormen.groepen` (welke groepen deden hem; pijltje "Welke groepen doen deze vorm?").
+  Groepsleutel = lichtingen gesorteerd met "+" (`groepKey`, `groepLabel`).
+- Reflectie van de trainer los van de evaluatie: één per training (`reflecties`: focus[] + knop, gezien, woorden,
+  volgende), alle trainers lezen elkaars reflectie; reactie hoofdtrainer in `reflectie_reactie` (alleen die trainer);
+  werkpunt per trainer in `werkpunten` (alleen die trainer + hoofdtrainer) — vervangt besluit 2026-09-28 "geen leerdoel".
+  Voor jou: trainer "Schrijf je reflectie van [vorige training]", nieuwe reactie; hoofdtrainer "Nabespreking x van y".
+- Opvallende spelers krijgen TIPS-labels (Ajax: Techniek, Inzicht, Persoonlijkheid, Snelheid; `opvallend.tips`), ook in
+  de kopie voor SoccerLab.
+- Aanpassing 2026-10-25 (Sofian): knop aantikken zet een regel "Ruimte: " in het tekstvak "Wat veranderden we precies,
+  en voor welke groep?" (cursor erachter; uittikken haalt een lege regel weg). Vraag noemt de eigen vaardigheid ("Kwam
+  passeren vanzelf terug?"). Volgende keer: "hoe zetten we deze vorm meteen goed neer? (per groep)". Oude evaluatie- en
+  reactievelden worden niet meer getoond (clean), de gegevens blijven in de database.
+- Lus gesloten (2026-10-25): in het vormvenster (Voorbereiden) links onder de tekening "Vorige keer met deze
+  vaardigheid" (`vorigeKeer`/`renderVorige`: max. 2 eerdere vormen met evaluatie en dezelfde vaardigheid, zelfde volgnr
+  eerst; vergelijking op `vaardKey` zonder cijfers). Uitleg bij de schalen boven "Per groep". Voor jou (trainer):
+  "De nabespreking van jouw vorm A2 staat klaar" (sleutel "e"+id+updated_at; evaluatie opslaan zet updated_at).
+- Voorbereiden-labels: "Regels en beperkingen: wat lokt de vaardigheid uit?" en "Als het niet loopt: aan welke knop draai je?".
+- 25 okt omgezet naar de nieuwe opzet (groepen 2019 / 2016+2017+2018; A1-B2 ingevuld vanuit de oude antwoorden; C2 leeg;
+  reflecties Kai en Simon alleen "volgende keer" uit hun oude tekst).
+
 ## Vorm van een ander lezen (2026-10-25)
 - Oefenvorm-venster: alle tekstvakken groeien mee met hun tekst (`groeiMee`), rechterkolom scrollt. Kan de gebruiker niet
   bewerken (vorm van een andere trainer), dan `.oef-lezen`: één kolom, tekst 19px, niet grijs, lege velden verborgen.
