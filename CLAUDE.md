@@ -130,6 +130,10 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   toernooi uit de periodisering, en voor "Voor jou" een eigen concept-A1 + tip in de eerstvolgende training.
   In de demo is het Toernooi-tabblad altijd zichtbaar (laatste toernooi).
 
+## Vorm van een ander lezen (2026-10-25)
+- Oefenvorm-venster: alle tekstvakken groeien mee met hun tekst (`groeiMee`), rechterkolom scrollt. Kan de gebruiker niet
+  bewerken (vorm van een andere trainer), dan `.oef-lezen`: één kolom, tekst 19px, niet grijs, lege velden verborgen.
+
 ## Verwacht per groep en doorschuiven (2026-10-25)
 - Bovenaan Aanwezig én Training → Voorbereiden: kaart "Verwacht vandaag / op [datum]" met totaal en per lichting het aantal
   niet-afgemelde spelers (`verwachting`, `verwachtHtml`), met "+1 uit 2018", "1 naar andere groep", "1 afwezig".

@@ -949,6 +949,8 @@
   .mv-btn.on{ border-color:#00B3FF; color:#7fd6ff; }
   .mv-mark{ color:#7ee2a0; font-size:12px; font-weight:600; white-space:nowrap; }
   .mv-kies{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:8px; font-size:13px; color:var(--ink-muted); }
+  .oef-lezen .field.leeg{ display:none; }
+  .oef-lezen .field textarea:disabled, .oef-lezen .field input:disabled{ opacity:1; color:var(--ink); -webkit-text-fill-color:var(--ink); background:var(--surface-alt); border-color:transparent; }
   .net-banner{ background:#5a3b00; color:#ffd27a; border-radius:10px; padding:7px 10px; font-size:14px; font-weight:600; }
   .wr-mark{ color:#ffd27a; font-size:12px; font-weight:600; white-space:nowrap; }
   .update-banner{
@@ -1069,7 +1071,13 @@
     .oef-sheet .oef-meta{ margin-bottom:6px; }
     .oef-sheet .field{ margin-bottom:10px; gap:3px; }
     .oef-sheet .field label{ font-size:12.5px; }
-    .oef-sheet .field textarea{ min-height:62px; }
+    .oef-sheet .field textarea{ min-height:62px; overflow:hidden; resize:none; }
+    .oef-sheet .field textarea, .oef-sheet .field input{ font-size:17px; line-height:1.4; }
+    /* Vorm van een ander bekijken: één kolom, grotere tekst, geen grijze "uitgeschakelde" velden. */
+    .oef-lezen #oefPlanFields, .oef-lezen #oefEvalFields{ grid-template-columns:1fr; }
+    .oef-lezen #oefPlanFields > *, .oef-lezen #oefEvalFields > *{ grid-column:auto !important; }
+    .oef-lezen .field label{ font-size:13.5px; }
+    .oef-lezen .field textarea, .oef-lezen .field input{ font-size:19px; line-height:1.45; }
     #oefPlanFields, #oefEvalFields{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); column-gap:14px; }
     #oefPlanFields .field-row:not(.oef-kort), #oefEvalFields .field-row{ display:contents; }
     #oefPlanFields > .hint{ grid-column:span 2; }
@@ -4961,6 +4969,8 @@
     $("oDuurHint").textContent = n > max ? "Let op: Ajax gaat uit van maximaal " + max + " minuten voor " + (oefState && oefState.v === 1 ? "een droge vorm." : "een contextvorm.") : "";
   }
   $("oDuur").addEventListener("input", duurHint);
+  function groeiMee(t){ if (!t.offsetParent) return; t.style.height = "auto"; t.style.height = Math.max(t.scrollHeight + 2, 62) + "px"; }
+  Array.prototype.forEach.call(document.querySelectorAll("#oefOverlay textarea"), function(t){ t.addEventListener("input", function(){ groeiMee(t); }); });
   function canEditOef(d, o, row){
     if (Auth.isHoofdtrainer()) return true;
     if (row && row.eigenaar_id) return row.eigenaar_id === myUserId();
@@ -5020,6 +5030,12 @@
     renderOefFeedback();
     renderOefReactie();
     $("oefOverlay").hidden = false;
+    // Lezen (vorm van een ander): grotere tekst in één kolom; alle tekstvakken zo hoog als hun tekst, rechts scrollen.
+    document.querySelector("#oefOverlay .oef-sheet").classList.toggle("oef-lezen", !editable);
+    Array.prototype.forEach.call(document.querySelectorAll("#oefPlanFields .field, #oefEvalFields .field"), function(f){
+      var v = f.querySelector("input, textarea"); f.classList.toggle("leeg", !!v && !String(v.value).trim());
+    });
+    requestAnimationFrame(function(){ Array.prototype.forEach.call(document.querySelectorAll("#oefOverlay textarea"), groeiMee); });
   }
   function closeOef(){ $("oefOverlay").hidden = true; oefState = null; }
 
