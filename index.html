@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ART Spelersvolgsysteem</title>
+<title>ART Volg- en ontwikkelsysteem</title>
 <meta name="theme-color" content="#16223F">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="ART Spelers">
+<meta name="apple-mobile-web-app-title" content="ART VOS">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://vosamkqhdnmkkecvebyl.supabase.co" crossorigin>
@@ -1098,7 +1098,7 @@
       <img id="authBadgeImg" alt="Logo" hidden>
     </div>
     <div class="auth-heading">
-      <h1>ART Spelersvolgsysteem</h1>
+      <h1>ART Volg- en ontwikkelsysteem</h1>
       <div class="sub">ART 1 &middot; AS&rsquo;80 &mdash; log in met je account</div>
     </div>
     <div class="auth-fields">
@@ -1125,7 +1125,7 @@
     <div style="display:flex; align-items:center; gap:10px;">
       <img id="headerLogoImg" class="header-logo" alt="" hidden>
       <div class="brand">
-        <h1>ART Spelersvolgsysteem</h1>
+        <h1>ART Volg- en ontwikkelsysteem</h1>
         <span class="sub">ART 1 &middot; AS&rsquo;80</span>
       </div>
       <button type="button" class="kop-tab" id="kopTab" aria-label="Terug naar boven"></button>
@@ -5994,7 +5994,7 @@
   function showCredentials(naam, username, password, isNew){
     var voornaam = (naam || "").split(/\s+/)[0];
     var msg = "Hoi " + voornaam + ", " + (isNew ? "hier is je account" : "hier is je nieuwe wachtwoord") +
-      " voor het ART Spelersvolgsysteem:\n\n" +
+      " voor het ART Volg- en ontwikkelsysteem:\n\n" +
       "Website: https://www.artsvs.nl\n" +
       "Gebruikersnaam: " + username + "\n" +
       "Wachtwoord: " + password + "\n\n" +
@@ -7699,7 +7699,7 @@
     dn.textContent = "Demo: log in als hoofdtrainer. Daarna zie je alleen verzonnen gegevens.";
     var ah = document.querySelector("#authScreen .auth-heading");
     if (ah) ah.appendChild(dn);
-    document.title = "ART Spelersvolgsysteem · Demo";
+    document.title = "ART Volg- en ontwikkelsysteem · Demo";
   }
 
   Auth.onReady(function(){

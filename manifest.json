@@ -1,7 +1,7 @@
 {
-  "name": "ART Spelersvolgsysteem",
-  "short_name": "ART Spelers",
-  "description": "Spelersvolgsysteem voor ART 1 bij AS'80",
+  "name": "ART Volg- en ontwikkelsysteem",
+  "short_name": "ART VOS",
+  "description": "Volg- en ontwikkelsysteem voor ART 1 bij AS'80: spelers volgen, trainers ontwikkelen",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

@@ -1,7 +1,8 @@
-# ART Spelersvolgsysteem
+# ART Volg- en ontwikkelsysteem (ART VOS)
 
-Spelersvolgsysteem voor ART 1 (Ajax Regionale Trainingen) bij AS'80. Eigenaar/hoofdtrainer: Sofian.
-Live op https://www.artsvs.nl (artsvs.nl stuurt door naar www). Taal van de UI en van het overleg: Nederlands.
+Volg- en ontwikkelsysteem voor ART 1 (Ajax Regionale Trainingen) bij AS'80. Eigenaar/hoofdtrainer: Sofian.
+Naam sinds 2026-10-25 (besluit Sofian): "ART Volg- en ontwikkelsysteem", kort "ART VOS" (spelers volgen, trainers
+ontwikkelen; was "ART Spelersvolgsysteem"). Live op https://www.artsvs.nl (artsvs.nl stuurt door naar www). Taal van de UI en van het overleg: Nederlands.
 Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
 
 ## Techniek
