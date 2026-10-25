@@ -179,10 +179,10 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
 
 ## Scoutlijst op papier (2026-10-25)
 - Knop "Scoutlijst afdrukken" (Aanwezig, bij Download CSV) en "Scoutlijst" (Training → Voorbereiden): `printScoutlijst(d)`.
-  A4 liggend, zoals het Ajax-formulier: legenda A-D, per groep van de training (doorgeschoven spelers in hun nieuwe groep)
-  de aanwezige spelers op hesjenummer met kleine foto, naam, geboortejaar, Q, #, "A / B / C / D" voor wedstrijdbeoordeling
-  en potentieel, en een breed vak "Opvallend". Afgemelde spelers grijs onderaan hun groep met reden. Geen TIPS, geen rank/
-  advies (besluit Sofian). Foto's worden eerst geladen (max. 4 s), dan print.
+  A4 liggend. Stijl (Sofian 2026-10-25, combinatie van twee voorbeelden): titel + datum/tijd links, "Scout: ____" en
+  legenda rechts; per groep van de training een donkere balk "Groep 2019 · x aanwezig · y afwezig"; rijen met kleine foto,
+  hesjenummer rood/geel, naam, jaar, Q, Oordeel om te omcirkelen (−− − +− + ++, zelfde schaal als de toernooi-nabespreking)
+  en breed vak "Opvallend". Afgemelde spelers grijs onderaan hun groep met reden. Geen A-D, TIPS, rank of advies.
 
 ## Opvallende spelers (2026-10-23)
 - Tabel `opvallend` (training_date, player_id, bron, tekst; migratie 20261023_opvallend.sql; RLS alleen hoofdtrainer).

@@ -329,19 +329,28 @@
     .tt-page .tt-wlist{ columns:2; font-size:9.5pt; margin-top:4mm; }
     .tt-page .tt-w{ break-inside:avoid; padding:0.8mm 0; border-bottom:1px solid #ccc; }
     .pa-legend{ display:flex; justify-content:space-between; font-size:10pt; margin-bottom:6mm; }
-    .sl-scout{ font-size:11pt; align-self:flex-end; }
-    .sl-groep{ font:700 13pt "Barlow Condensed",Arial,sans-serif; margin:4mm 0 1.5mm; }
-    .sl-t{ page-break-inside:auto; }
+    .sl{ font-family:"Barlow",Arial,sans-serif; color:#000; }
+    .sl-kop{ display:flex; justify-content:space-between; align-items:flex-end; gap:6mm; margin-bottom:3mm; }
+    .sl-titel{ font:700 18pt "Barlow Condensed",Arial,sans-serif; }
+    .sl-sub{ font-size:10pt; color:#444; }
+    .sl-scout{ font-size:10.5pt; text-align:right; }
+    .sl-leg{ font-size:8.5pt; color:#555; margin-top:1.5mm; }
+    .sl-groep{ display:flex; justify-content:space-between; background:#16223F !important; color:#fff !important; font:700 12pt "Barlow Condensed",Arial,sans-serif;
+      padding:1.2mm 3mm; border-radius:1.5mm; margin:4mm 0 0; -webkit-print-color-adjust:exact; print-color-adjust:exact; page-break-after:avoid; }
+    .sl-t{ width:100%; border-collapse:collapse; font-size:10.5pt; page-break-inside:auto; }
     .sl-t thead{ display:table-header-group; }
+    .sl-t th{ text-align:left; font-size:8.5pt; color:#333; border-bottom:1.5px solid #000; padding:1.2mm 1.5mm; }
     .sl-t tr{ page-break-inside:avoid; }
-    .sl-t td{ height:12mm; }
-    .sl-t td.sl-f, .sl-t th.sl-f{ width:11mm; padding:0.8mm !important; }
+    .sl-t td{ border-bottom:0.5px solid #aaa; padding:0.8mm 1.5mm; height:13mm; vertical-align:middle; }
+    .sl-t .sl-f{ width:11mm; padding:0.6mm !important; }
     .sl-t td.sl-f img{ width:10mm; height:12mm; object-fit:cover; border-radius:1mm; display:block; }
-    .sl-t td.sl-nr{ font-weight:800; font-size:12pt; }
-    .sl-t td:nth-child(2){ text-align:left; }
-    .sl-t td.sl-abcd{ white-space:nowrap; font-size:11pt; letter-spacing:.5mm; }
-    .sl-t th.sl-o, .sl-t td.sl-o{ width:34%; }
-    .sl-t tr.sl-afw td{ height:auto; color:#888; font-size:9pt; text-align:left; padding:1mm 2mm; }
+    .sl-t .sl-nrc{ width:13mm; }
+    .sl-nr{ background:#C62828 !important; color:#FFE600 !important; font-weight:800; font-size:11pt; border-radius:1mm; padding:0.4mm 1.4mm; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .sl-t .sl-naam{ font-weight:600; }
+    .sl-t th.sl-pm, .sl-t td.sl-pm{ width:58mm; white-space:nowrap; }
+    .sl-t td.sl-pm span{ display:inline-block; min-width:9mm; text-align:center; font-weight:700; font-size:12pt; }
+    .sl-t .sl-o{ width:34%; }
+    .sl-t tr.sl-afw td{ height:auto; color:#888; font-size:9pt; padding:1mm 1.5mm; border-bottom:none; }
     .sl-voet{ font-size:9pt; color:#444; margin-top:2mm; }
     .pa-title{ text-align:center; font-family:"Barlow Condensed",Arial,sans-serif; font-size:22pt; margin:0 0 1mm; color:#000; }
     .pa-sub{ text-align:center; font-size:9pt; color:#444; margin-bottom:5mm; }
@@ -5805,25 +5814,23 @@
     Store.getFotoUrls(paden).catch(function(){ return {}; }).then(function(urls){
       var dag = new Date(d + "T12:00:00").toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
       var html = '<div class="sl">' +
-        '<div class="pa-legend"><div>A &rarr; absolute benchmark en excelleert<br>B &rarr; bovengemiddeld voor de leeftijdsgroep<br>C &rarr; gemiddeld voor de leeftijdsgroep<br>D &rarr; onder gemiddeld voor de leeftijdsgroep</div>' +
-        '<div class="sl-scout">Scout: ______________________________</div></div>' +
-        '<h1 class="pa-title">Scoutlijst Ajax Regionale Trainingen 1 (AS&rsquo;80)</h1>' +
-        '<div class="pa-sub">Training ' + esc(dag) + ' &middot; 10:45&ndash;12:00</div>' +
+        '<div class="sl-kop"><div><div class="sl-titel">Scoutlijst ART 1 &middot; AS&rsquo;80</div><div class="sl-sub">Training ' + esc(dag) + ' &middot; 10:45&ndash;12:00</div></div>' +
+        '<div class="sl-scout">Scout: ______________________________<div class="sl-leg">&minus;&minus; duidelijk onder &middot; &minus; onder &middot; +&minus; gemiddeld &middot; + boven &middot; ++ duidelijk boven het niveau van de groep</div></div></div>' +
         groepen.map(function(g){
           var ps = per[g].sort(opNr), weg = afw[g].sort(function(a, b){ return opNr(a.p, b.p); });
           if (!ps.length && !weg.length) return "";
-          return '<div class="sl-groep">Groep ' + esc(groepLabel(g)) + ' &middot; ' + ps.length + ' aanwezig</div>' +
-            '<table class="pa-table sl-t"><thead><tr><th class="sl-f"></th><th>Voor- en achternaam</th><th>Geboortejaar</th><th>Q</th><th>#</th>' +
-            '<th>Wedstrijdbeoordeling<br><small>(bijdrage)</small></th><th>Potentieel niveau<br><small>(potentie)</small></th><th class="sl-o">Opvallend</th></tr></thead><tbody>' +
+          return '<div class="sl-groep"><span>Groep ' + esc(groepLabel(g)) + '</span><span>' + ps.length + ' aanwezig' + (weg.length ? ' &middot; ' + weg.length + ' afwezig' : '') + '</span></div>' +
+            '<table class="sl-t"><thead><tr><th class="sl-f"></th><th>#</th><th>Voor- en achternaam</th><th>Jaar</th><th>Q</th>' +
+            '<th class="sl-pm">Oordeel</th><th class="sl-o">Opvallend</th></tr></thead><tbody>' +
             ps.map(function(p){
               var foto = p.fotoPath && urls[p.fotoPath] ? '<img src="' + esc(urls[p.fotoPath]) + '" alt="">' : '';
-              return '<tr><td class="sl-f">' + foto + '</td><td>' + esc(p.naam) + '</td><td>' + esc(lichtingLabel(p.lichting)) + '</td><td>' + esc(p.q || "") + '</td>' +
-                '<td class="sl-nr">' + esc(p.hesje || "") + '</td><td class="sl-abcd">A &nbsp;/&nbsp; B &nbsp;/&nbsp; C &nbsp;/&nbsp; D</td><td class="sl-abcd">A &nbsp;/&nbsp; B &nbsp;/&nbsp; C &nbsp;/&nbsp; D</td><td class="sl-o"></td></tr>';
+              return '<tr><td class="sl-f">' + foto + '</td><td class="sl-nrc">' + (p.hesje ? '<span class="sl-nr">' + esc(p.hesje) + '</span>' : '') + '</td><td class="sl-naam">' + esc(p.naam) + '</td><td>' + esc(lichtingLabel(p.lichting)) + '</td><td>' + esc(p.q || "") + '</td>' +
+                '<td class="sl-pm"><span>&minus;&minus;</span><span>&minus;</span><span>+&minus;</span><span>+</span><span>++</span></td><td class="sl-o"></td></tr>';
             }).join("") +
-            weg.map(function(x){ return '<tr class="sl-afw"><td class="sl-f"></td><td colspan="7">' + esc(x.p.naam) + ' &middot; ' + esc(lichtingLabel(x.p.lichting)) + (x.p.hesje ? ' &middot; #' + esc(x.p.hesje) : '') + ' &mdash; afwezig' + (x.reden ? ' (' + esc(x.reden.toLowerCase()) + ')' : '') + '</td></tr>'; }).join("") +
+            weg.map(function(x){ return '<tr class="sl-afw"><td class="sl-f"></td><td colspan="6">' + esc(x.p.naam) + ' &middot; ' + esc(lichtingLabel(x.p.lichting)) + (x.p.hesje ? ' &middot; #' + esc(x.p.hesje) : '') + ' &mdash; afwezig' + (x.reden ? ' (' + esc(x.reden.toLowerCase()) + ')' : '') + '</td></tr>'; }).join("") +
             '</tbody></table>';
         }).join("") +
-        '<div class="sl-voet">Omcirkel per speler een letter voor wedstrijd en potentieel. Schrijf bij Opvallend kort wat je zag.</div></div>';
+        '<div class="sl-voet">Omcirkel per speler één oordeel. Schrijf bij Opvallend kort wat je zag.</div></div>';
       $("printArea").innerHTML = html;
       var imgs = Array.prototype.slice.call($("printArea").querySelectorAll("img"));
       Promise.all(imgs.map(function(img){ return img.complete ? 1 : new Promise(function(ok){ img.onload = img.onerror = ok; setTimeout(ok, 4000); }); })).then(function(){ window.print(); });
