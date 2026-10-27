@@ -1013,6 +1013,17 @@
     .ev-groepen{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
     .oef-sheet.ev-mode .oef-body{ grid-template-columns:minmax(0, 0.85fr) minmax(0, 1.25fr); }
   }
+  .sn-t td{ vertical-align:top; padding-top:6px; padding-bottom:6px; }
+  .sn-t .sn-naam{ font-weight:600; }
+  .sn-t .sn-o{ white-space:normal; min-width:260px; width:40%; }
+  .sn-n{ display:flex; align-items:flex-start; gap:4px; font-size:14px; padding:2px 0; }
+  .sn-n span{ flex:1; }
+  .sn-k{ background:none; border:none; color:var(--ink-muted); cursor:pointer; font-size:15px; padding:2px 5px; min-height:28px; }
+  .sn-plus{ background:none; border:1px dashed var(--border); border-radius:8px; color:var(--ink-muted); font:600 13px "Barlow",sans-serif; padding:5px 10px; cursor:pointer; }
+  .sn-form{ display:flex; flex-direction:column; gap:6px; margin:4px 0; }
+  .sn-form input, .sn-form textarea{ font:16px "Barlow",sans-serif; padding:7px 9px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); width:100%; box-sizing:border-box; }
+  .so-groep small{ color:var(--ink-muted); font:500 13px "Barlow",sans-serif; }
+  .rp-pm{ font-size:15px; }
   .so-bo{ margin:8px 0 4px; }
   .so-b{ display:inline-flex; align-items:center; gap:6px; background:var(--surface-alt); border:1px solid var(--border); border-radius:999px; padding:4px 6px 4px 12px; font-size:14px; }
   .so-b small{ color:var(--ink-muted); }
@@ -1292,7 +1303,7 @@
       <button class="btn primary block" id="ajaxListBtn">Ajax-lijst maken (afdrukken of PDF)</button>
       <button class="btn ghost small" id="downloadOverviewBtn">Download als Excel (CSV)</button>
       <div class="card tr-card" id="trapList" style="display:none;"></div>
-      <div class="card tr-card" id="soRapport" style="display:none;"></div>
+
     </div>
   </section>
 
@@ -1306,12 +1317,17 @@
     <div class="tr-weeks" id="trWeeks"></div>
     <div class="ng-tabs tr-tabs" role="tablist">
       <button type="button" data-tr-sub="plan">Voorbereiden</button>
-      <button type="button" data-tr-sub="evaluatie">Evaluatie</button>
+      <button type="button" data-tr-sub="evaluatie">Nabespreking</button>
+      <button type="button" data-tr-sub="spelers" id="trSubSpelers">Spelers</button>
       <button type="button" data-tr-sub="bank">Vormenbank</button>
     </div>
   </section>
   <section class="panel" id="panel-plan" hidden>
     <div id="planWrap" style="display:flex; flex-direction:column; gap:12px;"></div>
+  </section>
+
+  <section class="panel" id="panel-spelna" hidden>
+    <div id="spelnaWrap" style="display:flex; flex-direction:column; gap:12px;"></div>
   </section>
 
   <section class="panel" id="panel-bank" hidden>
@@ -1320,8 +1336,6 @@
 
   <section class="panel" id="panel-evaluatie" hidden>
     <div id="trEvalWrap"></div>
-    <div id="opvWrap"></div>
-    <div id="soWrap"></div>
     <div id="reflWrap"></div>
     <div id="oefEvalList" style="display:flex; flex-direction:column; gap:10px;"></div>
     <!-- Oude evaluaties (voor fase 2): alleen tonen als er voor deze datum een is. Het oude formulier is uit beeld. -->
@@ -2943,7 +2957,7 @@
     state.tab = tab;
     // Tabblad Aanwezig toont het paneel "absenties"; Training beheert zelf zijn sub-panelen.
     var panel = tab === "aanwezig" ? "absenties" : tab;
-    ["spelers","overzicht","training","plan","absenties","evaluatie","bank","toernooi","instellingen"].forEach(function(t){ $("panel-" + t).hidden = t !== panel; });
+    ["spelers","overzicht","training","plan","absenties","evaluatie","spelna","bank","toernooi","instellingen"].forEach(function(t){ $("panel-" + t).hidden = t !== panel; });
     Array.prototype.forEach.call(document.querySelectorAll(".tab-btn"), function(btn){
       btn.classList.toggle("active", btn.getAttribute("data-tab") === tab);
     });
@@ -4295,9 +4309,13 @@
     $("panel-plan").hidden = state.trainingSub !== "plan";
     $("panel-evaluatie").hidden = state.trainingSub !== "evaluatie";
     $("panel-bank").hidden = state.trainingSub !== "bank";
+    $("panel-spelna").hidden = state.trainingSub !== "spelers";
+    $("trSubSpelers").hidden = !Auth.isHoofdtrainer();
+    if (state.trainingSub === "spelers" && !Auth.isHoofdtrainer()) state.trainingSub = "plan";
     if (state.trainingSub === "plan") renderPlan();
     else if (state.trainingSub === "bank") renderBank();
-    else { renderTrEval(); renderOpvallend(); renderScoutOordelen(); renderRefl(); $("oefEvalList").innerHTML = ""; renderEvaluatie(); }
+    else if (state.trainingSub === "spelers") renderSpelersNa();
+    else { renderTrEval(); renderRefl(); $("oefEvalList").innerHTML = ""; renderEvaluatie(); }
   }
   $("trainingPick").addEventListener("change", function(){ state.trainingDate = this.value; state.trainingSub = null; trainingDefaults(); renderTraining(); });
   Array.prototype.forEach.call(document.querySelectorAll("[data-tr-sub]"), function(b){
@@ -4387,7 +4405,6 @@
     var st = trainingStatus(d), mine = myOnderdeel(d), html = "";
     var deadlineTxt = deadlineText(d);
     html += voorJouHtml();
-    html += verwachtHtml(d, d === todayISO() ? "Verwacht vandaag" : "Verwacht op " + formatDateShort(d));
     html += groepenKaartHtml(d);
     if (per.toernooi){
       html += '<div class="card tr-card"><div class="tr-card-h">' + esc(per.toernooi) + '</div><div class="tr-note">Geen oefenvormen voor te bereiden.</div></div>';
@@ -5043,83 +5060,8 @@
     });
   }
 
-  /* Opvallende spelers (hoofdtrainer, Evaluatie): wat de scouts na de training noemen (of trainers zagen), per speler
-     genoteerd. "Kopieer voor SoccerLab" zet alles van deze training als nette tekst klaar om te plakken. */
-  var TIPS = [["T", "Techniek"], ["I", "Inzicht"], ["P", "Persoonlijkheid"], ["S", "Snelheid"]];
-  function tipNaam(t){ var x = TIPS.find(function(y){ return y[0] === t; }); return x ? x[1] : t; }
+  // Hulpjes voor "Training → Spelers" (scoutlijst overnemen): speler opzoeken (ook gearchiveerd) en tekst kopiëren.
   function opvSpeler(pid){ return Store.getPlayers().concat(Store.getArchief()).filter(function(p){ return p.id === pid; })[0]; }
-  function opvTekst(d){
-    var rows = Store.getOpvallend(d), per = {}, volg = [];
-    rows.forEach(function(r){ if (!per[r.player_id]){ per[r.player_id] = []; volg.push(r.player_id); } per[r.player_id].push(r); });
-    return "Opvallende spelers ART 1 AS'80 · training " + formatDateShort(d) + " " + d.slice(0, 4) + "\n\n" + volg.map(function(pid){
-      var p = opvSpeler(pid);
-      return (p ? p.naam + " (" + lichtingLabel(p.lichting) + (p.hesje ? ", #" + p.hesje : "") + ")" : "Speler") + "\n" +
-        per[pid].map(function(r){ return "- " + ((r.tips || []).length ? "[" + r.tips.join(", ") + "] " : "") + (r.bron ? r.bron + ": " : "") + r.tekst; }).join("\n");
-    }).join("\n\n");
-  }
-  function renderOpvallend(){
-    var wrap = $("opvWrap"), d = state.trainingDate;
-    if (!Auth.isHoofdtrainer() || (trainingPeriod(d) || {}).toernooi){ wrap.innerHTML = ""; return; }
-    var rows = Store.getOpvallend(d), spelers = Store.getPlayers().slice().sort(function(a, b){ return String(b.lichting).localeCompare(String(a.lichting)) || Number(a.hesje || 999) - Number(b.hesje || 999) || a.naam.localeCompare(b.naam); });
-    var vorige = $("opvBron") ? $("opvBron").value : "";
-    wrap.innerHTML = '<div class="card tr-card"><div class="tr-card-h">Opvallende spelers' + (rows.length ? ' <small style="margin-left:auto;">' + rows.length + '</small>' : '') + '</div>' +
-      '<div class="tr-note">Wat de scouts (of trainers) na de training opviel. Alleen jij ziet dit.</div>' +
-      (rows.length ? '<div class="opv-lijst">' + rows.map(function(r){
-        var p = opvSpeler(r.player_id);
-        if (state.opvEdit === r.id) return '<div class="opv-r opv-edit"><div class="opv-form" style="margin:0;">' +
-          '<select id="opvESpeler" aria-label="Speler">' + spelers.map(function(q){ return '<option value="' + q.id + '"' + (q.id === r.player_id ? ' selected' : '') + '>' + (q.hesje ? esc(q.hesje) + ' · ' : '') + esc(q.naam) + ' (' + esc(lichtingLabel(q.lichting)) + ')</option>'; }).join("") + '</select>' +
-          '<input type="text" id="opvEBron" list="opvBronnen" value="' + esc(r.bron || "") + '" aria-label="Wie zei het">' +
-          '<textarea id="opvETekst" rows="2" aria-label="Wat viel op">' + esc(r.tekst) + '</textarea>' +
-          '<div class="ev-chips" id="opvETips">' + TIPS.map(function(t){ return '<button type="button" class="chip small' + ((r.tips || []).indexOf(t[0]) !== -1 ? ' active' : '') + '" data-tip="' + t[0] + '">' + t[0] + ' · ' + t[1] + '</button>'; }).join("") + '</div>' +
-          '<div class="btn-row"><button type="button" class="btn primary small" id="opvESave">Opslaan</button><button type="button" class="btn ghost small" id="opvECancel">Annuleren</button></div></div></div>';
-        return '<div class="opv-r"><div><b>' + (p ? (p.hesje ? esc(p.hesje) + ' · ' : '') + esc(p.naam) : 'Speler') + '</b>' + (p ? ' <small>' + esc(lichtingLabel(p.lichting)) + '</small>' : '') +
-          ((r.tips || []).length ? '<span class="opv-tips">' + r.tips.map(function(t){ return '<span class="opv-tip" title="' + esc(tipNaam(t)) + '">' + esc(t) + '</span>'; }).join("") + '</span>' : '') +
-          '<div>' + (r.bron ? '<span class="opv-bron">' + esc(r.bron) + ':</span> ' : '') + esc(r.tekst) + '</div></div>' +
-          '<button type="button" class="opv-wijzig" data-opv-edit="' + r.id + '">Wijzigen</button>' +
-          '<button type="button" class="vj-x" data-opv-weg="' + r.id + '" aria-label="Verwijderen">&times;</button></div>';
-      }).join("") + '</div>' : '') +
-      '<div class="opv-form">' +
-      '<select id="opvSpeler" aria-label="Speler"><option value="">Kies een speler…</option>' + spelers.map(function(p){ return '<option value="' + p.id + '">' + (p.hesje ? esc(p.hesje) + ' · ' : '') + esc(p.naam) + ' (' + esc(lichtingLabel(p.lichting)) + ')</option>'; }).join("") + '</select>' +
-      '<input type="text" id="opvBron" list="opvBronnen" placeholder="Wie (bv. Johan, scout)" value="' + esc(vorige) + '" aria-label="Wie zei het">' +
-      '<datalist id="opvBronnen">' + Store.getOpvallendBronnen().concat(Store.getProfiles().filter(function(x){ return x.role === "trainer" || x.role === "hoofdtrainer"; }).map(function(x){ return (x.naam || "").split(" ")[0]; }))
-        .filter(function(b, i, a){ return b && a.indexOf(b) === i; }).map(function(b){ return '<option value="' + esc(b) + '">'; }).join("") + '</datalist>' +
-      '<textarea id="opvTekst" rows="2" placeholder="Wat viel op?" aria-label="Wat viel op"></textarea>' +
-      '<div class="ev-chips" id="opvTips"><span class="tr-note" style="margin:0;">TIPS (Ajax):</span>' + TIPS.map(function(t){ return '<button type="button" class="chip small" data-tip="' + t[0] + '" title="' + t[1] + '">' + t[0] + ' · ' + t[1] + '</button>'; }).join("") + '</div>' +
-      '<div class="btn-row"><button type="button" class="btn primary small" id="opvAdd">Toevoegen</button>' +
-      (rows.length ? '<button type="button" class="btn ghost small" id="opvCopy">Kopieer voor SoccerLab</button>' : '') + '</div></div></div>';
-    Array.prototype.forEach.call(wrap.querySelectorAll("[data-opv-edit]"), function(b){ b.onclick = function(){ state.opvEdit = b.getAttribute("data-opv-edit"); renderOpvallend(); if ($("opvETekst")) $("opvETekst").focus(); }; });
-    if ($("opvECancel")) $("opvECancel").onclick = function(){ state.opvEdit = null; renderOpvallend(); };
-    if ($("opvESave")) $("opvESave").onclick = function(){
-      var tekst = $("opvETekst").value.trim(); if (!tekst){ showToast("Schrijf op wat er opviel"); return; }
-      $("opvESave").disabled = true;
-      Store.updOpvallend(state.opvEdit, { player_id: $("opvESpeler").value, bron: $("opvEBron").value.trim() || null, tekst: tekst,
-        tips: Array.prototype.map.call(wrap.querySelectorAll("#opvETips [data-tip].active"), function(b){ return b.getAttribute("data-tip"); }) })
-        .then(function(){ state.opvEdit = null; renderOpvallend(); showToast("Gewijzigd"); })
-        .catch(function(err){ console.error(err); showToast("Opslaan mislukt"); $("opvESave").disabled = false; });
-    };
-    Array.prototype.forEach.call(wrap.querySelectorAll("#opvTips [data-tip], #opvETips [data-tip]"), function(b){ b.onclick = function(){ b.classList.toggle("active"); }; });
-    $("opvAdd").onclick = function(){
-      var pid = $("opvSpeler").value, tekst = $("opvTekst").value.trim(), bron = $("opvBron").value.trim();
-      if (!pid || !tekst){ showToast(!pid ? "Kies eerst een speler" : "Schrijf op wat er opviel"); return; }
-      $("opvAdd").disabled = true;
-      var tips = Array.prototype.filter.call(wrap.querySelectorAll("#opvTips [data-tip].active"), function(){ return true; }).map(function(b){ return b.getAttribute("data-tip"); });
-      Store.addOpvallend(d, pid, bron, tekst, tips).then(function(){ renderOpvallend(); $("opvSpeler").focus(); })
-        .catch(function(err){ console.error(err); showToast("Opslaan mislukt"); $("opvAdd").disabled = false; });
-    };
-    if ($("opvCopy")) $("opvCopy").onclick = function(){
-      var t = opvTekst(d), klaar = function(){ showToast("Gekopieerd: plak het in SoccerLab"); };
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(klaar, function(){ kopieerOud(t); klaar(); });
-      else { kopieerOud(t); klaar(); }
-    };
-    Array.prototype.forEach.call(wrap.querySelectorAll("[data-opv-weg]"), function(b){
-      b.onclick = function(){
-        var id = b.getAttribute("data-opv-weg"), r = rows.filter(function(x){ return x.id === id; })[0], p = r && opvSpeler(r.player_id);
-        confirmDialog({ title: "Notitie verwijderen?", messageHtml: "De notitie over <b>" + esc(p ? p.naam : "deze speler") + "</b> wordt verwijderd.", confirmLabel: "Verwijderen" }).then(function(ok){
-          if (ok) Store.delOpvallend(id).then(renderOpvallend).catch(function(){ showToast("Verwijderen mislukt"); });
-        });
-      };
-    });
-  }
   function kopieerOud(t){ var ta = document.createElement("textarea"); ta.value = t; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); } catch(e){} document.body.removeChild(ta); }
   /* ---------- Evaluatie vanuit impliciet leren (constraints-led; besluit Sofian 2026-10-25) ----------
      De vorm wordt geëvalueerd, niet de trainer: per groep die de vorm deed (liep het, kwam de vaardigheid vanzelf terug,
@@ -5298,9 +5240,15 @@
   });
   // Voorbereiden (hoofdtrainer): groepen van de training.
   function groepenKaartHtml(d){
-    if (!Auth.isHoofdtrainer() || (trainingPeriod(d) || {}).toernooi) return "";
+    if ((trainingPeriod(d) || {}).toernooi || Store.getCancelled().indexOf(d) !== -1) return "";
     var gr = trainingGroepen(d);
-    if (state.groepenEdit !== d) return '<div class="tr-groepen"><span>Groepen: <b>' + gr.map(function(g){ return esc(groepLabel(g)); }).join(" · ") + '</b></span><button type="button" class="linkbtn" id="groepenEdit">Wijzigen</button></div>';
+    if (state.groepenEdit !== d || !Auth.isHoofdtrainer()){
+      // Eén regel: verwacht aantal spelers per groep van deze training (tellingen per lichting staan in Aanwezig).
+      var v = verwachting(d), tot = 0;
+      var delen = gr.map(function(g){ var n = g.split("+").reduce(function(a, k){ var x = v[k]; if (!x) return a; return a + x.n; }, 0); tot += n; return esc(groepLabel(g)) + ' <b>' + n + '</b>'; });
+      return '<div class="tr-groepen"><span>' + (d === todayISO() ? "Verwacht vandaag" : "Verwacht") + ': ' + delen.join(" &middot; ") + ' <small>(' + tot + ')</small></span>' +
+        (Auth.isHoofdtrainer() ? '<button type="button" class="linkbtn" id="groepenEdit">Groepen wijzigen</button>' : '') + '</div>';
+    }
     var nr = {}; gr.forEach(function(g, i){ g.split("+").forEach(function(k){ nr[k] = i + 1; }); });
     return '<div class="card tr-card"><div class="tr-card-h">Groepen van deze training</div><div class="tr-note">Welke lichtingen trainen samen? Zet ze in dezelfde groep.</div>' +
       LICHTINGEN.map(function(l){ return '<div class="ev-rij"><span>' + esc(l.label) + '</span><select data-gk="' + l.key + '">' + [1, 2, 3, 4].map(function(n){ return '<option value="' + n + '"' + (nr[l.key] === n ? ' selected' : '') + '>Groep ' + n + '</option>'; }).join("") + '</select></div>'; }).join("") +
@@ -5413,72 +5361,123 @@
     var g = ws.reduce(function(a, b){ return a + b; }, 0) / ws.length;
     return Math.abs(g) < 0.005 ? "0,0" : (g > 0 ? "+" : "−") + (Math.round(Math.abs(g) * 10) / 10).toFixed(1).replace(".", ",");
   }
-  function renderScoutOordelen(){
-    var wrap = $("soWrap"), d = state.trainingDate;
-    if (!Auth.isHoofdtrainer() || isToernooiDag(d) || !Store.getOefs(d).length && !Store.getBeoordelaars(d).length && d > todayISO()){ wrap.innerHTML = ""; return; }
-    var bo = Store.getBeoordelaars(d), oo = Store.getOordelen(d), groepen = trainingGroepen(d), per = {};
+  /* Training → Spelers (hoofdtrainer): de papieren scoutlijst overnemen op één scherm, in dezelfde opbouw als het papier.
+     Per groep de spelers die er waren; per scout (of trainer) een oordeel −− tot ++, en per speler wat opviel.
+     Eén gegeven, één plek: vervangt de losse kaarten "Opvallende spelers" en "Oordelen van de scouts". */
+  function snNotitieForm(pid, r, bo){
+    var namen = bo.map(function(b){ return b.naam; }).concat(Store.getOpvallendBronnen(), Store.getProfiles().filter(function(x){ return x.role === "trainer" || x.role === "hoofdtrainer"; }).map(function(x){ return (x.naam || "").split(" ")[0]; }))
+      .filter(function(b, i, a){ return b && a.indexOf(b) === i; });
+    return '<div class="sn-form" data-sn-form="' + pid + '">' +
+      '<input type="text" class="sn-bron" list="snBronnen" placeholder="Wie (bv. Johan)" value="' + esc(r ? r.bron || "" : (bo[0] ? bo[0].naam : "")) + '" aria-label="Wie zei het">' +
+      '<datalist id="snBronnen">' + namen.map(function(n){ return '<option value="' + esc(n) + '">'; }).join("") + '</datalist>' +
+      '<textarea class="sn-tekst" rows="2" placeholder="Wat viel op?" aria-label="Wat viel op">' + esc(r ? r.tekst : "") + '</textarea>' +
+      '<div class="btn-row"><button type="button" class="btn primary small" data-sn-save="' + pid + '"' + (r ? ' data-sn-id="' + r.id + '"' : '') + '>Opslaan</button>' +
+      '<button type="button" class="btn ghost small" data-sn-annuleer>Annuleren</button></div></div>';
+  }
+  function snKopie(d){
+    var bo = Store.getBeoordelaars(d), oo = Store.getOordelen(d), notities = Store.getOpvallend(d);
+    var ids = []; oo.forEach(function(o){ if (ids.indexOf(o.player_id) === -1) ids.push(o.player_id); }); notities.forEach(function(r){ if (ids.indexOf(r.player_id) === -1) ids.push(r.player_id); });
+    var ps = ids.map(opvSpeler).filter(Boolean).sort(function(a, b){ return Number(a.hesje || 9999) - Number(b.hesje || 9999); });
+    return "Scouting ART 1 AS'80 · training " + formatDateShort(d) + " " + d.slice(0, 4) + "\n\n" + ps.map(function(p){
+      var mijn = oo.filter(function(o){ return o.player_id === p.id; });
+      var regels = [];
+      if (mijn.length) regels.push("- Oordeel: " + bo.filter(function(b){ return mijn.some(function(o){ return o.beoordelaar === b.naam; }); }).map(function(b){
+        var o = mijn.filter(function(x){ return x.beoordelaar === b.naam; })[0]; return b.naam + " " + OORDEEL_SYM[String(o.waarde)]; }).join(", ") + " (gem. " + gemTekst(mijn.map(function(o){ return o.waarde; })) + ")");
+      notities.filter(function(r){ return r.player_id === p.id; }).forEach(function(r){ regels.push("- " + (r.bron ? r.bron + ": " : "") + r.tekst); });
+      return p.naam + " (" + lichtingLabel(p.lichting) + (p.hesje ? ", #" + p.hesje : "") + ")\n" + regels.join("\n");
+    }).join("\n\n");
+  }
+  function renderSpelersNa(){
+    var wrap = $("spelnaWrap"), d = state.trainingDate;
+    if (!Auth.isHoofdtrainer()){ wrap.innerHTML = ""; return; }
+    if (isToernooiDag(d)){ wrap.innerHTML = '<div class="card tr-card"><div class="tr-note">Dit is een toernooi: de oordelen staan in het tabblad Toernooi → Nabespreking.</div></div>'; return; }
+    var bo = Store.getBeoordelaars(d), oo = Store.getOordelen(d), notities = Store.getOpvallend(d), groepen = trainingGroepen(d), per = {};
     groepen.forEach(function(g){ per[g] = []; });
     var groepVoor = function(l){ return groepen.filter(function(g){ return g.split("+").indexOf(l) !== -1; })[0] || groepen[0]; };
-    Store.getPlayers().forEach(function(p){ var a = (p.attendance || {})[d]; if (!(a && a.afwezig)) per[groepVoor(groepVan(p, d))].push(p); });
-    var namen = {};
-    Store.toernooiDatums().forEach(function(x){ Store.getBeoordelaars(x).forEach(function(b){ namen[b.naam] = b.rol; }); });
-    var html = '<div class="card tr-card"><div class="tr-card-h">Oordelen van de scouts <small style="margin-left:auto;">−− tot ++</small></div>' +
-      '<div class="tr-note">Neem de papieren scoutlijst over. Kies per speler het oordeel; met Tab ga je naar het volgende vak.</div>' +
+    Store.getPlayers().forEach(function(p){
+      var a = (p.attendance || {})[d], heeft = notities.some(function(r){ return r.player_id === p.id; }) || oo.some(function(o){ return o.player_id === p.id; });
+      if (!(a && a.afwezig) || heeft) per[groepVoor(groepVan(p, d))].push(p);
+    });
+    var namen = {}; Store.toernooiDatums().forEach(function(x){ Store.getBeoordelaars(x).forEach(function(b){ namen[b.naam] = b.rol; }); });
+    var html = '<div class="card tr-card"><div class="tr-card-h">Scoutlijst overnemen <small style="margin-left:auto;">' + esc(formatDateShort(d)) + '</small></div>' +
+      '<div class="tr-note">Neem de papieren scoutlijst over: per speler het oordeel van elke scout (−− tot ++, met Tab naar het volgende vak) en wat opviel. Alleen jij ziet dit.</div>' +
+      '<div class="btn-row"><button type="button" class="btn ghost small" id="snPrint">Scoutlijst afdrukken</button>' +
+      ((oo.length || notities.length) ? '<button type="button" class="btn ghost small" id="snCopy">Kopieer voor SoccerLab</button>' : '') + '</div>' +
+      '<div class="ev-h">Wie gaven een oordeel?</div>' +
       '<div class="ev-chips so-bo">' + bo.map(function(b, i){ return '<span class="so-b">' + esc(b.naam) + ' <small>' + (b.rol === "trainer" ? "trainer" : "scout") + '</small><button type="button" data-so-weg="' + i + '" aria-label="' + esc(b.naam) + ' weghalen">&times;</button></span>'; }).join("") + '</div>' +
       '<div class="so-add"><input type="text" id="soNaam" list="soNamen" placeholder="Naam scout of trainer"><datalist id="soNamen">' + Object.keys(namen).sort().map(function(n){ return '<option value="' + esc(n) + '">'; }).join("") + '</datalist>' +
       '<select id="soRol"><option value="scout">Scout</option><option value="trainer">Trainer</option></select><button type="button" class="btn ghost small" id="soAdd">Toevoegen</button></div>';
-    if (bo.length){
-      html += groepen.map(function(g){
-        var ps = per[g].sort(function(a, b){ return Number(a.hesje || 9999) - Number(b.hesje || 9999) || a.naam.localeCompare(b.naam); });
-        if (!ps.length) return "";
-        return '<div class="so-groep">Groep ' + esc(groepLabel(g)) + '</div><div class="so-scroll"><table class="so-t"><thead><tr><th>#</th><th>Naam</th>' + bo.map(function(b){ return '<th>' + esc(b.naam) + '</th>'; }).join("") + '<th>Gem.</th></tr></thead><tbody>' +
-          ps.map(function(p){
-            var mijn = oo.filter(function(x){ return x.player_id === p.id; });
-            return '<tr><td class="so-nr">' + esc(p.hesje || "") + '</td><td>' + esc(p.naam) + '</td>' + bo.map(function(b){
-              var o = mijn.filter(function(x){ return x.beoordelaar === b.naam; })[0], v = o ? String(o.waarde) : "";
-              return '<td><select class="so-sel" data-so-p="' + p.id + '" data-so-n="' + esc(b.naam) + '" data-so-r="' + b.rol + '" aria-label="' + esc(b.naam) + ' over ' + esc(p.naam) + '">' +
-                SO_OPTIES.map(function(x){ return '<option value="' + x[0] + '"' + (x[0] === v ? ' selected' : '') + '>' + x[1] + '</option>'; }).join("") + '</select></td>';
-            }).join("") + '<td class="so-gem" data-so-gem="' + p.id + '">' + gemTekst(mijn.map(function(x){ return x.waarde; })) + '</td></tr>';
-          }).join("") + '</tbody></table></div>';
-      }).join("");
-    } else html += '<div class="tr-note">Voeg eerst de scouts (en eventueel trainers) toe die een oordeel gaven.</div>';
+    html += groepen.map(function(g){
+      var ps = per[g].sort(function(a, b){ return Number(a.hesje || 9999) - Number(b.hesje || 9999) || a.naam.localeCompare(b.naam); });
+      if (!ps.length) return "";
+      return '<div class="so-groep">Groep ' + esc(groepLabel(g)) + ' <small>' + ps.length + ' spelers</small></div><div class="so-scroll"><table class="so-t sn-t"><thead><tr><th>#</th><th>Naam</th>' +
+        bo.map(function(b){ return '<th>' + esc(b.naam) + '</th>'; }).join("") + (bo.length ? '<th>Gem.</th>' : '') + '<th class="sn-o">Opvallend</th></tr></thead><tbody>' +
+        ps.map(function(p){
+          var mijn = oo.filter(function(x){ return x.player_id === p.id; }), nts = notities.filter(function(r){ return r.player_id === p.id; });
+          var open = state.snForm && state.snForm.pid === p.id;
+          return '<tr><td class="so-nr">' + esc(p.hesje || "") + '</td><td class="sn-naam">' + esc(p.naam) + '</td>' + bo.map(function(b){
+            var o = mijn.filter(function(x){ return x.beoordelaar === b.naam; })[0], v = o ? String(o.waarde) : "";
+            return '<td><select class="so-sel" data-so-p="' + p.id + '" data-so-n="' + esc(b.naam) + '" data-so-r="' + b.rol + '" aria-label="' + esc(b.naam) + ' over ' + esc(p.naam) + '">' +
+              SO_OPTIES.map(function(x){ return '<option value="' + x[0] + '"' + (x[0] === v ? ' selected' : '') + '>' + x[1] + '</option>'; }).join("") + '</select></td>';
+          }).join("") + (bo.length ? '<td class="so-gem" data-so-gem="' + p.id + '">' + gemTekst(mijn.map(function(x){ return x.waarde; })) + '</td>' : '') +
+            '<td class="sn-o">' + nts.map(function(r){
+              if (open && state.snForm.id === r.id) return snNotitieForm(p.id, r, bo);
+              return '<div class="sn-n"><span>' + (r.bron ? '<b>' + esc(r.bron) + ':</b> ' : '') + esc(r.tekst) + '</span><button type="button" class="sn-k" data-sn-edit="' + r.id + '" data-sn-p="' + p.id + '" aria-label="Wijzigen">&#9998;</button><button type="button" class="sn-k" data-sn-weg="' + r.id + '" aria-label="Verwijderen">&times;</button></div>';
+            }).join("") + (open && !state.snForm.id ? snNotitieForm(p.id, null, bo) : '<button type="button" class="sn-plus" data-sn-new="' + p.id + '">+ wat viel op</button>') + '</td></tr>';
+        }).join("") + '</tbody></table></div>';
+    }).join("");
     wrap.innerHTML = html + '</div>';
+    // knoppen
+    $("snPrint").onclick = function(){ printScoutlijst(d); };
+    if ($("snCopy")) $("snCopy").onclick = function(){
+      var t = snKopie(d), klaar = function(){ showToast("Gekopieerd: plak het in SoccerLab"); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(klaar, function(){ kopieerOud(t); klaar(); }); else { kopieerOud(t); klaar(); }
+    };
     $("soAdd").onclick = function(){
       var n = $("soNaam").value.trim(); if (!n){ showToast("Vul een naam in"); return; }
       if (bo.some(function(b){ return b.naam.toLowerCase() === n.toLowerCase(); })){ showToast("Staat er al bij"); return; }
-      Store.saveBeoordelaars(d, bo.concat([{ naam: n, rol: $("soRol").value, lichtingen: [] }])).then(renderScoutOordelen).catch(function(){ showToast("Opslaan mislukt"); });
+      Store.saveBeoordelaars(d, bo.concat([{ naam: n, rol: $("soRol").value, lichtingen: [] }])).then(renderSpelersNa).catch(function(){ showToast("Opslaan mislukt"); });
     };
     $("soNaam").onchange = function(){ if (namen[this.value]) $("soRol").value = namen[this.value]; };
     Array.prototype.forEach.call(wrap.querySelectorAll("[data-so-weg]"), function(b){ b.onclick = function(){
       var x = bo[Number(b.getAttribute("data-so-weg"))], heeft = oo.some(function(o){ return o.beoordelaar === x.naam; });
-      var weg = function(){ Store.saveBeoordelaars(d, bo.filter(function(y){ return y !== x; })).then(renderScoutOordelen); };
+      var weg = function(){ Store.saveBeoordelaars(d, bo.filter(function(y){ return y !== x; })).then(renderSpelersNa); };
       if (!heeft){ weg(); return; }
       confirmDialog({ title: x.naam + " weghalen?", messageHtml: "De kolom van <b>" + esc(x.naam) + "</b> verdwijnt. Ingevulde oordelen blijven bewaard en komen terug als je de naam opnieuw toevoegt.", confirmLabel: "Weghalen" }).then(function(ok){ if (ok) weg(); });
     }; });
     Array.prototype.forEach.call(wrap.querySelectorAll(".so-sel"), function(sel){ sel.onchange = function(){
       var pid = sel.getAttribute("data-so-p"), v = sel.value === "" ? null : Number(sel.value);
       Store.setOordeel(d, pid, sel.getAttribute("data-so-n"), sel.getAttribute("data-so-r"), v, true).then(function(){
-        var ws = Store.getOordelen(d).filter(function(x){ return x.player_id === pid; }).map(function(x){ return x.waarde; });
-        var cel = wrap.querySelector('[data-so-gem="' + pid + '"]'); if (cel) cel.textContent = gemTekst(ws);
+        var cel = wrap.querySelector('[data-so-gem="' + pid + '"]'); if (cel) cel.textContent = gemTekst(Store.getOordelen(d).filter(function(x){ return x.player_id === pid; }).map(function(x){ return x.waarde; }));
+        if (!$("snCopy")) renderSpelersNa();
       }).catch(function(err){ console.error(err); showToast("Opslaan mislukt"); });
     }; });
+    Array.prototype.forEach.call(wrap.querySelectorAll("[data-sn-new]"), function(b){ b.onclick = function(){ state.snForm = { pid: b.getAttribute("data-sn-new") }; renderSpelersNa(); var t = wrap.querySelector(".sn-form .sn-tekst"); if (t) t.focus(); }; });
+    Array.prototype.forEach.call(wrap.querySelectorAll("[data-sn-edit]"), function(b){ b.onclick = function(){ state.snForm = { pid: b.getAttribute("data-sn-p"), id: b.getAttribute("data-sn-edit") }; renderSpelersNa(); var t = wrap.querySelector(".sn-form .sn-tekst"); if (t) t.focus(); }; });
+    Array.prototype.forEach.call(wrap.querySelectorAll("[data-sn-annuleer]"), function(b){ b.onclick = function(){ state.snForm = null; renderSpelersNa(); }; });
+    Array.prototype.forEach.call(wrap.querySelectorAll("[data-sn-save]"), function(b){ b.onclick = function(){
+      var f = b.closest(".sn-form"), tekst = f.querySelector(".sn-tekst").value.trim(), bron = f.querySelector(".sn-bron").value.trim(), pid = b.getAttribute("data-sn-save"), id = b.getAttribute("data-sn-id");
+      if (!tekst){ showToast("Schrijf op wat er opviel"); return; }
+      b.disabled = true;
+      (id ? Store.updOpvallend(id, { bron: bron || null, tekst: tekst }) : Store.addOpvallend(d, pid, bron, tekst, []))
+        .then(function(){ state.snForm = null; renderSpelersNa(); }).catch(function(err){ console.error(err); showToast("Opslaan mislukt"); b.disabled = false; });
+    }; });
+    Array.prototype.forEach.call(wrap.querySelectorAll("[data-sn-weg]"), function(b){ b.onclick = function(){
+      var id = b.getAttribute("data-sn-weg");
+      confirmDialog({ title: "Notitie verwijderen?", messageHtml: "Deze notitie wordt verwijderd.", confirmLabel: "Verwijderen" }).then(function(ok){ if (ok) Store.delOpvallend(id).then(renderSpelersNa); });
+    }; });
+    Array.prototype.forEach.call(wrap.querySelectorAll(".sn-tekst"), function(t){ t.addEventListener("keydown", function(e){ if (e.key === "Enter" && (e.metaKey || e.ctrlKey)){ var s2 = t.closest(".sn-form").querySelector("[data-sn-save]"); if (s2) s2.click(); } }); });
   }
-  // Rapport: gemiddeld oordeel van de scouts over de gewone trainingen.
-  function renderSoRapport(){
-    var el = $("soRapport"); if (!el) return;
-    if (!Auth.isHoofdtrainer()){ el.style.display = "none"; return; }
-    var ds = Store.toernooiDatums().filter(function(x){ return !isToernooiDag(x); }), per = {};
-    ds.forEach(function(x){ Store.getOordelen(x).forEach(function(o){ (per[o.player_id] = per[o.player_id] || []).push(o.waarde); }); });
-    var rows = Store.getPlayers().filter(function(p){ return per[p.id]; }).map(function(p){
-      var ws = per[p.id]; return { p: p, gem: ws.reduce(function(a, b){ return a + b; }, 0) / ws.length, n: ws.length, pp: ws.filter(function(w){ return w === 2; }).length, ws: ws };
-    }).sort(function(a, b){ return b.gem - a.gem || b.pp - a.pp; });
-    el.style.display = rows.length ? "" : "none";
-    el.innerHTML = '<div class="tr-card-h">Oordelen van de scouts bij trainingen <small style="margin-left:auto;">' + ds.length + (ds.length === 1 ? " training" : " trainingen") + '</small></div>' +
-      '<div class="so-scroll"><table class="so-t"><thead><tr><th>#</th><th>Naam</th><th>Jaar</th><th>Gem.</th><th>++</th><th>Oordelen</th></tr></thead><tbody>' + rows.map(function(r){
-        return '<tr><td class="so-nr">' + esc(r.p.hesje || "") + '</td><td>' + esc(r.p.naam) + '</td><td>' + esc(lichtingLabel(r.p.lichting)) + '</td><td class="so-gem ' + (r.gem > 0.05 ? "tl-plus" : r.gem < -0.05 ? "tl-min" : "") + '">' + gemTekst(r.ws) + '</td><td>' + (r.pp || "") + '</td><td>' + r.n + '</td></tr>';
-      }).join("") + '</tbody></table></div>';
+  // Rapport en tijdlijn: wat scouts bij trainingen gaven, per speler.
+  function spelerExtra(pid){
+    var sc = [], toer = null, td = null;
+    Store.toernooiDatums().forEach(function(x){
+      var ws = Store.getOordelen(x).filter(function(o){ return o.player_id === pid; }).map(function(o){ return o.waarde; });
+      if (!ws.length) return;
+      if (isToernooiDag(x)){ if (!td || x > td){ td = x; toer = gemTekst(ws); } } else sc = sc.concat(ws);
+    });
+    return { scout: sc.length ? gemTekst(sc) : "", scoutN: sc.length, toernooi: toer, opv: Store.getOpvallendSpeler(pid).length };
   }
-
   function renderOefEval(){
     var d = state.trainingDate, per = trainingPeriod(d), wrap = $("oefEvalList");
     var rows = Store.getOefs(d);
@@ -5755,7 +5754,7 @@
       items.push({ blok: r.blok || 1, rol: "Scout", naam: r.scoutNaam, w: r.wedstrijdbeoordeling, p: r.potentieel,
         advies: r.advies, notitie: r.notitie || r.bijzonder, legacyId: legacy ? r.id : null, legacyLabel: eo && eo.value ? eo.label : "" });
     });
-    if (!items.length) return '<div class="rp-empty">Nog geen beoordelingen.</div>';
+    if (!items.length) return tijdlijnHtml(p) + '<button type="button" class="btn ghost small" data-open-card="' + p.id + '" style="margin-top:10px;">Spelerskaart openen</button>';
     var bloks = items.map(function(i){ return i.blok; }).filter(function(b, i, a){ return a.indexOf(b) === i; }).sort(function(a, b){ return b - a; });
     return bloks.map(function(b){
       var list = items.filter(function(i){ return i.blok === b; })
@@ -5771,8 +5770,9 @@
           (i.legacyId ? '<button type="button" class="btn ghost small" data-open-scout="' + i.legacyId + '" style="margin-top:6px;">Oud scoutrapport bekijken</button>' : '') +
           '</div>';
       }).join("");
-    }).join("") + '<button type="button" class="btn ghost small" data-open-card="' + p.id + '" style="margin-top:10px;">Spelerskaart openen</button>';
+    }).join("") + tijdlijnHtml(p) + '<button type="button" class="btn ghost small" data-open-card="' + p.id + '" style="margin-top:10px;">Spelerskaart openen</button>';
   }
+  function pmKlas(t){ return !t ? "" : t.charAt(0) === "+" ? "tl-plus" : t.charAt(0) === "−" ? "tl-min" : ""; }
 
   function renderOverzicht(){
     var isHoofd = Auth.isHoofdtrainer();
@@ -5801,9 +5801,9 @@
         '<div class="rp-stars-note">Vaak A of B van trainers en scouts samen. Overweeg contact met de jeugdcoördinator of jeugdscout.</div></div>'
       : '';
     wrap.innerHTML = starHtml +
-      '<div class="rp-legend">Letters: <b>Wedstrijd</b> &middot; <b>Potentieel</b>, gemiddeld over ' + esc(blokLabel(state.overzichtBlok)) + '. Tik op een speler voor alle beoordelingen.</div>' +
+      '<div class="rp-legend">Trainers: letters <b>Wedstrijd</b> &middot; <b>Potentieel</b> in ' + esc(blokLabel(state.overzichtBlok)) + '. Scouts: gemiddeld oordeel (−2 tot +2) bij trainingen. Tik op een speler voor de tijdlijn en alle beoordelingen.</div>' +
       rows.map(function(r){
-        var p = r.player, gs = r.gs;
+        var p = r.player, gs = r.gs, ex = spelerExtra(p.id);
         var photo = p.fotoPath
           ? '<img class="rp-img" data-ident-photo="' + p.id + '" data-foto-path="' + esc(p.fotoPath) + '" alt="">'
           : '<div class="rp-img rp-img-empty">' + personSvg + '</div>';
@@ -5816,7 +5816,10 @@
           (r.att.flagged ? '<span class="rp-warn" title="Meer dan 20% afwezig">afwezig ' + r.att.absentCount + '/' + r.att.total + '</span>' : '') +
           '</div></div>' +
           '<div class="rp-grades"><div class="rp-g"><span class="lbl">Trainers</span>' + letterPair(gs.tW, gs.tP) + '</div>' +
-          '<div class="rp-g"><span class="lbl">Scouts</span>' + letterPair(gs.sW, gs.sP) + '</div></div>' +
+          (gs.sW || gs.sP ? '<div class="rp-g"><span class="lbl">Scouts A-D</span>' + letterPair(gs.sW, gs.sP) + '</div>' : '') +
+          '<div class="rp-g"><span class="lbl">Scouts</span><b class="rp-pm ' + pmKlas(ex.scout) + '" title="' + ex.scoutN + ' oordelen bij trainingen">' + (ex.scout || "–") + '</b></div>' +
+          (ex.toernooi ? '<div class="rp-g"><span class="lbl">Toernooi</span><b class="rp-pm ' + pmKlas(ex.toernooi) + '">' + ex.toernooi + '</b></div>' : '') +
+          (ex.opv ? '<div class="rp-g"><span class="lbl">Opvallend</span><b>' + ex.opv + '&times;</b></div>' : '') + '</div>' +
           '<div class="rp-foot">' +
           '<select class="rp-adv' + (p.advies ? '' : ' none') + '" data-advies="' + p.id + '" aria-label="Advies voor ' + esc(p.naam) + '">' +
           ADVIES_OPTIONS.map(function(o){ return '<option value="' + o.value + '"' + (String(p.advies || "") === o.value ? " selected" : "") + '>' + (o.value ? esc(o.label) : "Advies kiezen") + '</option>'; }).join("") +
@@ -7815,6 +7818,8 @@
     // Rolwissel: menu en testbalk alleen voor de echte hoofdtrainer.
     var real = Auth.isRealHoofdtrainer(), va = Auth.getViewAs();
     $("menuRoles").hidden = !real;
+    var scoutKnop = document.querySelector('[data-view-as="scout"]'); // scouts werken op papier: alleen tonen als er scout-accounts zijn
+    if (scoutKnop) scoutKnop.hidden = !Store.getProfiles().some(function(x){ return x.role === "scout"; }) && va !== "scout";
     Array.prototype.forEach.call(document.querySelectorAll("[data-view-as]"), function(b){
       b.classList.toggle("active", (b.getAttribute("data-view-as") || null) === va);
     });
@@ -7833,7 +7838,7 @@
     // Lichting-knoppen bovenin hebben in Toernooi geen functie (daar kies je het team in het tabblad zelf).
     $("lichtingChips").style.display = state.tab === "toernooi" ? "none" : "";
     if (state.tab === "spelers") renderSpelers();
-    else if (state.tab === "overzicht"){ renderOverzicht(); Toernooi.lijst(); renderSoRapport(); }
+    else if (state.tab === "overzicht"){ renderOverzicht(); Toernooi.lijst(); }
     else if (state.tab === "training") renderTraining();
     else if (state.tab === "aanwezig") renderAbsenties();
     else if (state.tab === "toernooi") Toernooi.render();
@@ -8180,7 +8185,7 @@
       { sel: "#oefOverlay .sheet", title: "Eén vorm evalueren", text: "Een paar tikken per groep, één regel over de knop waaraan gedraaid is en één regel voor de volgende keer. Daarna door naar de volgende vorm. Zo duurt de nabespreking ongeveer 20 minuten.<br><br>De Vormenbank laat later zien welke vorm voor welke leeftijd werkte.", go: function(){ training("evaluatie"); openOef(DEMO_DATE, "A", 2, "evaluatie"); } },
       { sel: "#reflWrap", title: "Reflectie van de trainer", text: "Los van de nabespreking schrijft elke trainer één korte reflectie per training: welke knop draaide ik om en waarom, wat zag ik bij de spelers, wanneer greep ik in met woorden?<br><br>De hoofdtrainer geeft elke trainer een <b>werkpunt</b> en reageert; <b>alleen die trainer ziet de reactie</b>. Zo ontwikkelen de trainers zich als ontwerpers van oefenvormen.", go: function(){ training("evaluatie"); setTimeout(function(){ var el = $("reflWrap"); if (el && el.scrollIntoView) el.scrollIntoView({ block: "start" }); }, 150); } },
       { sel: "#absentiesList", title: "Wat opvalt: aanwezigheid", text: "Op het veld in één tik: afwezig, met reden. Het werkt ook <b>zonder internet</b>; zodra er weer verbinding is, gaat alles vanzelf door.<br><br>Wie vaker dan 20% mist, krijgt een waarschuwing in het rapport.", go: function(){ switchTab("aanwezig"); } },
-      { sel: "#opvWrap", title: "Opvallende spelers", text: "Na de training vraag ik de scouts: <b>welke spelers zijn je opgevallen?</b> Dat noteer ik hier per speler, met wie het zei.<br><br>Met één knop staat alles klaar om in <b>SoccerLab</b> te plakken.", go: function(){ training("evaluatie"); } },
+      { sel: "#spelnaWrap", title: "Wat de scouts zagen", text: "Na de training vraag ik de scouts: <b>welke spelers zijn je opgevallen?</b> Dat noteer ik hier per speler, met wie het zei.<br><br>Met één knop staat alles klaar om in <b>SoccerLab</b> te plakken.", go: function(){ training("spelers"); } },
       { sel: "#slOverlay .sheet", title: "De scoutlijst op papier", text: "Scouts werken op papier. Op de ochtend van de training druk ik de <b>scoutlijst</b> af: per groep de spelers die er zijn, met foto, hesjenummer, geboortejaar en kwartaal.<br><br>De scout omcirkelt per speler een oordeel van <b>−−</b> tot <b>++</b> en schrijft op wat opviel. Afgemelde spelers staan grijs onderaan, zodat iedereen weet wie er niet is.", go: function(){ switchTab("aanwezig"); state.absDate = DEMO_DATE; renderAbsenties(); printScoutlijst(DEMO_DATE); } },
       { sel: "#scoreOverlay .sheet", title: "Beoordelen per blok", text: "Iedere trainer beoordeelt de spelers per blok op <b>wedstrijd</b> en <b>potentieel</b>, met A, B, C of D: dezelfde schaal als de Ajax-lijst.", go: function(){ switchTab("spelers"); openScoreSheet(firstPlayer().id); } },
       { sel: "#playerCardOverlay .sheet", title: "De spelerskaart", text: "Per speler een <b>tijdlijn</b>: de letters van de trainers per blok, wat er na trainingen opviel, en het oordeel op het toernooi. Zo ziet u in één oogopslag hoe een speler zich ontwikkelt.", go: function(){ switchTab("spelers"); openPlayerCard(firstPlayer().id); } },

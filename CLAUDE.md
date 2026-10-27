@@ -188,6 +188,23 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   bij afdrukken), daaronder "Afdrukken of als pdf opslaan". Demo-rondleiding: stap "De scoutlijst op papier" (na
   Opvallende spelers) opent dit voorbeeld voor 27 sep.
 
+## Herinrichting na de app-analyse (2026-10-27, akkoord Sofian; punt "ontwikkeling trainers per blok" bewust NIET)
+- Training heeft vier onderdelen: Voorbereiden · Nabespreking (was Evaluatie: vormen + training als geheel +
+  reflecties) · Spelers (alleen hoofdtrainer) · Vormenbank.
+- Training → Spelers = "Scoutlijst overnemen" (`renderSpelersNa`), zelfde opbouw als het papier: per groep de spelers
+  die er waren (plus wie al een oordeel/notitie heeft), per beoordelaar een keuzelijst −− tot ++ (Tab), gemiddelde, en
+  per speler "Opvallend" (notities met wie; + wat viel op / wijzigen / verwijderen; Cmd+Enter = opslaan). Knoppen
+  "Scoutlijst afdrukken" en "Kopieer voor SoccerLab" (`snKopie`: per speler de oordelen + gemiddelde + notities).
+  Vervangt de losse kaarten "Opvallende spelers" en "Oordelen van de scouts" (één gegeven, één plek). TIPS-labels uit
+  de app gehaald (staan niet op het papier); kolom `opvallend.tips` blijft bestaan.
+- Rapport = speleroverzicht: per speler Trainers (A-D, blok), Scouts (gemiddeld −−/++ bij trainingen, `spelerExtra`),
+  Toernooi (laatste), Opvallend (aantal). Scouts A-D alleen als er digitale scoutrapporten zijn. Tik = tijdlijn +
+  alle beoordelingen. De losse rapportkaart "Oordelen van de scouts bij trainingen" is weg.
+- Voorbereiden: "Verwacht" + "Groepen" samen op één regel ("Verwacht: 2019 6 · 2016 + 2017 + 2018 15 (21) Groepen
+  wijzigen"); de tellingen per lichting staan in Aanwezig.
+- Scoutkant in rust: "Bekijk de app als Scout" alleen als er scout-accounts zijn. Beoordelen A-D door trainers blijft
+  (nodig voor de Ajax-lijst).
+
 ## Oordelen van de scouts bij gewone trainingen (2026-10-25)
 - Training → Evaluatie (hoofdtrainer), kaart "Oordelen van de scouts" (`renderScoutOordelen`): beoordelaars van die
   training toevoegen (naam + scout/trainer, eerder gebruikte namen als keuze), per groep de aanwezige spelers op hesje met
