@@ -188,6 +188,19 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   bij afdrukken), daaronder "Afdrukken of als pdf opslaan". Demo-rondleiding: stap "De scoutlijst op papier" (na
   Opvallende spelers) opent dit voorbeeld voor 27 sep.
 
+## Meten en nieuwe uitleg (2026-10-27, na cijfer 8 voor de app)
+- Advies Claude: eerst 3 à 4 zondagen gebruiken en meten, niets nieuws bouwen; daarna kiezen op basis van gebruik.
+- Tabel `gebruik` (user_id, rol, soort scherm/venster/actie, naam, datum, created_at; migratie 20261027_gebruik.sql;
+  eigen regels schrijven, alleen hoofdtrainer leest; pg_cron `art-gebruik-opruimen` wist >180 dagen). `Meet.log()` staat
+  vóór `switchTab` (wordt daar en bij vensters aangeroepen); niet in de demo en niet bij "bekijk de app als".
+  Gelogd: tabbladen + Training-onderdelen, vensters (vorm voorbereiden/nabespreking, tekentool, scoutlijst, spelerskaart,
+  hele training, training afdrukken, vormenbank-vorm), acties vorm-klaar, evaluatie-opgeslagen, reflectie-opgeslagen.
+- Instellingen → "Gebruik van de app" (`vulGebruik`, laadt bij openklappen): laatste 4 weken zonder jezelf. Per training
+  vormen op tijd klaar (log vorm-klaar vóór `effDeadline` 23:59), besproken x van y (+ minuten tussen eerste en laatste
+  evaluatie-opgeslagen), reflecties x van rollen; per scherm keer/personen; per persoon dagen geopend en laatst.
+- Uitleg bij eerste inlog trainer v2 (sleutel `art-uitleg-v2-…`, iedereen ziet hem één keer opnieuw): 4 kaartjes
+  vóór vrijdagavond jouw vorm · zondag Aanwezig (ook offline) · nabespreking samen (de vorm, niet de trainer) · thuis reflectie.
+
 ## Herinrichting na de app-analyse (2026-10-27, akkoord Sofian; punt "ontwikkeling trainers per blok" bewust NIET)
 - Training heeft vier onderdelen: Voorbereiden · Nabespreking (was Evaluatie: vormen + training als geheel +
   reflecties) · Spelers (alleen hoofdtrainer) · Vormenbank.

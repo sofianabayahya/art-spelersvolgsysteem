@@ -2953,8 +2953,23 @@
   }
 
   /* ---------- tabs ---------- */
+  /* Meten (besluit Sofian 2026-10-27): welke schermen en vensters gebruikt worden, plus een paar acties (vorm klaar,
+     evaluatie en reflectie opgeslagen). Stil en nooit blokkerend; niet in de demo en niet in "bekijk de app als".
+     Alleen de hoofdtrainer ziet het overzicht (Instellingen → Gebruik van de app); regels ouder dan 180 dagen gaan weg. */
+  var Meet = (function(){
+    var laatst = "";
+    function log(soort, naam, datum){
+      if (DEMO || !myUserId() || Auth.getViewAs()) return;
+      var k = soort + "|" + naam + "|" + (datum || "");
+      if (soort !== "actie" && k === laatst) return;
+      laatst = k;
+      try { sb.from("gebruik").insert({ soort: soort, naam: naam, datum: datum || null, rol: Auth.myRole() }).then(function(){}, function(){}); } catch(e){}
+    }
+    return { log: log };
+  })();
   function switchTab(tab){
     state.tab = tab;
+    Meet.log("scherm", tab === "overzicht" ? "rapport" : tab);
     // Tabblad Aanwezig toont het paneel "absenties"; Training beheert zelf zijn sub-panelen.
     var panel = tab === "aanwezig" ? "absenties" : tab;
     ["spelers","overzicht","training","plan","absenties","evaluatie","spelna","bank","toernooi","instellingen"].forEach(function(t){ $("panel-" + t).hidden = t !== panel; });
@@ -3240,6 +3255,7 @@
 
   /* ---------- Spelerskaart: alles over één speler, per rol ---------- */
   function openPlayerCard(playerId){
+    Meet.log("venster", "spelerskaart");
     var p = Store.getPlayers().find(function(x){ return x.id === playerId; });
     if (!p) return;
     var role = Auth.myRole(), isHoofd = Auth.isHoofdtrainer();
@@ -4319,7 +4335,7 @@
   }
   $("trainingPick").addEventListener("change", function(){ state.trainingDate = this.value; state.trainingSub = null; trainingDefaults(); renderTraining(); });
   Array.prototype.forEach.call(document.querySelectorAll("[data-tr-sub]"), function(b){
-    b.addEventListener("click", function(){ state.trainingSub = b.getAttribute("data-tr-sub"); renderTraining(); });
+    b.addEventListener("click", function(){ state.trainingSub = b.getAttribute("data-tr-sub"); Meet.log("scherm", "training-" + state.trainingSub); renderTraining(); });
   });
   // De oude datumkeuze in Evaluatie is vervangen door die van Training. Aanwezig is een eigen tabblad met eigen datum.
   $("evalDateSelect").closest(".field").hidden = true;
@@ -4545,9 +4561,10 @@
   var Uitleg = (function(){
     var STAPPEN = {
       trainer: [
-        ["Aanwezigheid", "Op het veld: open Aanwezig en tik op een speler om hem af te melden, met reden. Iedereen staat standaard op aanwezig."],
-        ["Jouw vorm maken", "In Training staat bovenaan jouw taak. Maak je vorm het liefst op de laptop (tekenen gaat daar het snelst) en zet hem vóór vrijdagavond op Klaar."],
-        ["Voor jou", "Bovenaan Training zie je nieuwe tips van collega's, reacties van de hoofdtrainer en wat er nog moet. In de Vormenbank vind je vormen van eerdere trainingen."]
+        ["Vóór vrijdagavond: jouw vorm", "In Training → Voorbereiden staat bovenaan jouw taak. Maak je vorm op de laptop: de tekening links, de tekst rechts. Laat de vorm de vaardigheid uitlokken met regels, ruimte en aantallen. Onder de tekening zie je wat de nabespreking de vorige keer over deze vaardigheid zei. Klaar? Tik op Klaar."],
+        ["Zondag op het veld", "Open Aanwezig en tik op een speler om hem af te melden, met reden. Het werkt ook zonder internet: de app verstuurt het vanzelf zodra er weer verbinding is."],
+        ["Na de training: de nabespreking", "Samen op de laptop lopen we elke vorm door: per groep, liep het, kwam de vaardigheid vanzelf terug, en aan welke knop draaiden we? We bespreken de vorm, niet de trainer."],
+        ["Thuis: jouw reflectie", "In Training → Nabespreking schrijf je één korte reflectie: welke knop draaide jij om en wat zag je daarna? Je werkpunt staat erboven. Bovenaan 'Voor jou' zie je wat er nog moet en nieuwe reacties."]
       ],
       scout: [
         ["Zoek op nummer", "Tik bovenaan Spelers het hesjenummer in. Je ziet meteen de speler; tik erop voor zijn kaart."],
@@ -4556,7 +4573,7 @@
       ]
     };
     var lijst = [], i = 0;
-    function key(role){ return "art-uitleg-" + (myUserId() || "x") + "-" + role; }
+    function key(role){ return "art-uitleg-v2-" + (myUserId() || "x") + "-" + role; } // v2 (27 okt): nieuwe werkwijze, iedereen ziet hem één keer opnieuw
     function toon(){
       var s = lijst[i];
       $("uitlegStap").textContent = (i + 1) + " van " + lijst.length;
@@ -4797,6 +4814,7 @@
     return { d0: d0, slots: slots, pref: pref };
   }
   function openBankVorm(d, o, v){
+    Meet.log("venster", "vormenbank-vorm", d);
     var r = Store.getOef(d, o, v); if (!r) return;
     var nl = function(t){ return esc(t || "").replace(/\n/g, "<br>"); };
     var b = function(k, t){ return t ? '<div class="tv-b"><b>' + k + '</b>' + nl(t) + '</div>' : ''; };
@@ -4871,6 +4889,7 @@
   }
 
   function openTrainingView(d){
+    Meet.log("venster", "hele-training", d);
     var per = trainingPeriod(d) || {}, plan = Store.getPlan(d) || {};
     var nl = function(t){ return esc(t || "").replace(/\n/g, "<br>"); };
     $("tvTitle").textContent = "Training " + formatDateShort(d) + " " + d.slice(0, 4);
@@ -5016,6 +5035,7 @@
 
   // Training downloaden: afdruk/PDF in de vorm van de Ajax Training planner (per thema: deel 1 en deel 2).
   function printTraining(d){
+    Meet.log("venster", "training-afdrukken", d);
     var per = trainingPeriod(d) || {}, plan = Store.getPlan(d) || {};
     var rows = ["A", "B", "C"].filter(function(o){ return per[o] || Store.getOefs(d).some(function(r){ return r.onderdeel === o; }); });
     var paths = Store.getOefs(d).map(function(r){ return r.tekening_path; }).filter(Boolean);
@@ -5218,7 +5238,7 @@
         if (w === "next"){ ga(volgende); return; }
         leesEvTeksten(); b.disabled = true;
         var patch = { evaluatie: s.ev, updated_at: new Date().toISOString() }, t = evTerug(s.ev); if (t) patch.eval_terug = t;
-        Store.patchOef(s.row.id, patch).then(function(){ showToast("Opgeslagen"); ga(volgende); })
+        Store.patchOef(s.row.id, patch).then(function(){ Meet.log("actie", "evaluatie-opgeslagen", s.d); showToast("Opgeslagen"); ga(volgende); })
           .catch(function(err){ console.error(err); showToast(navigator.onLine === false ? "Geen internet: niet opgeslagen" : "Opslaan mislukt"); b.disabled = false; });
       };
     });
@@ -5339,7 +5359,7 @@
     if ($("rfSave")) $("rfSave").onclick = function(){
       var data = { focus: focus }, btn = this; REFL_VRAGEN.forEach(function(q){ data[q[0]] = $("rf_" + q[0]).value.trim() || null; });
       btn.disabled = true;
-      Store.saveReflectie(d, me, data).then(function(){ showToast("Reflectie opgeslagen"); renderAll(); }).catch(function(err){ console.error(err); showToast("Opslaan mislukt"); btn.disabled = false; });
+      Store.saveReflectie(d, me, data).then(function(){ Meet.log("actie", "reflectie-opgeslagen", d); showToast("Reflectie opgeslagen"); renderAll(); }).catch(function(err){ console.error(err); showToast("Opslaan mislukt"); btn.disabled = false; });
     };
     Array.prototype.forEach.call(wrap.querySelectorAll("[data-rf-opslaan]"), function(b){ b.onclick = function(){
       var tid = b.getAttribute("data-rf-opslaan"), wp = wrap.querySelector('[data-wp="' + tid + '"]'), rr = wrap.querySelector('[data-rr-t="' + tid + '"]');
@@ -5478,6 +5498,51 @@
     });
     return { scout: sc.length ? gemTekst(sc) : "", scoutN: sc.length, toernooi: toer, opv: Store.getOpvallendSpeler(pid).length };
   }
+  var MEET_NAMEN = { spelers: "Spelers", aanwezig: "Aanwezig", training: "Training", toernooi: "Toernooi", rapport: "Rapport", instellingen: "Instellingen",
+    "training-plan": "Training · Voorbereiden", "training-evaluatie": "Training · Nabespreking", "training-spelers": "Training · Spelers", "training-bank": "Training · Vormenbank",
+    "vorm-voorbereiden": "Vorm voorbereiden", "vorm-nabespreking": "Vorm in de nabespreking", tekentool: "Tekentool", scoutlijst: "Scoutlijst",
+    spelerskaart: "Spelerskaart", "hele-training": "Bekijk hele training", "training-afdrukken": "Training afdrukken", "vormenbank-vorm": "Vorm uit de vormenbank" };
+  function vulGebruik(){
+    var el = $("gebruikBody"); if (!el) return;
+    if (DEMO){ el.innerHTML = '<div class="tr-note">In de demo wordt niets gemeten.</div>'; return; }
+    var van = new Date(Date.now() - 28 * 86400000).toISOString();
+    el.innerHTML = '<div class="tr-note">Laden…</div>';
+    sb.from("gebruik").select("*").gte("created_at", van).order("created_at").then(function(res){
+      if (res.error){ el.innerHTML = '<div class="tr-note">Kon het gebruik niet laden.</div>'; return; }
+      var rows = res.data || [], ik = myUserId();
+      var zonderMij = rows.filter(function(r){ return r.user_id !== ik; });
+      // Schermen en vensters (zonder jezelf): hoe vaak en door hoeveel mensen.
+      var tel = {};
+      zonderMij.filter(function(r){ return r.soort !== "actie"; }).forEach(function(r){ var t = tel[r.naam] = tel[r.naam] || { n: 0, wie: {} }; t.n++; t.wie[r.user_id] = 1; });
+      var schermen = Object.keys(tel).sort(function(a, b){ return tel[b].n - tel[a].n; });
+      // Per persoon: op hoeveel dagen geopend en wanneer laatst.
+      var pp = {};
+      zonderMij.forEach(function(r){ var x = pp[r.user_id] = pp[r.user_id] || { dagen: {}, laatst: "" }; x.dagen[r.created_at.slice(0, 10)] = 1; if (r.created_at > x.laatst) x.laatst = r.created_at; });
+      // Per training: vormen op tijd klaar, duur van de nabespreking, reflecties.
+      var t = todayISO(), ds = TRAINING_DATES.map(function(x){ return x.date; }).filter(function(x){ return x <= t && !isToernooiDag(x); }).slice(-4).reverse();
+      var perTraining = ds.map(function(d){
+        var vormen = Store.getOefs(d), klaar = rows.filter(function(r){ return r.naam === "vorm-klaar" && r.datum === d; });
+        var grens = effDeadline(d) + "T23:59:59";
+        var opTijd = klaar.filter(function(r){ return new Date(r.created_at) <= new Date(grens); }).length;
+        var ev = rows.filter(function(r){ return r.naam === "evaluatie-opgeslagen" && r.datum === d; });
+        var duur = ev.length > 1 ? Math.round((new Date(ev[ev.length - 1].created_at) - new Date(ev[0].created_at)) / 60000) : null;
+        var plan = Store.getPlan(d) || {}, rollen = [plan.hoofd_a, plan.hoofd_b, plan.assistent].filter(Boolean).filter(function(x, i, a){ return a.indexOf(x) === i; });
+        return '<tr><td>' + esc(formatDateShort(d)) + '</td><td>' + (klaar.length ? opTijd + ' van ' + klaar.length : '<span class="tr-note">–</span>') + '</td>' +
+          '<td>' + vormen.filter(evGedaan).length + ' van ' + vormen.length + (duur != null ? ' <small>(' + duur + ' min)</small>' : '') + '</td>' +
+          '<td>' + Store.getReflecties(d).length + ' van ' + rollen.length + '</td></tr>';
+      }).join("");
+      el.innerHTML = '<div class="tr-note">Afgelopen 4 weken. Jouw eigen gebruik telt niet mee. Gemeten sinds 27 oktober; wat daarvoor gebeurde staat als –.</div>' +
+        '<div class="card" style="padding:12px;"><b>Per training</b><div class="so-scroll"><table class="so-t"><thead><tr><th>Training</th><th>Vormen op tijd klaar</th><th>Besproken</th><th>Reflecties</th></tr></thead><tbody>' +
+        (perTraining || '<tr><td colspan="4">Nog geen trainingen.</td></tr>') + '</tbody></table></div></div>' +
+        '<div class="card" style="padding:12px; margin-top:10px;"><b>Wat wordt gebruikt</b><div class="so-scroll"><table class="so-t"><thead><tr><th>Scherm of venster</th><th>Keer</th><th>Personen</th></tr></thead><tbody>' +
+        (schermen.length ? schermen.map(function(k){ return '<tr><td>' + esc(MEET_NAMEN[k] || k) + '</td><td>' + tel[k].n + '</td><td>' + Object.keys(tel[k].wie).length + '</td></tr>'; }).join("") : '<tr><td colspan="3">Nog niets gemeten.</td></tr>') + '</tbody></table></div></div>' +
+        '<div class="card" style="padding:12px; margin-top:10px;"><b>Per persoon</b><div class="so-scroll"><table class="so-t"><thead><tr><th>Naam</th><th>Dagen geopend</th><th>Laatst</th></tr></thead><tbody>' +
+        (Object.keys(pp).length ? Object.keys(pp).sort(function(a, b){ return Object.keys(pp[b].dagen).length - Object.keys(pp[a].dagen).length; }).map(function(id){
+          return '<tr><td>' + esc(profNaam(id)) + '</td><td>' + Object.keys(pp[id].dagen).length + '</td><td>' + esc(formatDateShort(pp[id].laatst.slice(0, 10))) + '</td></tr>';
+        }).join("") : '<tr><td colspan="3">Nog niets gemeten.</td></tr>') + '</tbody></table></div></div>';
+    });
+  }
+
   function renderOefEval(){
     var d = state.trainingDate, per = trainingPeriod(d), wrap = $("oefEvalList");
     var rows = Store.getOefs(d);
@@ -5530,6 +5595,7 @@
     return !owner || owner === myUserId();
   }
   function openOef(d, o, v, mode){
+    Meet.log("venster", mode === "evaluatie" ? "vorm-nabespreking" : "vorm-voorbereiden", d);
     var row = Store.getOef(d, o, v), per = trainingPeriod(d) || {}, p = per[o] || {};
     var editable = canEditOef(d, o, row);
     if (row) markeerGezien(sleutelsVoorVorm(row.id).concat(mode === "evaluatie" ? ["e" + row.id + (row.updated_at || "")] : []));
@@ -5647,6 +5713,7 @@
     });
   }
   $("oDrawBtn").addEventListener("click", function(){
+    if (oefState) Meet.log("venster", "tekentool", oefState.d);
     if (!oefState) return;
     DrawTool.open(oefState.tekJson, function(blob, data){
       if (!oefState) return;
@@ -5685,6 +5752,7 @@
       row.tekening_json = s.tekJson || null;
       return Store.saveOef(row);
     }).then(function(){
+      if (kind === "gedeeld" && !(s.row && s.row.status === "gedeeld")) Meet.log("actie", "vorm-klaar", s.d);
       showToast(kind === "eval" ? "Evaluatie opgeslagen" : (kind === "gedeeld" ? "Klaar: telt mee voor de training" : "Opgeslagen, nog niet klaar"));
       closeOef();
     }).catch(function(err){
@@ -5912,6 +5980,7 @@
      naam, geboortejaar, Q en hesjenummer, en vakken zoals op het Ajax-formulier (wedstrijd, potentieel) plus "Opvallend".
      Afgemelde spelers staan grijs onderaan hun groep. */
   function printScoutlijst(d){
+    Meet.log("venster", "scoutlijst", d);
     var groepen = trainingGroepen(d), per = {}, afw = {};
     groepen.forEach(function(g){ per[g] = []; afw[g] = []; });
     var groepVoor = function(lichting){ return groepen.filter(function(g){ return g.split("+").indexOf(lichting) !== -1; })[0] || groepen[0]; };
@@ -6757,6 +6826,7 @@
       '</div>' +
       '</div></details>' +
       '<details class="set-group" data-group="privacy"' + (settingsOpen.privacy ? ' open' : '') + '><summary>Privacy en opruimen</summary><div class="set-body" id="privacyBody"></div></details>' +
+      '<details class="set-group" data-group="gebruik"' + (settingsOpen.gebruik ? ' open' : '') + '><summary>Gebruik van de app</summary><div class="set-body" id="gebruikBody"></div></details>' +
       '<details class="set-group" data-group="app"' + (settingsOpen.app ? ' open' : '') + '><summary>App</summary><div class="set-body">' +
       '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Back-ups</h2></div>' +
       '<div class="note" style="font-size:12px; color:var(--ink-muted); margin:-6px 0 10px;">Elke maandagnacht wordt automatisch een back-up gemaakt van alle spelers, beoordelingen, aanwezigheid en scoutrapporten (de laatste 26 blijven bewaard). Daarnaast maakt Supabase dagelijks een volledige back-up.</div>' +
@@ -6790,7 +6860,7 @@
       });
     });
     Array.prototype.forEach.call(body.querySelectorAll("details.set-group"), function(d){
-      d.addEventListener("toggle", function(){ settingsOpen[d.getAttribute("data-group")] = d.open; });
+      d.addEventListener("toggle", function(){ settingsOpen[d.getAttribute("data-group")] = d.open; if (d.open && d.getAttribute("data-group") === "gebruik") vulGebruik(); });
     });
     $("settingsAddPlayerBtn").addEventListener("click", function(){ openPlayerSheet(null); });
     $("ajaxCompareBtn").addEventListener("click", renderAjaxVergelijk);
