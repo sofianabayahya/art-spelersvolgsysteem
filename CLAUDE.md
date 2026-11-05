@@ -198,6 +198,8 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
 - Nabespreking loopt door: na de laatste vorm "Opslaan · Spelers (scoutlijst) →" (hoofdtrainer) opent Training → Spelers.
 - Uitleg onder een (i) (`infoKnop`/`infoTekst`; localStorage `art-info-<id>`): de eerste keer open, daarna dicht.
   Bij de schalen (evaluatie), de bolletjes (Nabespreking), Scoutlijst overnemen en de reacties bij reflecties.
+- Demo bijgewerkt: intro noemt het slimme startscherm, stap "Eén vorm evalueren" noemt het doorlopen naar de scoutlijst,
+  stap "Reflectie van de trainer" de twee vragen en het paneel vanuit Voor jou; demo-reflectie in het nieuwe formaat.
 
 ## Meten en nieuwe uitleg (2026-10-27, na cijfer 8 voor de app)
 - Advies Claude: eerst 3 à 4 zondagen gebruiken en meten, niets nieuws bouwen; daarna kiezen op basis van gebruik.
