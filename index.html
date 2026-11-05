@@ -1001,7 +1001,6 @@
   .ev-gr .ev-rij > span:first-child{ flex:0 0 auto; font-size:13.5px; color:var(--ink-muted); }
   .ev-gr .ev-seg{ display:flex; width:100%; }
   .ev-gr .ev-seg button{ flex:1 1 0; padding:7px 4px; font-size:13px; min-width:0; }
-  .ev-uitleg{ font-size:12.5px; color:var(--ink-muted); line-height:1.45; margin:-2px 0 8px; }
   .oef-vorige{ margin-top:12px; background:var(--surface-alt); border:1px solid var(--border); border-left:4px solid #f0b429; border-radius:12px; padding:8px 12px; }
   .oef-vorige .oef-h{ border-top:none; padding-top:0; margin-top:2px; }
   .ov-item{ padding:6px 0; border-top:1px solid var(--border); }
@@ -1024,6 +1023,11 @@
   .sn-form input, .sn-form textarea{ font:16px "Barlow",sans-serif; padding:7px 9px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); width:100%; box-sizing:border-box; }
   .so-groep small{ color:var(--ink-muted); font:500 13px "Barlow",sans-serif; }
   .rp-pm{ font-size:15px; }
+  .info-i{ display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; border:1px solid var(--border);
+    background:none; color:var(--ink-muted); font:italic 700 12px Georgia,serif; cursor:pointer; vertical-align:middle; margin-left:4px; padding:0; }
+  .info-tekst{ font-size:13px; color:var(--ink-muted); line-height:1.45; margin:2px 0 8px; }
+  .sheet.refl-sheet{ max-width:560px; }
+  @media (min-width:600px){ #reflOverlay{ align-items:center; } .sheet.refl-sheet{ border-radius:20px; } }
   .so-bo{ margin:8px 0 4px; }
   .so-b{ display:inline-flex; align-items:center; gap:6px; background:var(--surface-alt); border:1px solid var(--border); border-radius:999px; padding:4px 6px 4px 12px; font-size:14px; }
   .so-b small{ color:var(--ink-muted); }
@@ -1562,6 +1566,16 @@
       <button class="icon-btn" id="closeBank" aria-label="Sluiten">&times;</button>
     </div>
     <div id="bankBody"></div>
+  </div>
+</div>
+
+<div class="overlay" id="reflOverlay" hidden>
+  <div class="sheet refl-sheet">
+    <div class="sheet-head">
+      <h3 id="reflTitel">Jouw reflectie</h3>
+      <button class="icon-btn" id="closeRefl" aria-label="Sluiten">&times;</button>
+    </div>
+    <div id="reflBody"></div>
   </div>
 </div>
 
@@ -4510,7 +4524,7 @@
     });
     var prev = datums.filter(function(x){ return x < t; }).pop();
     if (prev && !Auth.isHoofdtrainer() && rolIn(prev, me) && !Store.getReflectie(prev, me))
-      items.push({ key: null, ico: "eval", tekst: "Schrijf je reflectie van de training van " + formatDateShort(prev), go: (function(pd){ return function(){ state.trainingDate = pd; state.trainingSub = "evaluatie"; renderTraining(); var el = $("eigenRefl"); if (el && el.scrollIntoView) el.scrollIntoView({ block: "start" }); }; })(prev) });
+      items.push({ key: null, ico: "eval", tekst: "Schrijf je reflectie van de training van " + formatDateShort(prev), go: (function(pd){ return function(){ openReflSheet(pd); }; })(prev) });
     if (prev && Auth.isHoofdtrainer()){ var pr = Store.getOefs(prev), pk = pr.filter(evGedaan).length;
       if (pr.length && pk < pr.length) items.push({ key: null, ico: "eval", tekst: "Nabespreking van " + formatDateShort(prev) + ": " + pk + " van " + pr.length + " vormen besproken", go: (function(pd){ return function(){ state.trainingDate = pd; state.trainingSub = "evaluatie"; renderTraining(); }; })(prev) }); }
     if (!Auth.isHoofdtrainer()) Store.getAllOefs().forEach(function(o){
@@ -4521,7 +4535,7 @@
     Store.getAllReflReacties().forEach(function(x){
       var k = "q" + x.reflectie_id + (x.updated_at || ""), rf = Store.getAllRefl().find(function(y){ return y.id === x.reflectie_id; });
       if (x.trainer_id !== me || g[k] || !rf) return;
-      items.push({ key: k, ico: "msg", tekst: "Nieuwe reactie van de hoofdtrainer op je reflectie (" + formatDateShort(rf.training_date) + ")", go: function(){ state.trainingDate = rf.training_date; state.trainingSub = "evaluatie"; renderTraining(); var el = $("eigenRefl"); if (el && el.scrollIntoView) el.scrollIntoView({ block: "start" }); } });
+      items.push({ key: k, ico: "msg", tekst: "Nieuwe reactie van de hoofdtrainer op je reflectie (" + formatDateShort(rf.training_date) + ")", go: function(){ openReflSheet(rf.training_date); } });
     });
     return items;
   }
@@ -5097,8 +5111,24 @@
   var EV_EFFECT = [["vaker", "Vaker"], ["zelfde", "Hetzelfde"], ["minder", "Minder"]];
   var KNOPPEN = [["ruimte", "Ruimte"], ["aantallen", "Aantallen"], ["regel", "Regel of scoren"], ["materiaal", "Materiaal"], ["tijd", "Tijd"], ["niets", "Niets"]];
   var FOCUS = [["ontwerp", "Ontwerp van de vorm"], ["bijsturen", "Bijsturen tijdens de vorm"], ["organisatie", "Organisatie (snel aan de beurt)"], ["spelen", "Laten spelen"], ["afstemmen", "Afstemmen per leeftijd"]];
-  var REFL_VRAGEN = [["knop", "Welke knop draaide jij om, en waarom?"], ["gezien", "Wat zag je daarna bij de spelers?"],
+  // Reflectie: sinds 2026-11-05 twee vragen (knop + wat je zag, en volgende keer). "gezien" en "woorden" blijven leesbaar voor oude reflecties.
+  var REFL_VRAGEN = [["knop", "Aan welke knop draaide jij, en wat zag je daarna?"], ["gezien", "Wat zag je daarna bij de spelers?"],
     ["woorden", "Wanneer greep je in met woorden, en had een regel of de ruimte het ook kunnen oplossen?"], ["volgende", "Wat doe je volgende keer anders?"]];
+  var REFL_NU = ["knop", "volgende"];
+  /* Uitleg onder een (i): de eerste keer open (en open zolang je in de app bent), daarna dicht. Minder woorden op het
+     scherm voor wie het al kent (besluit Sofian 2026-11-05). */
+  var infoDezeSessie = {};
+  function infoKnop(id){ return '<button type="button" class="info-i" data-info-knop="' + id + '" aria-label="Uitleg">i</button>'; }
+  function infoTekst(id, tekst){
+    var al = false; try { al = !!localStorage.getItem("art-info-" + id); localStorage.setItem("art-info-" + id, "1"); } catch(e){}
+    var open = !al || infoDezeSessie[id]; if (open) infoDezeSessie[id] = true;
+    return '<div class="info-tekst" data-info-tekst="' + id + '"' + (open ? '' : ' hidden') + '>' + tekst + '</div>';
+  }
+  document.addEventListener("click", function(e){
+    var b = e.target.closest && e.target.closest("[data-info-knop]"); if (!b) return;
+    var id = b.getAttribute("data-info-knop"), t = document.querySelector('[data-info-tekst="' + id + '"]'); if (!t) return;
+    t.hidden = !t.hidden; infoDezeSessie[id] = !t.hidden;
+  });
   function groepKey(arr){ return arr.slice().sort().join("+"); }
   function groepLabel(key){ return String(key).split("+").map(function(k){ return lichtingLabel(k); }).sort().join(" + "); }
   function trainingGroepen(d){
@@ -5163,8 +5193,8 @@
     box.hidden = false;
     if (!s.row){ box.innerHTML = '<div class="tr-note">Deze vorm is niet gemaakt.</div>'; return; }
     var e = s.ev, uit = !s.editable, gr = vormGroepen(s.d, s.row);
-    var html = '<div class="ev-h">Per groep</div>' +
-      '<div class="ev-uitleg"><b>Liep het:</b> na aanpassing = pas nadat we iets veranderden. <b>Vanzelf terug:</b> vaak = de meeste spelers deden het meerdere keren · soms = een deel van de spelers, of af en toe · bijna nooit = je zag het nauwelijks.</div>' +
+    var html = '<div class="ev-h">Per groep ' + infoKnop("schalen") + '</div>' +
+      infoTekst("schalen", '<b>Liep het:</b> na aanpassing = pas nadat we iets veranderden. <b>Vanzelf terug:</b> vaak = de meeste spelers deden het meerdere keren · soms = een deel van de spelers, of af en toe · bijna nooit = je zag het nauwelijks.') +
       '<div class="ev-groepen">' + gr.map(function(g){
         var a = (e.per || {})[g] || {};
         return '<div class="ev-gr"><b class="ev-g">' + esc(groepLabel(g)) + '</b>' + Object.keys(EV).map(function(k){
@@ -5224,11 +5254,13 @@
     acts.classList.add("ev-acts");
     acts.innerHTML = (vorige ? '<button type="button" class="btn ghost" data-ev-nav="prev">&larr; ' + code(vorige) + '</button>' : '<span></span>') +
       (i !== -1 ? '<span class="ev-nr">' + (i + 1) + ' van ' + rows.length + '</span>' : '') +
-      (s.editable && s.row ? '<button type="button" class="btn primary" data-ev-nav="save">Opslaan · ' + (volgende ? code(volgende) + ' &rarr;' : 'naar de training &rarr;') + '</button>'
+      (s.editable && s.row ? '<button type="button" class="btn primary" data-ev-nav="save">Opslaan · ' + (volgende ? code(volgende) + ' &rarr;' : (Auth.isHoofdtrainer() ? 'Spelers (scoutlijst) &rarr;' : 'naar de training &rarr;')) + '</button>'
         : (volgende ? '<button type="button" class="btn ghost" data-ev-nav="next">' + code(volgende) + ' &rarr;</button>' : '<span></span>'));
     var ga = function(r){
       if (r){ openOef(s.d, r.onderdeel, r.volgnr, "evaluatie"); return; }
-      closeOef(); state.trainingDate = s.d; state.trainingSub = "evaluatie"; renderTraining();
+      closeOef(); state.trainingDate = s.d;
+      if (Auth.isHoofdtrainer()){ state.trainingSub = "spelers"; renderTraining(); return; } // zondagse ronde: na de laatste vorm de scoutlijst
+      state.trainingSub = "evaluatie"; renderTraining();
       var el = $("trEvalWrap"); if (el && el.scrollIntoView) el.scrollIntoView({ block: "start" });
     };
     Array.prototype.forEach.call(acts.querySelectorAll("[data-ev-nav]"), function(b){
@@ -5290,7 +5322,8 @@
     var rows = evVolgorde(d), plan = Store.getPlan(d) || {}, te = plan.evaluatie || {}, isHoofd = Auth.isHoofdtrainer();
     if ((trainingPeriod(d) || {}).toernooi || !rows.length){ wrap.innerHTML = rows.length ? "" : '<div class="card tr-card"><div class="tr-note">Voor deze training zijn nog geen oefenvormen gemaakt.</div></div>'; return; }
     var klaar = rows.filter(evGedaan).length, gr = trainingGroepen(d), kleur = { ja: "g", aanp: "o", nee: "r" };
-    var html = '<div class="card tr-card"><div class="tr-card-h">Nabespreking <small style="margin-left:auto;">' + klaar + ' van ' + rows.length + ' vormen besproken</small></div>' +
+    var html = '<div class="card tr-card"><div class="tr-card-h">Nabespreking ' + infoKnop("bolletjes") + '<small style="margin-left:auto;">' + klaar + ' van ' + rows.length + ' vormen besproken</small></div>' +
+      infoTekst("bolletjes", 'Per vorm een bolletje per groep (' + gr.map(groepLabel).join(" · ") + '): groen liep · oranje na aanpassing · rood liep niet · grijs nog niet ingevuld.') +
       '<div class="ev-ov">' + rows.map(function(r){
         var e = r.evaluatie || {};
         return '<button type="button" class="ev-ovr" data-ev-open="' + r.onderdeel + '|' + r.volgnr + '"><b>' + r.onderdeel + r.volgnr + '</b>' +
@@ -5298,7 +5331,7 @@
           '<span class="ev-dots">' + vormGroepen(d, r).map(function(g){ var a = (e.per || {})[g] || {}; return '<span class="ev-dot ' + (kleur[a.liep] || "n") + '" title="' + esc(groepLabel(g)) + '"></span>'; }).join("") + '</span>' +
           '<span class="ev-ovt">' + (evGedaan(r) ? esc(e.volgende || "") : '<i>nog niet besproken</i>') + '</span></button>';
       }).join("") + '</div>' +
-      '<div class="tr-note">Per groep (' + gr.map(groepLabel).join(" · ") + '): groen liep · oranje na aanpassing · rood liep niet · grijs nog niet ingevuld.</div>' +
+
       (isHoofd ? '<div class="btn-row"><button type="button" class="btn primary" id="evStart">' + (klaar ? (klaar < rows.length ? "Verder met de nabespreking" : "Nabespreking bekijken") : "Nabespreking starten") + '</button></div>' : '') +
       '<div class="oef-h">De training als geheel</div>' +
       '<div class="ev-rij"><span>Kwam de vaardigheid uit de droge vorm terug in de contextvorm en de small-sided game?</span>' + segHtml([["nee", "Nee"], ["deels", "Deels"], ["ja", "Ja"]], te.transfer, 'data-te="transfer"', !isHoofd) + '</div>' +
@@ -5322,24 +5355,45 @@
     return ((r.focus || []).length ? '<div class="rf-focus">' + r.focus.map(function(f){ var x = FOCUS.find(function(y){ return y[0] === f; }); return '<span class="pill none">' + esc(x ? x[1] : f) + '</span>'; }).join(" ") + '</div>' : '') +
       REFL_VRAGEN.map(function(q){ return r[q[0]] ? '<div class="rf-q"><b>' + q[1] + '</b><div>' + esc(r[q[0]]).replace(/\n/g, "<br>") + '</div></div>' : ''; }).join("");
   }
+  // Reflectie in een inschuifpaneel: één tik vanuit "Voor jou" of de Nabespreking.
+  function openReflSheet(d){
+    var me = myUserId(), eigen = Store.getReflectie(d, me), focus = eigen && eigen.focus ? eigen.focus.slice() : [];
+    var wp = Store.getWerkpunt(me), rr = eigen ? Store.getReflReactie(eigen.id) : null;
+    Meet.log("venster", "reflectie", d);
+    $("reflTitel").textContent = "Jouw reflectie · " + formatDateShort(d);
+    $("reflBody").innerHTML = (wp ? '<div class="rf-wp"><b>Jouw werkpunt:</b> ' + esc(wp) + '</div>' : '') +
+      '<div class="ev-h">Waar lette je op?</div><div class="ev-chips">' + FOCUS.map(function(f){ return '<button type="button" class="chip small' + (focus.indexOf(f[0]) !== -1 ? ' active' : '') + '" data-rf-focus="' + f[0] + '">' + f[1] + '</button>'; }).join("") + '</div>' +
+      REFL_NU.map(function(k){ var q = REFL_VRAGEN.find(function(x){ return x[0] === k; }); return '<div class="field"><label for="rf_' + k + '">' + q[1] + '</label><textarea id="rf_' + k + '" rows="3">' + esc(eigen ? eigen[k] || "" : "") + '</textarea></div>'; }).join("") +
+      '<button type="button" class="btn primary block" id="rfSave">Opslaan</button>' +
+      (rr ? '<div class="oef-h">Reactie van de hoofdtrainer</div><div class="tr-reactie">' + esc(rr.tekst).replace(/\n/g, "<br>") + '</div>' : '') +
+      '<div class="tr-note" style="margin-top:8px;">De andere trainers kunnen je reflectie lezen; de reactie van de hoofdtrainer ziet alleen jij.</div>';
+    Array.prototype.forEach.call($("reflBody").querySelectorAll("[data-rf-focus]"), function(b){ b.onclick = function(){
+      var f = b.getAttribute("data-rf-focus"), i = focus.indexOf(f); if (i === -1) focus.push(f); else focus.splice(i, 1); b.classList.toggle("active", i === -1);
+    }; });
+    $("rfSave").onclick = function(){
+      var data = { focus: focus }, btn = this; REFL_NU.forEach(function(k){ data[k] = $("rf_" + k).value.trim() || null; });
+      if (!data.knop && !data.volgende){ showToast("Schrijf eerst iets op"); return; }
+      btn.disabled = true;
+      Store.saveReflectie(d, me, data).then(function(){ Meet.log("actie", "reflectie-opgeslagen", d); $("reflOverlay").hidden = true; showToast("Reflectie opgeslagen"); renderAll(); })
+        .catch(function(err){ console.error(err); showToast("Opslaan mislukt"); btn.disabled = false; });
+    };
+    $("reflOverlay").hidden = false;
+    setTimeout(function(){ var t = $("rf_knop"); if (t && !t.value) t.focus(); }, 80);
+  }
   function renderRefl(){
     var wrap = $("reflWrap"), d = state.trainingDate, me = myUserId(), isHoofd = Auth.isHoofdtrainer();
     if ((trainingPeriod(d) || {}).toernooi){ wrap.innerHTML = ""; return; }
     var html = "", eigen = Store.getReflectie(d, me), focus = eigen && eigen.focus ? eigen.focus.slice() : [];
     if (!isHoofd && rolIn(d, me)){
-      var wp = Store.getWerkpunt(me), rr = eigen ? Store.getReflReactie(eigen.id) : null;
-      html += '<div class="card tr-card" id="eigenRefl"><div class="tr-card-h">Jouw reflectie</div>' +
-        '<div class="tr-note">Kort, voor jezelf: hoe heb jij de vormen ontworpen en bijgestuurd? De andere trainers kunnen het lezen.</div>' +
-        (wp ? '<div class="rf-wp"><b>Jouw werkpunt:</b> ' + esc(wp) + '</div>' : '') +
-        '<div class="ev-h">Waar lette je vandaag op?</div><div class="ev-chips">' + FOCUS.map(function(f){ return '<button type="button" class="chip small' + (focus.indexOf(f[0]) !== -1 ? ' active' : '') + '" data-rf-focus="' + f[0] + '">' + f[1] + '</button>'; }).join("") + '</div>' +
-        REFL_VRAGEN.map(function(q){ return '<div class="field"><label for="rf_' + q[0] + '">' + q[1] + '</label><textarea id="rf_' + q[0] + '" rows="2">' + esc(eigen ? eigen[q[0]] || "" : "") + '</textarea></div>'; }).join("") +
-        '<button type="button" class="btn primary small" id="rfSave">Reflectie opslaan</button>' +
-        (rr ? '<div class="oef-h">Reactie van de hoofdtrainer</div><div class="tr-reactie">' + esc(rr.tekst).replace(/\n/g, "<br>") + '</div>' : '') + '</div>';
+      var rr = eigen ? Store.getReflReactie(eigen.id) : null;
+      html += '<div class="card tr-card" id="eigenRefl"><div class="tr-card-h">Jouw reflectie' + (eigen ? '' : ' <small style="margin-left:auto;">nog niet geschreven</small>') + '</div>' +
+        (eigen ? reflLees(eigen) + (rr ? '<div class="oef-h">Reactie van de hoofdtrainer</div><div class="tr-reactie">' + esc(rr.tekst).replace(/\n/g, "<br>") + '</div>' : '') : '') +
+        '<button type="button" class="btn ' + (eigen ? 'ghost' : 'primary') + ' small" id="rfOpen">' + (eigen ? 'Wijzigen' : 'Reflectie schrijven') + '</button></div>';
     }
     var ids = Store.getReflecties(d).map(function(r){ return r.trainer_id; }).filter(function(id){ return isHoofd || id !== me; });
     if (isHoofd) Store.getProfiles().forEach(function(p){ if (p.role === "trainer" && rolIn(d, p.id) && ids.indexOf(p.id) === -1) ids.push(p.id); });
     if (ids.length){
-      html += '<div class="card tr-card"><div class="tr-card-h">Reflecties van de trainers</div>' + (isHoofd ? '<div class="tr-note">Je reactie en het werkpunt ziet alleen die trainer.</div>' : '') +
+      html += '<div class="card tr-card"><div class="tr-card-h">Reflecties van de trainers' + (isHoofd ? ' ' + infoKnop("reacties") : '') + '</div>' + (isHoofd ? infoTekst("reacties", "Je reactie en het werkpunt ziet alleen die trainer.") : '') +
         ids.map(function(tid){
           var r = Store.getReflectie(d, tid), naam = profNaam(tid);
           var blok = '<div class="rf-t"><div class="rf-naam">' + esc(naam) + (r ? '' : ' <small>nog geen reflectie</small>') + '</div>' + (r ? reflLees(r) : '');
@@ -5353,14 +5407,7 @@
         }).join("") + '</div>';
     }
     wrap.innerHTML = html;
-    Array.prototype.forEach.call(wrap.querySelectorAll("[data-rf-focus]"), function(b){ b.onclick = function(){
-      var f = b.getAttribute("data-rf-focus"), i = focus.indexOf(f); if (i === -1) focus.push(f); else focus.splice(i, 1); b.classList.toggle("active", i === -1);
-    }; });
-    if ($("rfSave")) $("rfSave").onclick = function(){
-      var data = { focus: focus }, btn = this; REFL_VRAGEN.forEach(function(q){ data[q[0]] = $("rf_" + q[0]).value.trim() || null; });
-      btn.disabled = true;
-      Store.saveReflectie(d, me, data).then(function(){ Meet.log("actie", "reflectie-opgeslagen", d); showToast("Reflectie opgeslagen"); renderAll(); }).catch(function(err){ console.error(err); showToast("Opslaan mislukt"); btn.disabled = false; });
-    };
+    if ($("rfOpen")) $("rfOpen").onclick = function(){ openReflSheet(d); };
     Array.prototype.forEach.call(wrap.querySelectorAll("[data-rf-opslaan]"), function(b){ b.onclick = function(){
       var tid = b.getAttribute("data-rf-opslaan"), wp = wrap.querySelector('[data-wp="' + tid + '"]'), rr = wrap.querySelector('[data-rr-t="' + tid + '"]');
       b.disabled = true;
@@ -5419,8 +5466,8 @@
       if (!(a && a.afwezig) || heeft) per[groepVoor(groepVan(p, d))].push(p);
     });
     var namen = {}; Store.toernooiDatums().forEach(function(x){ Store.getBeoordelaars(x).forEach(function(b){ namen[b.naam] = b.rol; }); });
-    var html = '<div class="card tr-card"><div class="tr-card-h">Scoutlijst overnemen <small style="margin-left:auto;">' + esc(formatDateShort(d)) + '</small></div>' +
-      '<div class="tr-note">Neem de papieren scoutlijst over: per speler het oordeel van elke scout (−− tot ++, met Tab naar het volgende vak) en wat opviel. Alleen jij ziet dit.</div>' +
+    var html = '<div class="card tr-card"><div class="tr-card-h">Scoutlijst overnemen ' + infoKnop("scoutlijst") + '<small style="margin-left:auto;">' + esc(formatDateShort(d)) + '</small></div>' +
+      infoTekst("scoutlijst", 'Neem de papieren scoutlijst over: per speler het oordeel van elke scout (−− tot ++, met Tab naar het volgende vak) en wat opviel. Alleen jij ziet dit.') +
       '<div class="btn-row"><button type="button" class="btn ghost small" id="snPrint">Scoutlijst afdrukken</button>' +
       ((oo.length || notities.length) ? '<button type="button" class="btn ghost small" id="snCopy">Kopieer voor SoccerLab</button>' : '') + '</div>' +
       '<div class="ev-h">Wie gaven een oordeel?</div>' +
@@ -6023,6 +6070,7 @@
     });
   }
   $("closeSl").addEventListener("click", function(){ $("slOverlay").hidden = true; });
+  $("closeRefl").addEventListener("click", function(){ $("reflOverlay").hidden = true; });
 
   /* ---------- ABSENTIES tab ---------- */
   function defaultAbsDate(){
@@ -8234,7 +8282,7 @@
     function firstPlayer(){ return filteredPlayers()[0]; }
     function closeAll(){
       if (!$("drawOverlay").hidden) $("drawCancel").click();
-      ["playerCardOverlay", "scoreOverlay", "nameGameOverlay", "tvOverlay", "rolesOverlay", "rosterOverlay", "trapOverlay", "bankOverlay", "slOverlay"].forEach(function(id){ $(id).hidden = true; });
+      ["playerCardOverlay", "scoreOverlay", "nameGameOverlay", "tvOverlay", "rolesOverlay", "rosterOverlay", "trapOverlay", "bankOverlay", "slOverlay", "reflOverlay"].forEach(function(id){ $(id).hidden = true; });
       if (!$("oefOverlay").hidden) closeOef();
       $("accountMenu").hidden = true;
       if (Auth.getViewAs()){ Auth.setViewAs(null); renderAll(); }
@@ -8363,9 +8411,21 @@
     document.title = "ART Volg- en ontwikkelsysteem · Demo";
   }
 
+  /* Slim startscherm (besluit Sofian 2026-11-05): op een trainingsdag tot 12:00 Aanwezig, daarna de Nabespreking van
+     vandaag (toernooidag: Toernooi); de rest van de week Training → Voorbereiden van de volgende training. Scouts: Spelers. */
+  function startScherm(){
+    var role = Auth.myRole(), isHoofd = Auth.isHoofdtrainer();
+    if (!isHoofd && role !== "trainer") return;
+    var t = todayISO(), vandaag = TRAINING_DATES.some(function(x){ return x.date === t; }) && Store.getCancelled().indexOf(t) === -1;
+    if (vandaag && isToernooiDag(t) && tabAllowedForRole("toernooi", role, isHoofd)){ switchTab("toernooi"); return; }
+    if (vandaag && new Date().getHours() < 12){ state.absDate = t; switchTab("aanwezig"); return; }
+    if (vandaag){ state.trainingDate = t; state.trainingSub = "evaluatie"; switchTab("training"); return; }
+    state.trainingDate = null; state.trainingSub = null; switchTab("training");
+  }
   Auth.onReady(function(){
     if (DEMO){ startDemo(); return; }
     renderAll();
+    Branding.load().then(startScherm);
     Store.init();
     setTimeout(function(){ Uitleg.misschien(); }, 900);
   });
@@ -8425,7 +8485,7 @@
   (function(){
     var CLOSERS = { playerCardOverlay: "closePlayerCard", nameGameOverlay: "closeNameGame", scoreOverlay: "closeScoreSheet",
       evalOverlay: "closeEvalSheet", scoutOverlay: "closeScoutSheet", pwOverlay: "closePwSheet", oefOverlay: "closeOefSheet",
-      tvOverlay: "closeTv", rosterOverlay: "closeRoster", rolesOverlay: "closeRoles", trapOverlay: "closeTrap", slOverlay: "closeSl", bankOverlay: "closeBank", uitlegOverlay: "uitlegOverslaan",
+      tvOverlay: "closeTv", rosterOverlay: "closeRoster", rolesOverlay: "closeRoles", trapOverlay: "closeTrap", slOverlay: "closeSl", reflOverlay: "closeRefl", bankOverlay: "closeBank", uitlegOverlay: "uitlegOverslaan",
       playerOverlay: "closePlayerSheet", fotoLightbox: "closeFotoLightbox", drawOverlay: "drawCancel" };
     var open = [], pushed = false, ignorePop = false;
     function sync(){

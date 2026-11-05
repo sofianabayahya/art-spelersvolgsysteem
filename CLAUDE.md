@@ -188,6 +188,17 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   bij afdrukken), daaronder "Afdrukken of als pdf opslaan". Demo-rondleiding: stap "De scoutlijst op papier" (na
   Opvallende spelers) opent dit voorbeeld voor 27 sep.
 
+## Minder klikken (2026-11-05, na meting: reflecties 0×, Rapport 0×, Training het meest gebruikt)
+- Slim startscherm (`startScherm`, na `Branding.load` in `Auth.onReady`): trainer/hoofdtrainer op een trainingsdag tot
+  12:00 → Aanwezig (vandaag), daarna → Training · Nabespreking van vandaag (toernooidag → Toernooi); andere dagen →
+  Training · Voorbereiden van de volgende training. Scouts: Spelers.
+- Reflectie in een inschuifpaneel (`openReflSheet`, `#reflOverlay`) vanuit "Voor jou" en de knop in de Nabespreking.
+  Twee vragen (besluit Sofian 2026-11-05, vervangt de vier van 25 okt): `knop` = "Aan welke knop draaide jij, en wat
+  zag je daarna?" en `volgende`; plus focus en werkpunt. Oude velden gezien/woorden blijven leesbaar (`reflLees`).
+- Nabespreking loopt door: na de laatste vorm "Opslaan · Spelers (scoutlijst) →" (hoofdtrainer) opent Training → Spelers.
+- Uitleg onder een (i) (`infoKnop`/`infoTekst`; localStorage `art-info-<id>`): de eerste keer open, daarna dicht.
+  Bij de schalen (evaluatie), de bolletjes (Nabespreking), Scoutlijst overnemen en de reacties bij reflecties.
+
 ## Meten en nieuwe uitleg (2026-10-27, na cijfer 8 voor de app)
 - Advies Claude: eerst 3 à 4 zondagen gebruiken en meten, niets nieuws bouwen; daarna kiezen op basis van gebruik.
 - Tabel `gebruik` (user_id, rol, soort scherm/venster/actie, naam, datum, created_at; migratie 20261027_gebruik.sql;
