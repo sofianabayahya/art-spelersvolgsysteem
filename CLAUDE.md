@@ -188,6 +188,21 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   bij afdrukken), daaronder "Afdrukken of als pdf opslaan". Demo-rondleiding: stap "De scoutlijst op papier" (na
   Opvallende spelers) opent dit voorbeeld voor 27 sep.
 
+## Rol "Kijker" (2026-11-07, voor Bart, coördinator Ajax)
+- Alleen lezen, tijdelijk. Ziet wat trainers zien: Spelers, Aanwezig, Training (vormen, tekeningen, nabespreking,
+  reflecties, vormenbank). NIET: reacties/werkpunten (alleen die trainer), Rapport, scouting, opvallend, Instellingen.
+- Database (migratie 20261107_kijker.sql): `profiles_role_check` + 'kijker'; leesregels training_plans, oefenvormen,
+  oefenvorm_feedback, reflecties en storage training-images + 'kijker'. Schrijfgaten gedicht: reflecties insert/update en
+  oefenvormen update vereisen nu rol trainer/hoofdtrainer; player_favorites insert niet voor kijker. set_attendance weigert
+  kijker al. Getest met een teruggedraaide proef: lezen ja, alle schrijfacties geweigerd.
+- `manage-users` v3: rol kijker; scout en kijker tijdelijk (`TIJDELIJK`), eigen eindtijd `tot` (toekomst, max 7 dagen);
+  create geeft `toegang_tot` terug. Verloopt via pg_cron `art-scout-toegang` (zelfde als scouts).
+- App: Accounts → rol "Kijker (alleen lezen, tijdelijk)" → toegang tot 18:00 op de eerstvolgende trainingsdag
+  (`kijkerTot`); WhatsApp-bericht `kijkerBericht` (link, gebruikersnaam, wachtwoord, verzamelen 9:30, evaluatie 12:00).
+  `isKijker()`: blauwe balk "Je kijkt mee: alleen lezen", geen tips/tops-formulier, Aanwezig-knoppen uit, geen
+  doorschuiven/afgelasten, `canEditOef` alleen voor rol trainer; startscherm zoals trainer. Rol van een kijker in Accounts
+  is niet te wijzigen.
+
 ## Minder klikken (2026-11-05, na meting: reflecties 0×, Rapport 0×, Training het meest gebruikt)
 - Slim startscherm (`startScherm`, na `Branding.load` in `Auth.onReady`): trainer/hoofdtrainer op een trainingsdag tot
   12:00 → Aanwezig (vandaag), daarna → Training · Nabespreking van vandaag (toernooidag → Toernooi); andere dagen →

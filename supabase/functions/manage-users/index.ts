@@ -4,9 +4,16 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const USERNAME_DOMAIN = "artsvs.nl";
-const ALLOWED_ROLES = ["trainer", "scout"];
+const ALLOWED_ROLES = ["trainer", "scout", "kijker"]; // kijker = alleen lezen, tijdelijk (bv. coördinator Ajax)
+const TIJDELIJK = ["scout", "kijker"];
 const TOEGANG_UREN = 24; // scout-toegang per bezoek; daarna zet de databasetaak art-scout-toegang het account uit
 const toegangTot = () => new Date(Date.now() + TOEGANG_UREN * 3600 * 1000).toISOString();
+// Eigen eindtijd (ISO) mag, maar alleen in de toekomst en hooguit 7 dagen vooruit.
+function eindTijd(v: unknown) {
+  const t = typeof v === "string" ? Date.parse(v) : NaN;
+  if (!isNaN(t) && t > Date.now() && t < Date.now() + 7 * 86400000) return new Date(t).toISOString();
+  return toegangTot();
+}
 const WORDS = [
   "bal", "doel", "hoek", "pass", "sprint", "keeper", "veld", "net", "lat", "paal",
   "kopbal", "dribbel", "assist", "corner", "vrije", "schot", "bocht", "flank", "spits", "libero",
@@ -90,16 +97,17 @@ Deno.serve(async (req) => {
       if (!/^[a-z0-9._-]{2,30}$/.test(username)) {
         return json({ error: "Gebruikersnaam: 2-30 tekens, alleen letters, cijfers, punt, streepje" }, 400);
       }
-      if (!ALLOWED_ROLES.includes(role)) return json({ error: "Rol moet trainer of scout zijn" }, 400);
+      if (!ALLOWED_ROLES.includes(role)) return json({ error: "Rol moet trainer, scout of kijker zijn" }, 400);
 
       const password = generatePassword();
+      const tot = TIJDELIJK.includes(role) ? eindTijd(body.tot) : null;
       const { data, error } = await admin.auth.admin.createUser({
         email: `${username}@${USERNAME_DOMAIN}`,
         password,
         email_confirm: true,
         user_metadata: { naam },
-        // Een nieuwe scout krijgt meteen toegang voor vandaag (hij wordt meestal op de bezoekdag aangemaakt).
-        app_metadata: role === "scout" ? { toegang_tot: toegangTot() } : {},
+        // Scout en kijker krijgen meteen tijdelijke toegang (standaard 24 uur, of de meegegeven eindtijd).
+        app_metadata: tot ? { toegang_tot: tot } : {},
       });
       if (error) {
         if (/already|exists|registered/i.test(error.message)) return json({ error: "Deze gebruikersnaam bestaat al" }, 409);
@@ -110,7 +118,7 @@ Deno.serve(async (req) => {
         await admin.auth.admin.deleteUser(data.user.id);
         throw profErr;
       }
-      return json({ id: data.user.id, username, password });
+      return json({ id: data.user.id, username, password, toegang_tot: tot });
     }
 
     if (action === "reset_password") {
@@ -138,8 +146,8 @@ Deno.serve(async (req) => {
       const id = String(body.id || "");
       await assertManageable(id);
       const { data: p } = await admin.from("profiles").select("role").eq("id", id).maybeSingle();
-      if (p?.role !== "scout") return json({ error: "Toegang per dag is alleen voor scouts" }, 400);
-      const tot = toegangTot();
+      if (!TIJDELIJK.includes(p?.role)) return json({ error: "Tijdelijke toegang is alleen voor scouts en kijkers" }, 400);
+      const tot = eindTijd(body.tot);
       const { error } = await admin.auth.admin.updateUserById(id, { ban_duration: "none", app_metadata: { toegang_tot: tot } });
       if (error) throw error;
       return json({ id, toegang_tot: tot });

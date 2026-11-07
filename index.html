@@ -1023,6 +1023,7 @@
   .sn-form input, .sn-form textarea{ font:16px "Barlow",sans-serif; padding:7px 9px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--ink); width:100%; box-sizing:border-box; }
   .so-groep small{ color:var(--ink-muted); font:500 13px "Barlow",sans-serif; }
   .rp-pm{ font-size:15px; }
+  .kijk-banner{ background:#1f4d80; color:#dceaff; border-radius:10px; padding:6px 10px; font-size:14px; font-weight:600; text-align:center; }
   .info-i{ display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; border:1px solid var(--border);
     background:none; color:var(--ink-muted); font:italic 700 12px Georgia,serif; cursor:pointer; vertical-align:middle; margin-left:4px; padding:0; }
   .info-tekst{ font-size:13px; color:var(--ink-muted); line-height:1.45; margin:2px 0 8px; }
@@ -1266,6 +1267,7 @@
   </div>
   <div class="net-banner" id="netBanner" role="status" hidden></div>
   <div class="chips" id="lichtingChips" role="tablist" aria-label="Lichting"></div>
+  <div class="kijk-banner" id="kijkBanner" hidden>Je kijkt mee: alleen lezen</div>
   <div class="role-banner" id="roleBanner" hidden>
     <span>Testmodus: je ziet de app als <b id="roleBannerRole"></b></span>
     <button type="button" class="btn small" id="roleBannerBack">Terug naar hoofdtrainer</button>
@@ -4445,7 +4447,7 @@
         html += '<div class="tr-mytask">Jouw taak: <b>' + ROLE_LABEL[mine] + '</b> · ' + esc(pm.v || ("Onderdeel " + mine)) +
           ' · klaar vóór <b>' + esc(deadlineTxt) + '</b></div>';
       } else if (!isHoofd){
-        html += '<div class="tr-mytask">Je bent voor deze training niet ingedeeld. Je kunt de training bekijken en tips en tops geven.</div>';
+        html += '<div class="tr-mytask">' + (isKijker() ? 'Welkom! Hier zie je de training: tik op een vorm voor de tekening en de uitwerking. Je kunt alles bekijken, niets wijzigen.' : 'Je bent voor deze training niet ingedeeld. Je kunt de training bekijken en tips en tops geven.') + '</div>';
       }
       // De training als kleine Ajax-planner: per onderdeel wie, welke vaardigheid, en de tekeningen als tegels.
       html += '<div class="card tr-card"><div class="tr-card-h">De training' +
@@ -5637,6 +5639,7 @@
   Array.prototype.forEach.call(document.querySelectorAll("#oefOverlay textarea"), function(t){ t.addEventListener("input", function(){ groeiMee(t); }); });
   function canEditOef(d, o, row){
     if (Auth.isHoofdtrainer()) return true;
+    if (Auth.myRole() !== "trainer") return false; // kijker en scout: alleen lezen
     if (row && row.eigenaar_id) return row.eigenaar_id === myUserId();
     var owner = (Store.getPlan(d) || {})[ROLE_FIELD[o]];
     return !owner || owner === myUserId();
@@ -5823,9 +5826,9 @@
           '<div><b>' + esc(f.auteur_naam || "Oud account") + '</b> ' + esc(f.tekst) + '</div>' +
           (f.auteur_id === myUserId() || Auth.isHoofdtrainer() ? '<button type="button" class="season-x" data-fb-del="' + f.id + '" aria-label="Feedback verwijderen">&times;</button>' : '') + '</div>';
       }).join("") : '<div class="tr-note">Nog geen feedback.</div>') +
-      '<div class="tr-fb-add"><select id="fbSoort" aria-label="Soort feedback"><option value="tip">Tip</option><option value="top">Top</option></select>' +
-      '<input type="text" id="fbTekst" placeholder="Jouw tip of top…"><button type="button" class="btn primary small" id="fbAdd">Plaatsen</button></div>';
-    $("fbAdd").addEventListener("click", function(){
+      (isKijker() ? '' : '<div class="tr-fb-add"><select id="fbSoort" aria-label="Soort feedback"><option value="tip">Tip</option><option value="top">Top</option></select>' +
+      '<input type="text" id="fbTekst" placeholder="Jouw tip of top…"><button type="button" class="btn primary small" id="fbAdd">Plaatsen</button></div>');
+    if ($("fbAdd")) $("fbAdd").addEventListener("click", function(){
       var t = $("fbTekst").value.trim(); if (!t) return;
       this.disabled = true;
       Store.addFeedback(s.row.id, $("fbSoort").value, t).then(function(){ showToast("Feedback geplaatst"); renderOefFeedback(); })
@@ -6125,6 +6128,7 @@
     var cancelled = Store.getCancelled();
     var isCancelled = cancelled.indexOf(state.absDate) !== -1;
     var btn = $("toggleCancelledBtn");
+    btn.hidden = isKijker();
     btn.textContent = isCancelled ? "Afgelast ✓ — zet terug" : "Markeer deze training als afgelast";
     btn.classList.toggle("primary", isCancelled);
     btn.classList.toggle("ghost", !isCancelled);
@@ -6160,8 +6164,8 @@
         '<div class="sub">Lichting ' + esc(lichtingLabel(p.lichting)) + (p.q ? ' <span class="q-inline">' + esc(p.q) + '</span>' : '') +
         (!afwezig && groepVan(p, state.absDate) !== p.lichting ? ' <span class="mv-mark">&rarr; traint mee met ' + esc(lichtingLabel(groepVan(p, state.absDate))) + '</span>' : '') +
         (Store.inWachtrij(p.id, state.absDate) ? ' <span class="wr-mark" title="Bewaard op dit toestel, wordt verstuurd zodra er verbinding is">&#9203; nog niet verstuurd</span>' : '') + '</div></div>' +
-        (afwezig ? '' : '<button type="button" class="mv-btn' + (groepVan(p, state.absDate) !== p.lichting ? ' on' : '') + '" data-move="' + p.id + '" title="Bij een andere groep laten aansluiten" aria-label="Doorschuiven naar andere groep">&#8644;' + (groepVan(p, state.absDate) !== p.lichting ? ' ' + esc(lichtingLabel(groepVan(p, state.absDate))) : '') + '</button>') +
-        '<button type="button" class="pill attendance-btn ' + (afwezig ? "low" : "good") + '" data-toggle="' + p.id + '">' + (afwezig ? "Afwezig" : "Aanwezig") + '</button>' +
+        (afwezig || isKijker() ? '' : '<button type="button" class="mv-btn' + (groepVan(p, state.absDate) !== p.lichting ? ' on' : '') + '" data-move="' + p.id + '" title="Bij een andere groep laten aansluiten" aria-label="Doorschuiven naar andere groep">&#8644;' + (groepVan(p, state.absDate) !== p.lichting ? ' ' + esc(lichtingLabel(groepVan(p, state.absDate))) : '') + '</button>') +
+        '<button type="button" class="pill attendance-btn ' + (afwezig ? "low" : "good") + '"' + (isKijker() ? ' disabled' : '') + ' data-toggle="' + p.id + '">' + (afwezig ? "Afwezig" : "Aanwezig") + '</button>' +
         '</div>' +
         (!afwezig && state.absMove === p.id ? '<div class="mv-kies"><span>Sluit vandaag aan bij:</span>' + LICHTINGEN.map(function(l){
           return '<button type="button" class="chip small' + (groepVan(p, state.absDate) === l.key ? ' active' : '') + '" data-move-to="' + p.id + '" data-groep="' + l.key + '">' + esc(l.label) + (l.key === p.lichting ? ' (eigen)' : '') + '</button>';
@@ -6679,12 +6683,28 @@
   });
 
   /* ---------- INSTELLINGEN tab (alleen hoofdtrainer) ---------- */
-  function roleLabel(r){ return r === "hoofdtrainer" ? "Hoofdtrainer" : (r === "scout" ? "Scout" : "Trainer"); }
+  function roleLabel(r){ return r === "hoofdtrainer" ? "Hoofdtrainer" : r === "scout" ? "Scout" : r === "kijker" ? "Kijker" : "Trainer"; }
+  function isKijker(){ return Auth.myRole() === "kijker" && !Auth.isHoofdtrainer(); }
 
   // Toont de inloggegevens eenmalig, met knoppen om ze via WhatsApp te sturen of te kopiëren.
-  function showCredentials(naam, username, password, isNew){
+  // Kijker: toegang tot 18:00 op de eerstvolgende trainingsdag (vandaag of later); geen training binnen 7 dagen = 24 uur.
+  function kijkerTot(){
+    var t = todayISO(), d = TRAINING_DATES.map(function(x){ return x.date; }).filter(function(x){ return x >= t; })[0];
+    if (!d || d > addDaysISO(t, 6)) return undefined;
+    var q = d.split("-"); return new Date(Number(q[0]), Number(q[1]) - 1, Number(q[2]), 18, 0, 0).toISOString();
+  }
+  function kijkerBericht(voornaam, username, password, tot){
+    var dag = tot ? new Date(tot).toLocaleString("nl-NL", { weekday: "long", hour: "2-digit", minute: "2-digit" }) : "morgen";
+    var d = tot ? new Date(tot).toISOString().slice(0, 10) : null, isMorgen = d === addDaysISO(todayISO(), 1);
+    return "Hoi " + voornaam + ", leuk dat je " + (isMorgen ? "morgen" : "") + " bij ons op AS'80 komt!\n\n" +
+      "Je kunt alvast meekijken in onze app: https://www.artsvs.nl\n" +
+      "Gebruikersnaam: " + username + "\nWachtwoord: " + password + "\n\n" +
+      "Onder Training zie je wat we gaan trainen, met per vorm de tekening en de uitwerking. Je account is alleen om te kijken en werkt tot " + dag + ".\n\n" +
+      "We verzamelen om 9:30 om de training samen door te nemen, en om 12:00 houden we de evaluatie. Tot " + (isMorgen ? "morgen" : "dan") + "! Heb je nog vragen, dan hoor ik het graag.\n\nGroet, Sofian";
+  }
+  function showCredentials(naam, username, password, isNew, rol, tot){
     var voornaam = (naam || "").split(/\s+/)[0];
-    var msg = "Hoi " + voornaam + ", " + (isNew ? "hier is je account" : "hier is je nieuwe wachtwoord") +
+    var msg = rol === "kijker" ? kijkerBericht(voornaam, username, password, tot) : "Hoi " + voornaam + ", " + (isNew ? "hier is je account" : "hier is je nieuwe wachtwoord") +
       " voor het ART Volg- en ontwikkelsysteem:\n\n" +
       "Website: https://www.artsvs.nl\n" +
       "Gebruikersnaam: " + username + "\n" +
@@ -6733,7 +6753,7 @@
             '<div class="sub" data-account-sub="' + p.id + '">' + (isMe ? 'Dit ben jij' : '&nbsp;') + '</div>' +
             '</div>' +
             // Je eigen rol kun je hier niet wijzigen (voorkomt dat je jezelf buitensluit); testen als trainer/scout gaat via "Bekijk de app als".
-            (isMe
+            (isMe || p.role === "kijker" // kijker blijft kijker (alleen lezen); nooit per ongeluk promoveren
               ? '<span class="pill none">' + roleLabel(p.role) + '</span>'
               : '<select class="table-select" data-role="' + p.id + '">' +
                 ["trainer","scout","hoofdtrainer"].map(function(r){
@@ -6789,7 +6809,7 @@
       '<div class="field-row">' +
       '<div class="field"><label for="fNewAccNaam">Naam</label><input type="text" id="fNewAccNaam" placeholder="bv. Tommy de Vries"></div>' +
       '<div class="field"><label for="fNewAccRole">Rol</label><select id="fNewAccRole">' +
-      '<option value="trainer">Trainer</option><option value="scout">Scout</option>' +
+      '<option value="trainer">Trainer</option><option value="scout">Scout</option><option value="kijker">Kijker (alleen lezen, tijdelijk)</option>' +
       '</select></div></div>' +
       '<div class="field" style="margin-bottom:0;"><label for="fNewAccUser">Gebruikersnaam</label><input type="text" id="fNewAccUser" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="bv. tommy"></div>' +
       '<div class="hint" id="newAccHint"></div>' +
@@ -7111,10 +7131,10 @@
       if (!naam || !username){ hint.textContent = "Vul een naam en gebruikersnaam in."; return; }
       var btn = $("createAccBtn");
       btn.disabled = true;
-      Store.manageUsers("create", { naam: naam, username: username, role: role }).then(function(res){
+      Store.manageUsers("create", { naam: naam, username: username, role: role, tot: role === "kijker" ? kijkerTot() : undefined }).then(function(res){
         showToast("Account aangemaakt");
         renderInstellingen();
-        showCredentials(naam, res.username, res.password, true);
+        showCredentials(naam, res.username, res.password, true, role, res.toegang_tot);
       }).catch(function(err){
         console.error(err);
         hint.textContent = err.message || "Aanmaken mislukt, probeer het nog eens.";
@@ -7151,7 +7171,7 @@
         if (!u) return;
         var sub = body.querySelector('[data-account-sub="' + p.id + '"]');
         // Scouts: toegang per bezoek (24 uur), daarna zet de database het account vanzelf uit.
-        var isScout = p.role === "scout", tot = u.toegang_tot ? new Date(u.toegang_tot) : null;
+        var isScout = p.role === "scout" || p.role === "kijker", tot = u.toegang_tot ? new Date(u.toegang_tot) : null; // tijdelijke toegang
         var heeftToegang = isScout && !u.disabled && tot && tot > new Date();
         if (isScout && sub){
           sub.innerHTML = 'Gebruikersnaam: <b>' + esc(u.username) + '</b> &middot; ' + (heeftToegang
@@ -7916,7 +7936,7 @@
     if (isHoofd) return true;
     if (tab === "spelers") return true;
     if (tab === "toernooi") return (isHoofd || role === "trainer") && Toernooi.actief();
-    if (tab === "training" || tab === "aanwezig") return role === "trainer";
+    if (tab === "training" || tab === "aanwezig") return role === "trainer" || role === "kijker"; // kijker: alleen lezen
     return false; // overzicht, instellingen: alleen hoofdtrainer
   }
 
@@ -7942,6 +7962,7 @@
       b.classList.toggle("active", (b.getAttribute("data-view-as") || null) === va);
     });
     $("roleBanner").hidden = !va;
+    $("kijkBanner").hidden = !isKijker();
     if (va) $("roleBannerRole").textContent = va === "scout" ? "scout" : "trainer";
     if (!tabAllowedForRole(state.tab, role, isHoofd) && state.tab !== "spelers"){
       switchTab("spelers");
@@ -8415,7 +8436,7 @@
      vandaag (toernooidag: Toernooi); de rest van de week Training → Voorbereiden van de volgende training. Scouts: Spelers. */
   function startScherm(){
     var role = Auth.myRole(), isHoofd = Auth.isHoofdtrainer();
-    if (!isHoofd && role !== "trainer") return;
+    if (!isHoofd && role !== "trainer" && role !== "kijker") return;
     var t = todayISO(), vandaag = TRAINING_DATES.some(function(x){ return x.date === t; }) && Store.getCancelled().indexOf(t) === -1;
     if (vandaag && isToernooiDag(t) && tabAllowedForRole("toernooi", role, isHoofd)){ switchTab("toernooi"); return; }
     if (vandaag && new Date().getHours() < 12){ state.absDate = t; switchTab("aanwezig"); return; }
