@@ -202,6 +202,9 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
   `isKijker()`: blauwe balk "Je kijkt mee: alleen lezen", geen tips/tops-formulier, Aanwezig-knoppen uit, geen
   doorschuiven/afgelasten, `canEditOef` alleen voor rol trainer; startscherm zoals trainer. Rol van een kijker in Accounts
   is niet te wijzigen.
+- Fix 2026-11-07: de kaart met inloggegevens verdween meteen (Instellingen bouwt zich na aanmaken opnieuw op). Nu blijft
+  hij staan via `state.cred` tot "Klaar, verstuurd"; "Nieuw wachtwoord" bij een kijker geeft ook het kijkerbericht
+  (`accountLijst` = laatste lijst uit manage-users, voor toegang_tot).
 
 ## Minder klikken (2026-11-05, na meting: reflecties 0×, Rapport 0×, Training het meest gebruikt)
 - Slim startscherm (`startScherm`, na `Branding.load` in `Auth.onReady`): trainer/hoofdtrainer op een trainingsdag tot

@@ -6702,7 +6702,9 @@
       "Onder Training zie je wat we gaan trainen, met per vorm de tekening en de uitwerking. Je account is alleen om te kijken en werkt tot " + dag + ".\n\n" +
       "We verzamelen om 9:30 om de training samen door te nemen, en om 12:00 houden we de evaluatie. Tot " + (isMorgen ? "morgen" : "dan") + "! Heb je nog vragen, dan hoor ik het graag.\n\nGroet, Sofian";
   }
-  function showCredentials(naam, username, password, isNew, rol, tot){
+  // De kaart blijft staan (ook als Instellingen opnieuw wordt opgebouwd) tot je op "Klaar" tikt: state.cred.
+  function showCredentials(naam, username, password, isNew, rol, tot, opnieuw){
+    state.cred = { naam: naam, username: username, password: password, isNew: isNew, rol: rol, tot: tot };
     var voornaam = (naam || "").split(/\s+/)[0];
     var msg = rol === "kijker" ? kijkerBericht(voornaam, username, password, tot) : "Hoi " + voornaam + ", " + (isNew ? "hier is je account" : "hier is je nieuwe wachtwoord") +
       " voor het ART Volg- en ontwikkelsysteem:\n\n" +
@@ -6721,16 +6723,19 @@
       '<div class="btn-row" style="margin:0;">' +
       '<a class="btn primary small" target="_blank" rel="noopener" href="https://wa.me/?text=' + encodeURIComponent(msg) + '">Stuur via WhatsApp</a>' +
       '<button class="btn ghost small" id="copyCredBtn">Kopieer bericht</button>' +
+      '<button class="btn ghost small" id="credKlaarBtn">Klaar, verstuurd</button>' +
       '</div></div>';
+    $("credKlaarBtn").addEventListener("click", function(){ state.cred = null; box.innerHTML = ""; });
     $("copyCredBtn").addEventListener("click", function(){
       (navigator.clipboard ? navigator.clipboard.writeText(msg) : Promise.reject())
         .then(function(){ showToast("Gekopieerd"); }, function(){ showToast("Kopiëren lukte niet, neem het over van het scherm."); });
     });
-    box.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (!opnieuw) box.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   var bulkFotoStatus = "";
   var settingsOpen = {}; // welke groepen in Instellingen openstaan (blijft zo bij opnieuw tekenen)
+  var accountLijst = {}; // laatste lijst uit manage-users (o.a. toegang_tot), voor het bericht bij "Nieuw wachtwoord"
 
   function renderInstellingen(){
     var body = $("instellingenBody");
@@ -6933,6 +6938,7 @@
     $("settingsAddPlayerBtn").addEventListener("click", function(){ openPlayerSheet(null); });
     $("ajaxCompareBtn").addEventListener("click", renderAjaxVergelijk);
     vulPrivacy();
+    if (state.cred){ var c = state.cred; settingsOpen.accounts = true; showCredentials(c.naam, c.username, c.password, c.isNew, c.rol, c.tot, true); }
     fillPlayerPhotos($("trashList"));
     fillPlayerPhotos($("archiefList"));
     Array.prototype.forEach.call(body.querySelectorAll("[data-unarch]"), function(b){
@@ -7155,7 +7161,8 @@
           if (!ok) return;
           b.disabled = true;
           Store.manageUsers("reset_password", { id: id }).then(function(res){
-            showCredentials(p.naam, res.username, res.password, false);
+            var u = accountLijst[id] || {};
+            showCredentials(p.naam, res.username, res.password, false, p.role, u.toegang_tot);
           }).catch(function(err){ console.error(err); showToast(err.message || "Mislukt"); })
             .then(function(){ b.disabled = false; });
         });
@@ -7166,6 +7173,7 @@
     Store.manageUsers("list").then(function(res){
       var byId = {};
       (res.users || []).forEach(function(u){ byId[u.id] = u; });
+      accountLijst = byId;
       profiles.forEach(function(p){
         var u = byId[p.id];
         if (!u) return;
