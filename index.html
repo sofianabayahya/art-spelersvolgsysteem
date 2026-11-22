@@ -510,6 +510,10 @@
   .tr-row-mine{ border-left:4px solid var(--accent); padding-left:10px; margin-left:-4px; }
   .tr-tiles{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; margin-top:8px; }
   @media (min-width:700px){ .tr-tiles{ grid-template-columns:repeat(2, minmax(0, 320px)); } }
+  .tr-plus{ display:block; width:100%; margin-top:8px; min-height:44px; border:1.5px dashed var(--border); border-radius:12px; background:transparent; color:var(--ink-muted); font:inherit; font-size:15px; cursor:pointer; }
+  .tr-plus:hover{ border-color:var(--accent); color:var(--ink); }
+  .tr-keuze{ display:flex; gap:10px; align-items:flex-start; padding:10px; border:1px solid var(--border); border-radius:10px; margin-top:6px; cursor:pointer; text-align:left; }
+  .tr-keuze input{ margin-top:3px; width:18px; height:18px; flex:0 0 auto; }
   .tr-tile{ display:flex; flex-direction:column; gap:4px; padding:6px; text-align:left; font:inherit; color:var(--ink); cursor:pointer;
     background:var(--surface-alt); border:1px solid var(--border); border-radius:12px; min-width:0; }
   .tr-tile.tr-mine{ border-color:var(--accent); }
@@ -1028,6 +1032,29 @@
     background:none; color:var(--ink-muted); font:italic 700 12px Georgia,serif; cursor:pointer; vertical-align:middle; margin-left:4px; padding:0; }
   .info-tekst{ font-size:13px; color:var(--ink-muted); line-height:1.45; margin:2px 0 8px; }
   .sheet.refl-sheet{ max-width:560px; }
+  .fb-pers{ display:flex; justify-content:space-between; align-items:center; gap:10px; width:100%; min-height:52px; padding:10px 14px; margin-bottom:8px; border:1px solid var(--border); border-radius:12px; background:var(--surface-alt); color:var(--ink); font:600 16px "Barlow",sans-serif; cursor:pointer; text-align:left; }
+  .fb-pers small{ color:var(--ink-muted); font-weight:500; font-size:13px; }
+  .fb-pers .fb-st{ color:var(--ink-muted); font-size:14px; font-weight:500; white-space:nowrap; }
+  .fb-pers.klaar .fb-st{ color:var(--good); font-weight:700; }
+  .fb-q{ margin:12px 0; font-size:16px; line-height:1.35; }
+  .fb-seg{ display:flex; width:100%; margin-top:6px; }
+  .fb-seg button{ flex:1 1 0; min-height:44px; padding:6px 4px; font-size:14px; }
+  .fb-seg button[data-v="0"]{ flex:0 0 44px; }
+  .fb-acts{ display:flex; justify-content:space-between; gap:8px; margin-top:14px; }
+  .fb-leg{ display:flex; flex-wrap:wrap; gap:12px; font-size:13px; color:var(--ink-muted); margin:4px 0 6px; }
+  .fb-leg i{ display:inline-block; width:12px; height:8px; border-radius:3px; margin-right:5px; vertical-align:middle; }
+  .fb-uq{ padding:9px 0; border-bottom:1px solid var(--border); }
+  .fb-ut{ font-size:15px; font-weight:600; margin-bottom:4px; }
+  .fb-b{ display:grid; grid-template-columns:92px 1fr 84px; align-items:center; gap:8px; font-size:13px; color:var(--ink-muted); margin:3px 0; }
+  .fb-b small{ font-size:13px; color:var(--ink); }
+  .fb-bar{ height:9px; border-radius:5px; background:var(--border); position:relative; overflow:hidden; }
+  .fb-bar i{ position:absolute; left:0; top:0; bottom:0; border-radius:5px; }
+  .fb-col{ background:#2F6FD0; } .fb-hfd{ background:#A8BEE0; } .fb-zelf{ background:#B4B2A9; }
+  .fb-app{ margin:12px 0 4px; padding:9px 12px; border-radius:10px; background:var(--bg); font-size:14px; }
+  .fb-tekst{ margin:4px 0 8px; padding-left:20px; font-size:15px; line-height:1.4; } .fb-tekst li{ margin:4px 0; }
+  .fb-vg{ display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border); font-size:15px; }
+  .fb-ronde{ margin:8px 0; }
+  @media (min-width:600px){ #fbOverlay{ align-items:center; } .sheet.fb-sheet{ border-radius:20px; } }
   @media (min-width:600px){ #reflOverlay{ align-items:center; } .sheet.refl-sheet{ border-radius:20px; } }
   .so-bo{ margin:8px 0 4px; }
   .so-b{ display:inline-flex; align-items:center; gap:6px; background:var(--surface-alt); border:1px solid var(--border); border-radius:999px; padding:4px 6px 4px 12px; font-size:14px; }
@@ -1578,6 +1605,16 @@
       <button class="icon-btn" id="closeRefl" aria-label="Sluiten">&times;</button>
     </div>
     <div id="reflBody"></div>
+  </div>
+</div>
+
+<div class="overlay" id="fbOverlay" hidden>
+  <div class="sheet refl-sheet fb-sheet">
+    <div class="sheet-head">
+      <h3 id="fbTitel">Feedback</h3>
+      <button class="icon-btn" id="closeFb" aria-label="Sluiten">&times;</button>
+    </div>
+    <div id="fbBody"></div>
   </div>
 </div>
 
@@ -2283,16 +2320,18 @@
     }
 
     // Training (coachdashboard): rolverdeling per datum, oefenvormen, feedback. Scouts krijgen niets terug (RLS).
-    var plans = {}, oefs = [], feedback = [], reacties = [], tekeningUrlCache = {}, refl = [], reflReactie = [], werkpunten = [];
+    var plans = {}, oefs = [], feedback = [], reacties = [], tekeningUrlCache = {}, refl = [], reflReactie = [], werkpunten = [], fbRondes = [], fbAntw = [];
     function loadTraining(){
       return Promise.all([
         sb.from("training_plans").select("*"),
         sb.from("oefenvormen").select("*"),
         sb.from("oefenvorm_feedback").select("*").order("created_at"),
         sb.from("reflectie_reacties").select("*"), // RLS: trainer ziet alleen de reactie op zijn eigen vorm
-        sb.from("reflecties").select("*"), sb.from("reflectie_reactie").select("*"), sb.from("werkpunten").select("*")
+        sb.from("reflecties").select("*"), sb.from("reflectie_reactie").select("*"), sb.from("werkpunten").select("*"),
+        sb.from("feedback_rondes").select("*").order("created_at"), sb.from("feedback_antwoorden").select("*") // 360: trainer ziet alleen zijn eigen antwoorden
       ]).then(function(r){
         refl = r[4].data || []; reflReactie = r[5].data || []; werkpunten = r[6].data || [];
+        fbRondes = (r[7] && r[7].data) || []; fbAntw = (r[8] && r[8].data) || [];
         plans = {}; (r[0].data || []).forEach(function(p){ plans[p.training_date] = p; });
         oefs = r[1].data || [];
         feedback = r[2].data || [];
@@ -2323,6 +2362,22 @@
         if (res.error) throw res.error;
         return loadTraining().then(function(){ return res.data; });
       });
+    }
+    // 360-gradenfeedback (halfjaarevaluatie). De uitslag over iemand komt uit de databasefunctie feedback_uitslag (collega's anoniem).
+    function getFbRondes(){ return fbRondes.slice(); }
+    function getFbAntw(){ return fbAntw.slice(); }
+    function saveFbAntw(row){
+      return sb.from("feedback_antwoorden").upsert(Object.assign({ updated_at: new Date().toISOString() }, row), { onConflict: "ronde_id,van_id,over_id" }).then(function(res){ if (res.error) throw res.error; return loadTraining(); });
+    }
+    function saveFbRonde(row){
+      var q = row.id ? sb.from("feedback_rondes").update(row).eq("id", row.id) : sb.from("feedback_rondes").insert(row);
+      return q.then(function(res){ if (res.error) throw res.error; return loadTraining(); });
+    }
+    function fbUitslag(ronde, over){
+      return sb.rpc("feedback_uitslag", { p_ronde: ronde, p_over: over || null }).then(function(res){ if (res.error) throw res.error; return res.data; });
+    }
+    function deleteOef(id){
+      return sb.from("oefenvormen").delete().eq("id", id).then(function(res){ if (res.error) throw res.error; return loadTraining(); });
     }
     // Evaluatie (impliciet leren): antwoorden per vorm in oefenvormen.evaluatie; reflectie per trainer per training.
     function patchOef(id, patch){
@@ -2785,7 +2840,7 @@
     }
 
     return {
-      getPlan: getPlan, savePlan: savePlan, savePlans: savePlans, getOefs: getOefs, getAllOefs: getAllOefs, getOef: getOef, saveOef: saveOef, getFeedback: getFeedback,
+      getPlan: getPlan, savePlan: savePlan, savePlans: savePlans, getOefs: getOefs, getAllOefs: getAllOefs, getOef: getOef, saveOef: saveOef, deleteOef: deleteOef, getFbRondes: getFbRondes, getFbAntw: getFbAntw, saveFbAntw: saveFbAntw, saveFbRonde: saveFbRonde, fbUitslag: fbUitslag, getFeedback: getFeedback,
       addFeedback: addFeedback, deleteFeedback: deleteFeedback, getReactie: getReactie, saveReactie: saveReactie, patchOef: patchOef, getReflecties: getReflecties, getReflectie: getReflectie, saveReflectie: saveReflectie,
       getReflReactie: getReflReactie, getAllReflReacties: getAllReflReacties, getAllRefl: getAllRefl, saveReflReactie: saveReflReactie, getWerkpunt: getWerkpunt, saveWerkpunt: saveWerkpunt, getAllFeedback: getAllFeedback, getAllReacties: getAllReacties,
       getBeoordelaars: getBeoordelaars, saveBeoordelaars: saveBeoordelaars, getOordelen: getOordelen, setOordeel: setOordeel,
@@ -4369,7 +4424,10 @@
   }
   // Ajax-opbouw per vaardigheid: vorm 1 = droog (x1.1, spacing, x1.2 contextvariatie),
   // vorm 2 = small-sided game (x2.1, spacing, x2.2 contextvariatie). C heeft alleen C2.
-  function vormenVan(o){ return o === "C" ? [2] : [1, 2]; }
+  function vormenVan(o, d){ return o === "C" ? (d && Store.getOef(d, "C", 3) ? [2, 3] : [2]) : [1, 2]; }
+  // Naam van een vorm: A1 … C2; met een tweede vorm bij C heten ze C2a en C2b (volgnr 3).
+  function vormCode(o, v, d){ if (o === "C" && v === 3) return "C2b"; if (o === "C" && v === 2 && d && Store.getOef(d, "C", 3)) return "C2a"; return o + v; }
+  function rijCode(r){ return vormCode(r.onderdeel, r.volgnr, r.training_date); }
   function vormSub(v){ return v === 1 ? "droog" : "small-sided game"; }
   function vormOwner(d, o, row){
     if (row && row.eigenaar_id) return row.eigenaar_naam || profNaam(row.eigenaar_id);
@@ -4382,10 +4440,10 @@
     if (per && per.toernooi) return null;
     var total = 0, klaar = 0, open = {};
     ["A", "B", "C"].forEach(function(o){
-      vormenVan(o).forEach(function(v){
+      vormenVan(o, d).forEach(function(v){
         total++;
         var r = Store.getOef(d, o, v);
-        if (r && r.status === "gedeeld") klaar++; else (open[o] = open[o] || []).push(o + v);
+        if (r && r.status === "gedeeld") klaar++; else (open[o] = open[o] || []).push(vormCode(o, v, d));
       });
     });
     return { total: total, klaar: klaar, open: open, compleet: klaar === total };
@@ -4409,7 +4467,7 @@
     var row = Store.getOef(d, o, v);
     var mine = row ? row.eigenaar_id === myUserId() : (Store.getPlan(d) || {})[ROLE_FIELD[o]] === myUserId();
     var fb = row ? Store.getFeedback(row.id).length : 0;
-    var img = row && row.tekening_path ? '<img alt="Tekening ' + o + v + '" data-tek-path="' + esc(row.tekening_path) + '">'
+    var img = row && row.tekening_path ? '<img alt="Tekening ' + vormCode(o, v, d) + '" data-tek-path="' + esc(row.tekening_path) + '">'
       : row && row.tekening_json ? DrawTool.staticSvg(row.tekening_json)
       : '<span class="tr-tile-empty">' + (mode === "plan" && canEditOef(d, o, row) ? "+ Maak deze vorm" : (row ? "Geen tekening" : "Nog niet gemaakt")) + '</span>';
     var status = mode === "evaluatie"
@@ -4417,11 +4475,11 @@
       : vormPill(row, d) + (fb ? ' <span class="pill none">' + fb + ' feedback</span>' : '');
     return '<button type="button" class="tr-tile' + (mine ? " tr-mine" : "") + '" data-vorm="' + o + '|' + v + '" data-mode="' + mode + '">' +
       '<span class="tr-tile-img">' + img + '</span>' +
-      '<span class="tr-tile-cap"><b>' + o + v + '</b> <small>' + vormSub(v) + '</small></span>' +
+      '<span class="tr-tile-cap"><b>' + vormCode(o, v, d) + '</b> <small>' + vormSub(v) + '</small></span>' +
       '<span class="tr-tile-st">' + status + '</span></button>';
   }
   function vormTiles(d, o, mode, only){
-    var vs = vormenVan(o).filter(function(v){ return !only || Store.getOef(d, o, v); });
+    var vs = vormenVan(o, d).filter(function(v){ return !only || Store.getOef(d, o, v); });
     return vs.length ? '<div class="tr-tiles">' + vs.map(function(v){ return vormTile(d, o, v, mode); }).join("") + '</div>' : '';
   }
   // Kleine tekeningen invullen (afgeschermde opslag: tijdelijke link per tekening).
@@ -4464,7 +4522,7 @@
         html += '<div class="tr-orow' + (ownerId && ownerId === myUserId() ? " tr-row-mine" : "") + '"><div class="tr-orow-head"><span class="tr-letter">' + o + '</span><div class="tr-orow-main">' + esc(p.v || ("Onderdeel " + o)) +
           (p.a ? ' <small style="display:inline;">· SSG ' + esc(p.a) + '</small>' : '') +
           '<small>' + (owner ? esc(owner) : "Nog niet ingedeeld") + ' · ' + ROLE_LABEL[o].toLowerCase() + '</small></div>' + remind + '</div>' +
-          vormTiles(d, o, "plan") + '</div>';
+          vormTiles(d, o, "plan") + (o === "C" ? c2bKnop(d) : "") + '</div>';
       });
       html += '</div><div class="btn-row"><button type="button" class="btn primary" id="viewTrainingBtn">Bekijk hele training</button>' +
         '<button type="button" class="btn ghost" id="printTrainingBtn">Downloaden</button>' +
@@ -4483,6 +4541,7 @@
     if ($("viewTrainingBtn")) $("viewTrainingBtn").addEventListener("click", function(){ openTrainingView(d); });
     if ($("rolesBtn")) $("rolesBtn").addEventListener("click", function(){ Roles.open(d); });
     if ($("copyTrainingBtn")) $("copyTrainingBtn").addEventListener("click", function(){ trainingOvernemen(d); });
+    if ($("c2bBtn")) $("c2bBtn").addEventListener("click", function(){ tweedeVormC(d); });
     bindVoorJou(wrap);
     bindGroepen(wrap, d);
     bindVormButtons(wrap, d);
@@ -4510,19 +4569,19 @@
     Store.getAllReacties().forEach(function(r){
       var k = "r" + r.id + (r.updated_at || ""), o = vind(r.oefenvorm_id);
       if (r.trainer_id !== me || g[k] || !o) return;
-      items.push({ key: k, ico: "msg", tekst: "Nieuwe reactie van " + (r.auteur_id ? profNaam(r.auteur_id).split(" ")[0] : "de hoofdtrainer") + " op je reflectie (" + o.onderdeel + o.volgnr + " · " + formatDateShort(o.training_date) + ")", open: [o.training_date, o.onderdeel, o.volgnr, "evaluatie"] });
+      items.push({ key: k, ico: "msg", tekst: "Nieuwe reactie van " + (r.auteur_id ? profNaam(r.auteur_id).split(" ")[0] : "de hoofdtrainer") + " op je reflectie (" + rijCode(o) + " · " + formatDateShort(o.training_date) + ")", open: [o.training_date, o.onderdeel, o.volgnr, "evaluatie"] });
     });
     Store.getAllFeedback().forEach(function(f){
       var k = "f" + f.id, o = vind(f.oefenvorm_id);
       if (f.auteur_id === me || g[k] || !o || o.eigenaar_id !== me) return;
-      items.push({ key: k, ico: "tip", tekst: (f.soort === "top" ? "Top" : "Tip") + " van " + (f.auteur_id ? profNaam(f.auteur_id) : "een collega").split(" ")[0] + " op je vorm " + o.onderdeel + o.volgnr + ": “" + f.tekst + "”", open: [o.training_date, o.onderdeel, o.volgnr, "plan"] });
+      items.push({ key: k, ico: "tip", tekst: (f.soort === "top" ? "Top" : "Tip") + " van " + (f.auteur_id ? profNaam(f.auteur_id) : "een collega").split(" ")[0] + " op je vorm " + rijCode(o) + ": “" + f.tekst + "”", open: [o.training_date, o.onderdeel, o.volgnr, "plan"] });
     });
     var t = todayISO(), datums = TRAINING_DATES.map(function(x){ return x.date; });
     var d0 = datums.filter(function(x){ return x >= t && !(trainingPeriod(x) || {}).toernooi; })[0];
     var mijn = d0 ? myOnderdeel(d0) : null;
-    if (mijn) vormenVan(mijn).forEach(function(v){
+    if (mijn) vormenVan(mijn, d0).forEach(function(v){
       var r = Store.getOef(d0, mijn, v);
-      if (!r || r.status !== "gedeeld") items.push({ key: null, ico: "klok", tekst: mijn + v + " " + (r ? "nog niet klaar" : "nog niet gemaakt") + " · klaar vóór " + deadlineText(d0), open: [d0, mijn, v, "plan"] });
+      if (!r || r.status !== "gedeeld") items.push({ key: null, ico: "klok", tekst: vormCode(mijn, v, d0) + " " + (r ? "nog niet klaar" : "nog niet gemaakt") + " · klaar vóór " + deadlineText(d0), open: [d0, mijn, v, "plan"] });
     });
     var prev = datums.filter(function(x){ return x < t; }).pop();
     if (prev && !Auth.isHoofdtrainer() && rolIn(prev, me) && !Store.getReflectie(prev, me))
@@ -4532,13 +4591,14 @@
     if (!Auth.isHoofdtrainer()) Store.getAllOefs().forEach(function(o){
       var k = "e" + o.id + (o.updated_at || "");
       if (o.eigenaar_id !== me || !evGedaan(o) || g[k]) return;
-      items.push({ key: k, ico: "msg", tekst: "De nabespreking van jouw vorm " + o.onderdeel + o.volgnr + " (" + formatDateShort(o.training_date) + ") staat klaar", go: function(){ state.trainingDate = o.training_date; state.trainingSub = "evaluatie"; renderTraining(); openOef(o.training_date, o.onderdeel, o.volgnr, "evaluatie"); } });
+      items.push({ key: k, ico: "msg", tekst: "De nabespreking van jouw vorm " + rijCode(o) + " (" + formatDateShort(o.training_date) + ") staat klaar", go: function(){ state.trainingDate = o.training_date; state.trainingSub = "evaluatie"; renderTraining(); openOef(o.training_date, o.onderdeel, o.volgnr, "evaluatie"); } });
     });
     Store.getAllReflReacties().forEach(function(x){
       var k = "q" + x.reflectie_id + (x.updated_at || ""), rf = Store.getAllRefl().find(function(y){ return y.id === x.reflectie_id; });
       if (x.trainer_id !== me || g[k] || !rf) return;
       items.push({ key: k, ico: "msg", tekst: "Nieuwe reactie van de hoofdtrainer op je reflectie (" + formatDateShort(rf.training_date) + ")", go: function(){ openReflSheet(rf.training_date); } });
     });
+    fbVoorJou(items);
     return items;
   }
   var VJ_ICO = {
@@ -4824,7 +4884,8 @@
     var t = todayISO(), d0 = TRAINING_DATES.map(function(x){ return x.date; }).filter(function(x){ return x >= t && !(trainingPeriod(x) || {}).toernooi; })[0];
     if (!d0) return { d0: null, slots: [] };
     var slots = [];
-    ["A", "B", "C"].forEach(function(o){ vormenVan(o).forEach(function(v){ var row = Store.getOef(d0, o, v); if (canEditOef(d0, o, row)) slots.push({ o: o, v: v, row: row }); }); });
+    ["A", "B", "C"].forEach(function(o){ vormenVan(o, d0).forEach(function(v){ var row = Store.getOef(d0, o, v); if (canEditOef(d0, o, row)) slots.push({ o: o, v: v, row: row }); }); });
+    if (Store.getOef(d0, "C", 2) && !Store.getOef(d0, "C", 3) && canEditOef(d0, "C", null)) slots.push({ o: "C", v: 3, row: null });
     var mijn = myOnderdeel(d0);
     var pref = slots.find(function(x){ return x.o === mijn && x.v === srcV; }) || slots.find(function(x){ return x.v === srcV && !x.row; }) || slots[0];
     return { d0: d0, slots: slots, pref: pref };
@@ -4836,9 +4897,9 @@
     var b = function(k, t){ return t ? '<div class="tv-b"><b>' + k + '</b>' + nl(t) + '</div>' : ''; };
     $("bankTitle").textContent = (r.vaardigheid || "Vorm") + " · " + vormSub(v).replace("&shy;", "") + " · " + formatDateShort(d);
     var eig = vormOwner(d, o, r);
-    var html = '<div class="tv-meta">' + o + v + ' · training ' + esc(formatDateShort(d) + " " + d.slice(0, 4)) + (eig ? ' · ' + esc(eig) : '') + '</div>' +
+    var html = '<div class="tv-meta">' + vormCode(o, v, d) + ' · training ' + esc(formatDateShort(d) + " " + d.slice(0, 4)) + (eig ? ' · ' + esc(eig) : '') + '</div>' +
       (r.tekening_path ? '<div class="oef-tek"><img alt="Tekening" data-tek-path="' + esc(r.tekening_path) + '"></div>' : (r.tekening_json ? '<div class="tv-svg">' + DrawTool.staticSvg(r.tekening_json) + '</div>' : '')) +
-      b("Aantallen", r.aantallen) + b("Duur", r.duur ? r.duur + " minuten" : "") + b(o + v + ".1 · " + vormSub(v), r.variatie_1) + b(o + v + ".2 · contextvariatie", r.variatie_2) +
+      b("Aantallen", r.aantallen) + b("Duur", r.duur ? r.duur + " minuten" : "") + b(vormCode(o, v, d) + ".1 · " + vormSub(v), r.variatie_1) + b(vormCode(o, v, d) + ".2 · contextvariatie", r.variatie_2) +
       b("Organisatie en ruimte", r.organisatie) + b("Regels", r.regels) + b("Wedstrijdelement", r.wedstrijdelement) +
       b("Aanpassing jongste lichting", r.aanpassing_jong) + b("Aanpassing oudste lichting", r.aanpassing_oud) +
       b("Als het niet loopt", r.als_niet_loopt) + b("Coachaccenten", r.coachaccenten);
@@ -4853,7 +4914,7 @@
     if (dl.d0 && dl.slots.length){
       html += '<div class="oef-h">Gebruik als basis</div><div class="tr-note" style="margin-bottom:8px;">Kopieert deze vorm (met tekening) naar een vorm van de training van <b>' + esc(formatDateShort(dl.d0)) + '</b>. Daarna pas je hem aan. Het origineel blijft zoals het is.</div>' +
         '<div class="bank-doel"><select id="bankDoel">' + dl.slots.map(function(x){
-          return '<option value="' + x.o + '|' + x.v + '"' + (x === dl.pref ? ' selected' : '') + '>' + x.o + x.v + ' · ' + esc(thema(dl.d0, x.o).v || ("Onderdeel " + x.o)) + ' (' + vormSub(x.v).replace("&shy;", "") + ')' + (x.row ? ' · heeft al inhoud' : '') + '</option>';
+          return '<option value="' + x.o + '|' + x.v + '"' + (x === dl.pref ? ' selected' : '') + '>' + vormCode(x.o, x.v, dl.d0) + (x.v === 3 && !x.row ? " (tweede vorm bij C)" : "") + ' · ' + esc(thema(dl.d0, x.o).v || ("Onderdeel " + x.o)) + ' (' + vormSub(x.v).replace("&shy;", "") + ')' + (x.row ? ' · heeft al inhoud' : '') + '</option>';
         }).join("") + '</select><button type="button" class="btn primary" id="bankKopie">Gebruik als basis</button></div>';
     } else if (dl.d0){
       html += '<div class="tr-note" style="margin-top:10px;">Je bent voor de training van ' + esc(formatDateShort(dl.d0)) + ' (nog) niet ingedeeld, dus je kunt deze vorm niet kopiëren.</div>';
@@ -4874,11 +4935,11 @@
   }
   function gebruikAlsBasis(src, d0, o, v){
     var bestaand = Store.getOef(d0, o, v);
-    var go = bestaand ? confirmDialog({ title: "Vorm vervangen?", messageHtml: "<b>" + o + v + "</b> van " + esc(formatDateShort(d0)) + " heeft al inhoud. Die wordt vervangen door de kopie.", confirmLabel: "Vervangen" }) : Promise.resolve(true);
+    var go = bestaand ? confirmDialog({ title: "Vorm vervangen?", messageHtml: "<b>" + vormCode(o, v, d0) + "</b> van " + esc(formatDateShort(d0)) + " heeft al inhoud. Die wordt vervangen door de kopie.", confirmLabel: "Vervangen" }) : Promise.resolve(true);
     go.then(function(ok){
       if (!ok) return;
       Store.saveOef(kopieRij(src, d0, o, v, bestaand)).then(function(){
-        showToast("Gekopieerd naar " + o + v + " (" + formatDateShort(d0) + ")" + (!src.tekening_json && src.tekening_path ? "; de foto-tekening ging niet mee" : ""));
+        showToast("Gekopieerd naar " + vormCode(o, v, d0) + " (" + formatDateShort(d0) + ")" + (!src.tekening_json && src.tekening_path ? "; de foto-tekening ging niet mee" : ""));
         $("bankOverlay").hidden = true;
         state.trainingDate = d0; state.trainingSub = "plan"; renderTraining();
         openOef(d0, o, v, "plan");
@@ -4904,6 +4965,38 @@
     });
   }
 
+  // Tweede vorm bij C (C2b, volgnr 3): als C groter/kleiner twee keer staat of twee verschillende vormen heeft.
+  // Elke vorm heeft eigen groepen ("Welke groepen doen deze vorm?"), dus de nabespreking per groep klopt vanzelf.
+  function c2bKnop(d){
+    var c2 = Store.getOef(d, "C", 2);
+    if ((trainingPeriod(d) || {}).toernooi || Store.getOef(d, "C", 3) || !canEditOef(d, "C", c2)) return "";
+    return '<button type="button" class="tr-plus" id="c2bBtn">+ Tweede vorm bij C</button>';
+  }
+  function tweedeVormC(d){
+    var c2 = Store.getOef(d, "C", 2);
+    var kies = c2 ? '<label class="tr-keuze"><input type="radio" name="c2bKeuze" value="kopie" checked> <span><b>Kopie van C2</b>, dan aanpassen (bv. groter veld voor de oudste groep)</span></label>' +
+      '<label class="tr-keuze"><input type="radio" name="c2bKeuze" value="leeg"> <span><b>Lege vorm</b> (een andere oefening)</span></label>' : '';
+    confirmDialog({ title: "Tweede vorm bij C", confirmLabel: "Maken", danger: false,
+      messageHtml: 'Je krijgt <b>C2a</b> en <b>C2b</b>, elk met een eigen tekening. Kies bij elke vorm welke groepen hem doen.' + (kies ? '<div style="margin-top:10px;">' + kies + '</div>' : '') }).then(function(ok){
+      if (!ok) return;
+      var k = document.querySelector('input[name="c2bKeuze"]:checked'), kopie = c2 && (!k || k.value === "kopie");
+      if (!kopie){ openOef(d, "C", 3, "plan"); return; }
+      Store.saveOef(kopieRij(c2, d, "C", 3, null)).then(function(){
+        showToast("C2b gemaakt als kopie van C2" + (!c2.tekening_json && c2.tekening_path ? "; de foto-tekening ging niet mee" : ""));
+        renderTraining(); openOef(d, "C", 3, "plan");
+      }).catch(function(err){ console.error(err); showToast("Maken mislukt"); });
+    });
+  }
+  function tweedeVormWeg(d, row){
+    var n = Store.getFeedback(row.id).length;
+    confirmDialog({ title: "Tweede vorm weghalen?", confirmLabel: "Weghalen",
+      messageHtml: "<b>C2b</b> van " + esc(formatDateShort(d)) + " wordt verwijderd, met tekening" + (row.evaluatie ? ", nabespreking" : "") + (n ? " en " + n + " tips/tops" : "") + ". Dit kan niet ongedaan worden." }).then(function(ok){
+      if (!ok) return;
+      Store.deleteOef(row.id).then(function(){ closeOef(); showToast("C2b weggehaald"); renderTraining(); })
+        .catch(function(err){ console.error(err); showToast("Weghalen mislukt"); });
+    });
+  }
+
   function openTrainingView(d){
     Meet.log("venster", "hele-training", d);
     var per = trainingPeriod(d) || {}, plan = Store.getPlan(d) || {};
@@ -4911,7 +5004,7 @@
     $("tvTitle").textContent = "Training " + formatDateShort(d) + " " + d.slice(0, 4);
     $("tvMeta").innerHTML = ["A", "B", "C"].map(function(o){ var id = plan[ROLE_FIELD[o]]; return ROLE_LABEL[o] + ": <b>" + (id ? esc(profNaam(id)) : "–") + "</b>"; }).join(" &middot; ");
     function deel(o, v){
-      var r = Store.getOef(d, o, v), code = o + v;
+      var r = Store.getOef(d, o, v), code = vormCode(o, v, d);
       var head = '<div class="tv-deel-h"><span>' + code + ' · ' + (v === 1 ? "deel 1 · droog" : "deel 2 · small-sided game") + '</span>' + vormPill(r, d) + '</div>';
       if (!r) return '<div class="tv-deel">' + head + '<div class="tv-empty">Nog niet ingevuld.</div></div>';
       var b = function(k, t){ return t ? '<div class="tv-b"><b>' + k + '</b>' + nl(t) + '</div>' : ''; };
@@ -4930,7 +5023,7 @@
         var p = thema(d, o);
         return '<div class="tv-onderdeel"><h4><span class="tr-letter">' + o + '</span>' + esc(p.v || ("Onderdeel " + o)) +
           (p.a ? ' <small>SSG ' + esc(p.a) + '</small>' : '') + '</h4>' +
-          '<div class="tv-delen">' + vormenVan(o).map(function(v){ return deel(o, v); }).join("") + '</div></div>';
+          '<div class="tv-delen">' + vormenVan(o, d).map(function(v){ return deel(o, v); }).join("") + '</div></div>';
       }).join("");
     if (PERIODISERING.regels && PERIODISERING.regels.length){
       body += '<details class="tr-rules" style="margin-top:8px;"><summary>Afspraken Ajax</summary><ul>' +
@@ -5063,7 +5156,7 @@
         if (!r) return '<td class="tp-empty">–</td>';
         var img = r.tekening_path && urls[r.tekening_path] ? '<img src="' + esc(urls[r.tekening_path]) + '" alt="">'
           : (r.tekening_json ? '<div class="tp-svg">' + DrawTool.staticSvg(r.tekening_json) + '</div>' : '');
-        var l1 = o + v + ".1 · " + vormSub(v), l2 = o + v + ".2 · contextvariatie";
+        var l1 = vormCode(o, v, d) + ".1 · " + vormSub(v), l2 = vormCode(o, v, d) + ".2 · contextvariatie";
         return '<td>' + img +
           (r.aantallen || r.duur ? '<div class="tp-k">' + esc([r.aantallen, r.duur ? r.duur + " min" : ""].filter(Boolean).join(" · ")) + '</div>' : '') +
           (r.variatie_1 ? '<div class="tp-b"><b>' + l1 + '</b><br>' + nl(r.variatie_1) + '</div>' : '') +
@@ -5086,7 +5179,7 @@
           var p = per[o] || {}, r = Store.getOef(d, o, 1) || Store.getOef(d, o, 2);
           var th = thema(d, o);
           return '<tr><td class="tp-thema"><b>' + o + '</b><br>' + esc(th.v) + '<br><span>' + esc(th.a) + '</span></td>' +
-            (o === "C" ? '<td class="tp-empty">alleen C2</td>' : cell(o, 1)) + cell(o, 2) + '</tr>';
+            (o === "C" ? (Store.getOef(d, "C", 3) ? cell(o, 2) + cell(o, 3) : '<td class="tp-empty">alleen C2</td>' + cell(o, 2)) : cell(o, 1) + cell(o, 2)) + '</tr>';
         }).join("") + '</tbody></table>') +
         (PERIODISERING.regels && PERIODISERING.regels.length ? '<ul class="tp-regels">' + PERIODISERING.regels.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join("") + '</ul>' : '');
       // Wachten tot de tekeningen geladen zijn, dan afdrukken.
@@ -5185,7 +5278,7 @@
     var lijst = vorigeKeer(s.d, s.row, $("oVaardigheid").value || (s.row && s.row.vaardigheid), s.v);
     box.hidden = !lijst.length;
     box.innerHTML = lijst.length ? '<div class="oef-h">Vorige keer met deze vaardigheid</div>' + lijst.map(function(o){
-      return '<div class="ov-item"><div class="ov-kop">' + esc(o.onderdeel + o.volgnr + " · " + formatDateShort(o.training_date)) + (o.vaardigheid ? ' · ' + esc(o.vaardigheid) : '') + '</div><div class="ev-sam">' + evSamenvatting(o) + '</div></div>';
+      return '<div class="ov-item"><div class="ov-kop">' + esc(rijCode(o) + " · " + formatDateShort(o.training_date)) + (o.vaardigheid ? ' · ' + esc(o.vaardigheid) : '') + '</div><div class="ev-sam">' + evSamenvatting(o) + '</div></div>';
     }).join("") : "";
   }
   $("oVaardigheid").addEventListener("change", function(){ renderVorige(); });
@@ -5210,7 +5303,7 @@
     if ((e.knoppen || []).some(function(k){ return k !== "niets"; }))
       html += '<div class="ev-rij"><span>Daardoor kwam de vaardigheid</span>' + segHtml(EV_EFFECT, e.effect, 'data-ev-x="effect"', uit) + '</div>' +
         '<div class="field"><label for="evKnopTekst">Wat veranderden we precies, en voor welke groep?</label><textarea id="evKnopTekst" rows="2" placeholder="Ruimte: van 15x10 naar 20x15 m voor 2016–2018"' + (uit ? ' disabled' : '') + '>' + esc(e.knop_tekst || "") + '</textarea></div>';
-    if (s.v === 2) html += '<div class="ev-rij"><span>Hoe wedstrijdecht was het?</span>' + segHtml(EV_ECHT, e.echt, 'data-ev-x="echt"', uit) + '</div>';
+    if (s.v >= 2) html += '<div class="ev-rij"><span>Hoe wedstrijdecht was het?</span>' + segHtml(EV_ECHT, e.echt, 'data-ev-x="echt"', uit) + '</div>';
     html += '<div class="field"><label for="evVolgende">Volgende keer: hoe zetten we deze vorm meteen goed neer? (per groep als het verschilt)</label><textarea id="evVolgende" rows="2" placeholder="2019: vak 15x10, één passeeractie. 2016–2018: meteen 3v3, helft tegenstander = 2 punten."' + (uit ? ' disabled' : '') + '>' + esc(e.volgende || "") + '</textarea></div>';
     box.innerHTML = html;
     Array.prototype.forEach.call(box.querySelectorAll("textarea"), function(t){ requestAnimationFrame(function(){ groeiMee(t); }); t.addEventListener("input", function(){ groeiMee(t); }); });
@@ -5252,7 +5345,7 @@
   function evActies(){
     var s = oefState, rows = evVolgorde(s.d), i = s.row ? rows.findIndex(function(r){ return r.id === s.row.id; }) : -1;
     var vorige = i > 0 ? rows[i - 1] : null, volgende = i !== -1 && i < rows.length - 1 ? rows[i + 1] : null;
-    var code = function(r){ return r.onderdeel + r.volgnr; }, acts = $("oefActions");
+    var code = function(r){ return rijCode(r); }, acts = $("oefActions");
     acts.classList.add("ev-acts");
     acts.innerHTML = (vorige ? '<button type="button" class="btn ghost" data-ev-nav="prev">&larr; ' + code(vorige) + '</button>' : '<span></span>') +
       (i !== -1 ? '<span class="ev-nr">' + (i + 1) + ' van ' + rows.length + '</span>' : '') +
@@ -5328,7 +5421,7 @@
       infoTekst("bolletjes", 'Per vorm een bolletje per groep (' + gr.map(groepLabel).join(" · ") + '): groen liep · oranje na aanpassing · rood liep niet · grijs nog niet ingevuld.') +
       '<div class="ev-ov">' + rows.map(function(r){
         var e = r.evaluatie || {};
-        return '<button type="button" class="ev-ovr" data-ev-open="' + r.onderdeel + '|' + r.volgnr + '"><b>' + r.onderdeel + r.volgnr + '</b>' +
+        return '<button type="button" class="ev-ovr" data-ev-open="' + r.onderdeel + '|' + r.volgnr + '"><b>' + rijCode(r) + '</b>' +
           '<span class="ev-ovn">' + esc(r.vaardigheid || vormSub(r.volgnr)) + '<small>' + esc(vormOwner(d, r.onderdeel, r) || "") + '</small></span>' +
           '<span class="ev-dots">' + vormGroepen(d, r).map(function(g){ var a = (e.per || {})[g] || {}; return '<span class="ev-dot ' + (kleur[a.liep] || "n") + '" title="' + esc(groepLabel(g)) + '"></span>'; }).join("") + '</span>' +
           '<span class="ev-ovt">' + (evGedaan(r) ? esc(e.volgende || "") : '<i>nog niet besproken</i>') + '</span></button>';
@@ -5382,6 +5475,222 @@
     $("reflOverlay").hidden = false;
     setTimeout(function(){ var t = $("rf_knop"); if (t && !t.value) t.focus(); }, 80);
   }
+  /* 360-gradenfeedback = halfjaarevaluatie van de trainers (besluit Sofian 2026-11-22). De hoofdtrainer start een ronde
+     (Instellingen); iedereen geeft feedback over zichzelf, elke collega en de hoofdtrainer (Voor jou). Na het sluiten
+     ziet ieder zijn eigen uitslag: collega's anoniem (gemiddelde + teksten zonder naam), de hoofdtrainer met naam. */
+  var FB_SCHAAL = [[1, "zelden"], [2, "soms"], [3, "vaak"], [4, "bijna altijd"]];
+  var FB_TRAINER = [
+    ["vorm", "De vormen lokken de vaardigheid vanzelf uit, zonder veel uitleg"],
+    ["uitdaging", "De uitdaging past bij de leeftijd: niet te makkelijk, niet te moeilijk"],
+    ["bijsturen", "Loopt het niet, dan wordt er snel aan een knop gedraaid (ruimte, aantallen, regel)"],
+    ["beurt", "Spelers zijn snel aan de beurt: korte uitleg, weinig wachten"],
+    ["spelen", "Er wordt veel gespeeld en weinig stilgelegd"],
+    ["positief", "Positief naar de kinderen, met oog voor elk kind"],
+    ["samen", "Denkt mee in de nabespreking en doet iets met feedback"]
+  ];
+  var FB_HOOFD = [
+    ["duidelijk", "Trainers weten wat er van hen verwacht wordt"],
+    ["helpt", "De nabespreking en de reacties helpen trainers beter worden"],
+    ["vrij", "Trainers voelen zich vrij om te zeggen wat ze denken"],
+    ["ruimte", "Trainers krijgen ruimte om zelf vormen te ontwerpen"],
+    ["geregeld", "De zondag is goed geregeld: rollen, materiaal, tijden"]
+  ];
+  var FB_ZELF = [
+    ["groei", "Waar ben je dit half jaar het meest in gegroeid?"],
+    ["ontwikkel", "Wat wil je het komende half jaar leren? (jouw ontwikkelpunt)"],
+    ["nodig", "Wat heb je daarvoor nodig, van de hoofdtrainer of de club?"]
+  ];
+  var FB_DOOR = [["ja", "ja"], ["twijfel", "twijfel"], ["nee", "nee"]];
+  var FB_ROL = [["ab", "Trainer A/B (eigen vaardigheid)"], ["assistent", "Assistent (C)"], ["maakt-niet-uit", "Maakt niet uit"]];
+  var fbConcept = {}; // niet-opgeslagen antwoorden per persoon (blijven staan als je het venster even sluit)
+  function fbOpen(){ return Store.getFbRondes().filter(function(r){ return !r.gesloten; }).pop() || null; }
+  function fbDeelnemers(){
+    var me = myUserId(), ps = staffProfiles();
+    // Volgorde: jijzelf, de collega's, de hoofdtrainer.
+    return ps.filter(function(p){ return p.id === me; }).concat(ps.filter(function(p){ return p.id !== me && p.role !== "hoofdtrainer"; }), ps.filter(function(p){ return p.id !== me && p.role === "hoofdtrainer"; }));
+  }
+  function fbMijn(ronde, over, van){ van = van || myUserId(); return Store.getFbAntw().find(function(a){ return a.ronde_id === ronde.id && a.van_id === van && a.over_id === over; }) || null; }
+  function fbStellingen(p){ return p && p.role === "hoofdtrainer" ? FB_HOOFD : FB_TRAINER; }
+  function fbVoortgang(ronde, van){ var ps = staffProfiles(); return { klaar: ps.filter(function(p){ return fbMijn(ronde, p.id, van); }).length, totaal: ps.length }; }
+  function fbVoorJou(items){
+    var me = myUserId(), r = fbOpen();
+    if (r && staffProfiles().some(function(p){ return p.id === me; })){
+      var v = fbVoortgang(r, me);
+      if (v.klaar < v.totaal) items.unshift({ key: null, ico: "eval", tekst: r.titel + ": geef feedback (" + v.klaar + " van " + v.totaal + ")" + (r.open_tot ? " · vóór " + formatDateShort(r.open_tot) : ""), go: function(){ openFbSheet(); } });
+    }
+    var dicht = Store.getFbRondes().filter(function(x){ return x.gesloten; }).pop();
+    if (dicht && !gezien()["fb" + dicht.id]) items.unshift({ key: "fb" + dicht.id, ico: "msg", tekst: "Jouw uitslag van " + dicht.titel + " staat klaar", go: function(){ openFbUitslag(dicht, me); } });
+  }
+  // Venster: lijst van personen, tik = formulier.
+  function openFbSheet(){
+    var r = fbOpen(); if (!r){ showToast("Er is geen feedbackronde open"); return; }
+    Meet.log("venster", "feedback-geven", null);
+    var me = myUserId();
+    $("fbTitel").textContent = r.titel;
+    $("fbBody").innerHTML = '<div class="tr-note" style="margin-bottom:10px;">Geef feedback over jezelf, over elke collega en over de hoofdtrainer. Ongeveer 3 minuten per persoon.' + (r.open_tot ? ' Graag vóór <b>' + esc(formatDateShort(r.open_tot)) + '</b>.' : '') + '</div>' +
+      fbDeelnemers().map(function(p){
+        var a = fbMijn(r, p.id), wie = p.id === me ? "Jijzelf" : esc(p.naam) + (p.role === "hoofdtrainer" ? " <small>hoofdtrainer</small>" : "");
+        return '<button type="button" class="fb-pers' + (a ? ' klaar' : '') + '" data-fb-over="' + p.id + '"><span>' + wie + '</span><span class="fb-st">' + (a ? "✓ ingevuld" : (fbConcept[p.id] ? "bezig" : "nog doen")) + '</span></button>';
+      }).join("");
+    Array.prototype.forEach.call($("fbBody").querySelectorAll("[data-fb-over]"), function(b){ b.onclick = function(){ fbFormulier(r, b.getAttribute("data-fb-over")); }; });
+    $("fbOverlay").hidden = false;
+  }
+  function fbFormulier(r, overId){
+    var me = myUserId(), p = staffProfiles().find(function(x){ return x.id === overId; }) || { id: overId, naam: profNaam(overId) };
+    var zelf = overId === me, st = fbStellingen(p), a = fbMijn(r, overId);
+    var c = fbConcept[overId] || { scores: Object.assign({}, a ? a.scores : {}), top: a ? a.top || "" : "", tip: a ? a.tip || "" : "", extra: Object.assign({}, a ? a.extra : {}) };
+    fbConcept[overId] = c;
+    var naam = (p.naam || "").split(" ")[0];
+    var anoniem = zelf ? "Dit zien alleen jij en de hoofdtrainer. Eerlijk is het meest waard."
+      : (p.role === "hoofdtrainer" ? "De hoofdtrainer ziet het gemiddelde van de trainers en de teksten zonder naam."
+        : (Auth.isHoofdtrainer() ? naam + " ziet jouw antwoorden met jouw naam erbij." : naam + " ziet het gemiddelde van de collega's en de teksten zonder naam, niet wie wat schreef."));
+    var seg = function(k){ return '<span class="ev-seg fb-seg">' + FB_SCHAAL.map(function(o){ return '<button type="button" data-fb-k="' + k + '" data-v="' + o[0] + '"' + (String(c.scores[k]) === String(o[0]) ? ' class="on"' : '') + '>' + o[1] + '</button>'; }).join("") +
+      '<button type="button" data-fb-k="' + k + '" data-v="0" title="Kan ik niet zien"' + (String(c.scores[k]) === "0" ? ' class="on"' : '') + '>?</button></span>'; };
+    var keuze = function(k, opts){ return '<span class="ev-seg fb-seg">' + opts.map(function(o){ return '<button type="button" data-fb-x="' + k + '" data-v="' + o[0] + '"' + (c.extra[k] === o[0] ? ' class="on"' : '') + '>' + o[1] + '</button>'; }).join("") + '</span>'; };
+    var ta = function(id, label, val){ return '<div class="field"><label for="' + id + '">' + label + '</label><textarea id="' + id + '" rows="2">' + esc(val || "") + '</textarea></div>'; };
+    $("fbTitel").textContent = zelf ? "Over jezelf" : "Over " + p.naam;
+    var html = '<div class="tr-note" style="margin-bottom:8px;">' + esc(anoniem) + ' <b>?</b> = kan ik niet zien.</div>' +
+      st.map(function(s){ return '<div class="fb-q"><div>' + esc(s[1]) + '</div>' + seg(s[0]) + '</div>'; }).join("");
+    if (zelf){
+      html += FB_ZELF.filter(function(q){ return !(Auth.isHoofdtrainer() && q[0] === "nodig"); }).map(function(q){ return ta("fbx_" + q[0], q[1], c.extra[q[0]]); }).join("");
+      if (!Auth.isHoofdtrainer()) html += '<div class="fb-q"><div>Wil je volgend seizoen door als ART-trainer?</div>' + keuze("door", FB_DOOR) + '</div>' +
+        '<div class="fb-q"><div>Welke rol doe je het liefst?</div>' + keuze("rol", FB_ROL) + '</div>';
+    } else {
+      html += ta("fbTop", "Top: wat moet " + esc(naam) + " vooral blijven doen?", c.top) + ta("fbTip", "Tip: één ding om aan te werken", c.tip);
+    }
+    var lijst = fbDeelnemers(), ix = lijst.findIndex(function(x){ return x.id === overId; });
+    var volgende = lijst.slice(ix + 1).concat(lijst.slice(0, ix)).find(function(x){ return !fbMijn(r, x.id); });
+    html += '<div class="ev-acts fb-acts"><button type="button" class="btn ghost" id="fbLijst">&larr; Lijst</button><button type="button" class="btn primary" id="fbSave">Opslaan' + (volgende ? ' · ' + esc(volgende.id === me ? "jijzelf" : volgende.naam.split(" ")[0]) + ' &rarr;' : '') + '</button></div>';
+    $("fbBody").innerHTML = html;
+    $("fbBody").scrollTop = 0;
+    Array.prototype.forEach.call($("fbBody").querySelectorAll("[data-fb-k]"), function(b){ b.onclick = function(){
+      var k = b.getAttribute("data-fb-k"); c.scores[k] = Number(b.getAttribute("data-v"));
+      Array.prototype.forEach.call($("fbBody").querySelectorAll('[data-fb-k="' + k + '"]'), function(x){ x.classList.toggle("on", x === b); });
+    }; });
+    Array.prototype.forEach.call($("fbBody").querySelectorAll("[data-fb-x]"), function(b){ b.onclick = function(){
+      var k = b.getAttribute("data-fb-x"); c.extra[k] = b.getAttribute("data-v");
+      Array.prototype.forEach.call($("fbBody").querySelectorAll('[data-fb-x="' + k + '"]'), function(x){ x.classList.toggle("on", x === b); });
+    }; });
+    function lees(){
+      if (zelf) FB_ZELF.forEach(function(q){ var el = $("fbx_" + q[0]); if (el) c.extra[q[0]] = el.value.trim(); });
+      else { c.top = $("fbTop").value.trim(); c.tip = $("fbTip").value.trim(); }
+    }
+    $("fbLijst").onclick = function(){ lees(); openFbSheet(); };
+    $("fbSave").onclick = function(){
+      lees();
+      var leeg = st.filter(function(s){ return c.scores[s[0]] === undefined; }).length;
+      if (leeg){ showToast("Kies bij elke vraag een antwoord (of ?)"); return; }
+      var btn = this; btn.disabled = true;
+      var scores = Object.assign({}, c.scores); // 0 = "kan ik niet zien" (telt niet mee in het gemiddelde)
+      Store.saveFbAntw({ ronde_id: r.id, van_id: me, over_id: overId, scores: scores, top: zelf ? null : (c.top || null), tip: zelf ? null : (c.tip || null), extra: zelf ? c.extra : {} })
+        .then(function(){
+          delete fbConcept[overId]; Meet.log("actie", "feedback-opgeslagen", null); showToast("Opgeslagen");
+          renderAll();
+          if (volgende) fbFormulier(r, volgende.id);
+          else { $("fbOverlay").hidden = true; showToast("Klaar, dank je wel!"); }
+        }).catch(function(err){ console.error(err); showToast("Opslaan mislukt"); btn.disabled = false; });
+    };
+  }
+  // Uitslag over één persoon (trainer: alleen zichzelf, na het sluiten; hoofdtrainer: iedereen).
+  function openFbUitslag(r, overId){
+    var p = staffProfiles().find(function(x){ return x.id === overId; }) || { id: overId, naam: profNaam(overId), role: "trainer" };
+    var eigen = overId === myUserId();
+    Meet.log("venster", "feedback-uitslag", null);
+    $("fbTitel").textContent = (eigen ? "Jouw uitslag" : p.naam) + " · " + r.titel;
+    $("fbBody").innerHTML = '<div class="tr-note">Laden…</div>';
+    $("fbOverlay").hidden = false;
+    Store.fbUitslag(r.id, eigen ? null : overId).then(function(u){
+      if (!u){ $("fbBody").innerHTML = '<div class="tr-note">De uitslag komt zodra de hoofdtrainer de ronde sluit.</div>'; return; }
+      var zelf = u.zelf || {}, col = u.collegas || { n: 0, gem: {}, tops: [], tips: [] }, hfd = (u.hoofd || [])[0] || null;
+      var woord = function(x){ var n = Math.round(x); return (FB_SCHAAL.find(function(s){ return s[0] === n; }) || [0, "–"])[1]; };
+      var balk = function(label, x, cls){
+        if (x == null) return '<div class="fb-b"><span>' + label + '</span><span class="fb-bar"></span><small>–</small></div>';
+        return '<div class="fb-b"><span>' + label + '</span><span class="fb-bar"><i class="' + cls + '" style="width:' + Math.round(x / 4 * 100) + '%"></i></span><small>' + woord(x) + '</small></div>';
+      };
+      var html = '<div class="tr-note" style="margin-bottom:8px;">' + (col.n ? col.n + (col.n === 1 ? " collega" : " collega's") : "Nog geen collega's") + (hfd ? " · " + esc(hfd.naam.split(" ")[0]) + " (hoofdtrainer)" : "") + (u.zelf ? " · " + (eigen ? "jijzelf" : "zelfbeoordeling") : "") + '</div>';
+      html += '<div class="fb-leg"><span><i class="fb-col"></i>collega\x27s gemiddeld</span>' + (hfd ? '<span><i class="fb-hfd"></i>hoofdtrainer</span>' : '') + '<span><i class="fb-zelf"></i>' + (eigen ? "jijzelf" : "zelf") + '</span></div>';
+      html += fbStellingen(p).map(function(s){
+        var k = s[0];
+        return '<div class="fb-uq"><div class="fb-ut">' + esc(s[1]) + '</div>' + balk("Collega\x27s", col.gem && col.gem[k] != null ? Number(col.gem[k]) : null, "fb-col") +
+          (hfd ? balk("Hoofdtrainer", hfd.scores && hfd.scores[k] ? hfd.scores[k] : null, "fb-hfd") : "") +
+          balk(eigen ? "Jijzelf" : "Zelf", zelf.scores && zelf.scores[k] ? zelf.scores[k] : null, "fb-zelf") + '</div>';
+      }).join("");
+      if (p.role !== "hoofdtrainer"){ // wat de app zelf ziet: niets hoeven vragen
+        var t = todayISO(), rollen = TRAINING_DATES.map(function(x){ return x.date; }).filter(function(d){ return d < t && rolIn(d, overId); });
+        var nRefl = rollen.filter(function(d){ return Store.getReflectie(d, overId); }).length;
+        var nVorm = Store.getAllOefs().filter(function(o){ return o.eigenaar_id === overId && o.status === "gedeeld"; }).length;
+        html += '<div class="fb-app"><b>Uit de app:</b> ' + nVorm + (nVorm === 1 ? " vorm" : " vormen") + ' klaargezet · reflecties ' + nRefl + ' van ' + rollen.length + ' trainingen</div>';
+      }
+      var lijst = function(titel, xs){ return xs.length ? '<div class="oef-h">' + titel + '</div><ul class="fb-tekst">' + xs.map(function(x){ return '<li>' + esc(x).replace(/\n/g, "<br>") + '</li>'; }).join("") + '</ul>' : ''; };
+      var tops = (col.tops || []).slice(), tips = (col.tips || []).slice();
+      if (hfd && hfd.top) tops.push(hfd.naam.split(" ")[0] + ": " + hfd.top);
+      if (hfd && hfd.tip) tips.push(hfd.naam.split(" ")[0] + ": " + hfd.tip);
+      html += lijst("Tops", tops) + lijst("Tips", tips);
+      var ex = zelf.extra || {};
+      var zelfR = FB_ZELF.filter(function(q){ return ex[q[0]]; }).map(function(q){ return '<div class="rf-q"><b>' + esc(q[1]) + '</b><div>' + esc(ex[q[0]]).replace(/\n/g, "<br>") + '</div></div>'; }).join("") +
+        (ex.door ? '<div class="rf-q"><b>Volgend seizoen door?</b><div>' + esc(ex.door) + '</div></div>' : '') +
+        (ex.rol ? '<div class="rf-q"><b>Liefste rol</b><div>' + esc((FB_ROL.find(function(x){ return x[0] === ex.rol; }) || [0, ex.rol])[1]) + '</div></div>' : '');
+      if (zelfR) html += '<div class="oef-h">' + (eigen ? "Wat jij zelf schreef" : "Wat " + esc(p.naam.split(" ")[0]) + " zelf schreef") + '</div>' + zelfR;
+      if (p.role !== "hoofdtrainer"){
+        var wp = Store.getWerkpunt(overId);
+        if (Auth.isHoofdtrainer() && !eigen){
+          html += '<div class="oef-h">Werkpunt voor het komende half jaar</div><div class="field"><textarea id="fbWp" rows="2">' + esc(wp || ex.ontwikkel || "") + '</textarea></div>' +
+            '<button type="button" class="btn primary block" id="fbWpSave">Werkpunt opslaan</button><div class="tr-note" style="margin-top:6px;">Komt bovenaan de reflectie van ' + esc(p.naam.split(" ")[0]) + '.</div>';
+        } else html += '<div class="rf-wp" style="margin-top:12px;"><b>Jouw werkpunt:</b> ' + (wp ? esc(wp) : "spreek je af met de hoofdtrainer") + '</div>';
+      }
+      $("fbBody").innerHTML = html;
+      if ($("fbWpSave")) $("fbWpSave").onclick = function(){
+        var btn = this; btn.disabled = true;
+        Store.saveWerkpunt(overId, $("fbWp").value.trim()).then(function(){ showToast("Werkpunt opgeslagen"); btn.disabled = false; })
+          .catch(function(err){ console.error(err); showToast("Opslaan mislukt"); btn.disabled = false; });
+      };
+    }).catch(function(err){ console.error(err); $("fbBody").innerHTML = '<div class="tr-note">Laden mislukt. Probeer het opnieuw.</div>'; });
+  }
+  // Instellingen → Halfjaarevaluatie (360°): ronde starten, voortgang, sluiten, uitslagen.
+  function vulFeedback(){
+    var body = $("fbInstBody"); if (!body) return;
+    var r = fbOpen(), ps = staffProfiles(), html = "";
+    if (!r){
+      var j = new Date().getFullYear(), m = new Date().getMonth();
+      var seizoen = m >= 6 ? j + "-" + (j + 1) : (j - 1) + "-" + j;
+      html += '<div class="tr-note" style="margin-bottom:8px;">Iedereen geeft feedback over zichzelf, over elke collega en over jou. Collega\x27s blijven anoniem: wie de uitslag krijgt, ziet het gemiddelde en de teksten zonder naam. Jij ziet de uitslag van iedereen.</div>' +
+        '<div class="field"><label for="fbRTitel">Naam van de ronde</label><input id="fbRTitel" value="Halfjaarevaluatie ' + seizoen + '"></div>' +
+        '<div class="field"><label for="fbRTot">Invullen vóór</label><input id="fbRTot" type="date" value="' + addDaysISO(todayISO(), 14) + '"></div>' +
+        '<button type="button" class="btn primary" id="fbStart">Ronde starten</button>';
+    } else {
+      html += '<div class="tr-note" style="margin-bottom:8px;"><b>' + esc(r.titel) + '</b> staat open' + (r.open_tot ? ' tot ' + esc(formatDateShort(r.open_tot)) : '') + '. De trainers zien het in Training → Voor jou.</div>' +
+        ps.map(function(p){ var v = fbVoortgang(r, p.id); return '<div class="fb-vg"><span>' + esc(p.naam) + '</span><span class="pill ' + (v.klaar === v.totaal ? "good" : (v.klaar ? "mid" : "none")) + '">' + v.klaar + ' van ' + v.totaal + '</span></div>'; }).join("");
+      var msg = "Hoi trainers, de " + r.titel.toLowerCase() + " staat klaar in de ART-app: geef feedback over jezelf, elkaar en mij (ongeveer 3 minuten per persoon). Je vindt het in Training, bovenaan bij 'Voor jou'." + (r.open_tot ? " Graag vóór " + formatDateShort(r.open_tot) + "." : "") + " Collega's blijven anoniem. https://www.artsvs.nl";
+      html += '<div class="btn-row" style="margin-top:10px;"><a class="btn ghost" target="_blank" rel="noopener" href="https://wa.me/?text=' + encodeURIComponent(msg) + '">WhatsApp-bericht</a><button type="button" class="btn ghost" id="fbZelf">Zelf invullen</button><button type="button" class="btn primary" id="fbSluit">Sluiten en uitslag delen</button></div>';
+    }
+    var dicht = Store.getFbRondes().filter(function(x){ return x.gesloten || (r && x.id === r.id); }).reverse();
+    if (dicht.length) html += '<div class="oef-h">Uitslagen</div>' + dicht.map(function(x){
+      return '<div class="fb-ronde"><b>' + esc(x.titel) + '</b>' + (x.gesloten ? '' : ' <small>(nog open, alleen jij ziet dit)</small>') + '<div class="ev-chips">' +
+        ps.map(function(p){ return '<button type="button" class="chip small" data-fb-uit="' + x.id + '|' + p.id + '">' + esc(p.naam.split(" ")[0]) + '</button>'; }).join("") + '</div></div>';
+    }).join("");
+    body.innerHTML = html;
+    if ($("fbStart")) $("fbStart").onclick = function(){
+      var titel = $("fbRTitel").value.trim(), tot = $("fbRTot").value || null;
+      if (!titel){ showToast("Geef de ronde een naam"); return; }
+      confirmDialog({ title: "Ronde starten", confirmLabel: "Starten", danger: false, messageHtml: "Alle trainers zien in Training → Voor jou de vraag om feedback te geven" + (tot ? " vóór <b>" + esc(formatDateShort(tot)) + "</b>" : "") + ". Stuur daarna het WhatsApp-bericht." }).then(function(ok){
+        if (!ok) return;
+        Store.saveFbRonde({ titel: titel, open_tot: tot }).then(function(){ showToast("Ronde gestart"); vulFeedback(); renderAll(); }).catch(function(err){ console.error(err); showToast("Starten mislukt"); });
+      });
+    };
+    if ($("fbZelf")) $("fbZelf").onclick = function(){ openFbSheet(); };
+    if ($("fbSluit")) $("fbSluit").onclick = function(){
+      var nog = ps.filter(function(p){ var v = fbVoortgang(r, p.id); return v.klaar < v.totaal; }).map(function(p){ return esc(p.naam.split(" ")[0]); });
+      confirmDialog({ title: "Ronde sluiten?", confirmLabel: "Sluiten en delen", messageHtml: (nog.length ? "Nog niet helemaal klaar: <b>" + nog.join(", ") + "</b>.<br><br>" : "") + "Na het sluiten kan niemand meer invullen of wijzigen, en ziet iedereen zijn eigen uitslag." }).then(function(ok){
+        if (!ok) return;
+        Store.saveFbRonde({ id: r.id, gesloten: true }).then(function(){ showToast("Ronde gesloten, uitslagen gedeeld"); vulFeedback(); renderAll(); }).catch(function(err){ console.error(err); showToast("Sluiten mislukt"); });
+      });
+    };
+    Array.prototype.forEach.call(body.querySelectorAll("[data-fb-uit]"), function(b){ b.onclick = function(){
+      var x = b.getAttribute("data-fb-uit").split("|"), ronde = Store.getFbRondes().find(function(y){ return y.id === x[0]; });
+      if (ronde) openFbUitslag(ronde, x[1]);
+    }; });
+  }
+
   function renderRefl(){
     var wrap = $("reflWrap"), d = state.trainingDate, me = myUserId(), isHoofd = Auth.isHoofdtrainer();
     if ((trainingPeriod(d) || {}).toernooi){ wrap.innerHTML = ""; return; }
@@ -5629,7 +5938,7 @@
     eGroep1: "eval_groep1", eAangepast: "eval_aangepast", eGroep2: "eval_groep2", eRuimte: "eval_ruimte", eLichting: "eval_lichting", eVolgende: "eval_volgende",
     rGoed: "reflectie_goed", rAnders: "reflectie_anders" };
   // Duur: Ajax gaat uit van max. 6 minuten voor vorm 1 (droog) en max. 8 minuten voor vorm 2 (contextvorm).
-  var DUUR_MAX = { 1: 6, 2: 8 };
+  var DUUR_MAX = { 1: 6, 2: 8, 3: 8 };
   function duurHint(){
     var n = parseInt($("oDuur").value, 10), max = oefState ? DUUR_MAX[oefState.v] : 8;
     $("oDuurHint").textContent = n > max ? "Let op: Ajax gaat uit van maximaal " + max + " minuten voor " + (oefState && oefState.v === 1 ? "een droge vorm." : "een contextvorm.") : "";
@@ -5651,7 +5960,7 @@
     if (row) markeerGezien(sleutelsVoorVorm(row.id).concat(mode === "evaluatie" ? ["e" + row.id + (row.updated_at || "")] : []));
     oefState = { d: d, o: o, v: v, mode: mode, row: row, terug: row ? row.eval_terug : null,
       ev: row && row.evaluatie ? JSON.parse(JSON.stringify(row.evaluatie)) : { per: {}, knoppen: [] }, groepen: row && row.groepen ? row.groepen.slice() : null, newBlob: null, removeTek: false, editable: editable, tekJson: row ? row.tekening_json : null };
-    $("oefTitle").textContent = (mode === "evaluatie" ? "Evaluatie " : "") + o + v + " · " + vormSub(v) + " · " + formatDateShort(d);
+    $("oefTitle").textContent = (mode === "evaluatie" ? "Evaluatie " : "") + vormCode(o, v, d) + " · " + vormSub(v) + " · " + formatDateShort(d);
     $("oAantallen").placeholder = v === 1 ? "1v0 (droog, zonder weerstand)" : "bv. 2v1 of 3v2";
     var owner = row && row.eigenaar_id ? (row.eigenaar_naam || profNaam(row.eigenaar_id)) : ((Store.getPlan(d) || {})[ROLE_FIELD[o]] ? profNaam((Store.getPlan(d) || {})[ROLE_FIELD[o]]) : "");
     $("oefMeta").innerHTML = (p.v ? '<span class="pill none">Periodisering: ' + esc(p.v) + ' · ' + esc(p.a) + '</span> ' : '') +
@@ -5670,7 +5979,7 @@
       b.disabled = !editable;
     });
     // Ajax-opbouw: x.1, dan spacing, dan x.2 = contextvariatie. Vorm 1 droog (max 6 min), vorm 2 small-sided game (max 8 min).
-    var code = o + v, min = v === 1 ? "max 6 min" : "max 8 min";
+    var code = vormCode(o, v, d), min = v === 1 ? "max 6 min" : "max 8 min";
     $("oVar1Label").textContent = code + ".1 · " + (v === 1 ? "droog, bewegingsvariaties" : "small-sided game") + " (" + min + ")";
     $("oVar2Label").textContent = code + ".2 · contextvariatie na de spacing: welke regel of ruimte verandert (" + min + ")";
     $("oVar1").placeholder = v === 1 ? "1. binnenkantvoet pass\n2. buitenkantvoet pass\n3. trainer bepaalt" : "Wie doet wat, hoe wordt er gescoord…";
@@ -5679,7 +5988,7 @@
     var oud = false; // oude evaluatievelden niet meer tonen (besluit Sofian 2026-10-25: clean); de gegevens blijven bewaard
     $("oefEvalFields").hidden = !oud;
     if (oud) Array.prototype.forEach.call($("oefEvalFields").querySelectorAll("input, textarea, button"), function(x){ x.disabled = true; });
-    if (mode === "evaluatie" && row){ var rij = evVolgorde(d), ix = rij.findIndex(function(r){ return r.id === row.id; }); $("oefTitle").textContent = "Evaluatie " + o + v + " · " + vormSub(v) + " · " + formatDateShort(d) + (ix !== -1 ? "  (" + (ix + 1) + " van " + rij.length + ")" : ""); }
+    if (mode === "evaluatie" && row){ var rij = evVolgorde(d), ix = rij.findIndex(function(r){ return r.id === row.id; }); $("oefTitle").textContent = "Evaluatie " + vormCode(o, v, d) + " · " + vormSub(v) + " · " + formatDateShort(d) + (ix !== -1 ? "  (" + (ix + 1) + " van " + rij.length + ")" : ""); }
     renderEval2();
     if (mode === "plan") renderVormGroepen();
     renderVorige();
@@ -5693,9 +6002,9 @@
     $("oDrawBtn").hidden = !editable || mode !== "plan";
     $("oDrawBtn").textContent = oefState.tekJson ? "Tekening bewerken" : "Tekenen";
     // Vorm 2 heeft vaak dezelfde organisatie als vorm 1: tekening overnemen en aanvullen.
-    var v1 = v === 2 && o !== "C" ? Store.getOef(d, o, 1) : null;
+    var v1 = v === 2 && o !== "C" ? Store.getOef(d, o, 1) : (v === 3 ? Store.getOef(d, "C", 2) : null);
     $("oCopyBtn").hidden = !editable || mode !== "plan" || !(v1 && v1.tekening_json);
-    $("oCopyBtn").textContent = "Neem tekening van " + o + "1 over";
+    $("oCopyBtn").textContent = "Neem tekening van " + (v1 ? rijCode(v1) : o + "1") + " over";
     renderTekening();
     $("oefHint").textContent = "";
     var acts = $("oefActions");
@@ -5705,6 +6014,10 @@
     else acts.innerHTML = (row && row.status === "gedeeld")
       ? '<button class="btn primary block" data-oef-save="gedeeld">Opslaan</button>'
       : '<button class="btn ghost" data-oef-save="concept">Opslaan, nog niet klaar</button><button class="btn primary" data-oef-save="gedeeld">Klaar</button>';
+    if (mode === "plan" && v === 3 && row && Auth.isHoofdtrainer()){
+      acts.insertAdjacentHTML("beforeend", '<button type="button" class="btn ghost" style="color:var(--low);" id="c2bWeg">Tweede vorm weghalen</button>');
+      $("c2bWeg").onclick = function(){ tweedeVormWeg(d, row); };
+    }
     Array.prototype.forEach.call(acts.querySelectorAll("[data-oef-save]"), function(b){
       b.addEventListener("click", function(){ saveOefSheet(b.getAttribute("data-oef-save"), b); });
     });
@@ -5747,10 +6060,10 @@
   $("oTekDel").addEventListener("click", function(){ if (!oefState) return; oefState.newBlob = null; oefState.removeTek = true; oefState.tekJson = null; $("oDrawBtn").textContent = "Tekenen"; renderTekening(); });
   $("oCopyBtn").addEventListener("click", function(){
     if (!oefState) return;
-    var src = Store.getOef(oefState.d, oefState.o, 1);
+    var src = oefState.v === 3 ? Store.getOef(oefState.d, "C", 2) : Store.getOef(oefState.d, oefState.o, 1);
     if (!src || !src.tekening_json) return;
     var go = oefState.tekJson || (oefState.row && oefState.row.tekening_path)
-      ? confirmDialog({ title: "Tekening vervangen?", messageHtml: "De huidige tekening van deze vorm wordt vervangen door die van " + oefState.o + "1. Pas daarna aan wat anders is.", confirmLabel: "Vervangen", danger: false })
+      ? confirmDialog({ title: "Tekening vervangen?", messageHtml: "De huidige tekening van deze vorm wordt vervangen door die van " + rijCode(src) + ". Pas daarna aan wat anders is.", confirmLabel: "Vervangen", danger: false })
       : Promise.resolve(true);
     go.then(function(ok){ if (ok) openDraw(JSON.parse(JSON.stringify(src.tekening_json))); });
   });
@@ -6074,6 +6387,7 @@
   }
   $("closeSl").addEventListener("click", function(){ $("slOverlay").hidden = true; });
   $("closeRefl").addEventListener("click", function(){ $("reflOverlay").hidden = true; });
+  $("closeFb").addEventListener("click", function(){ $("fbOverlay").hidden = true; });
 
   /* ---------- ABSENTIES tab ---------- */
   function defaultAbsDate(){
@@ -6899,6 +7213,7 @@
       '</div>' +
       '</div></details>' +
       '<details class="set-group" data-group="privacy"' + (settingsOpen.privacy ? ' open' : '') + '><summary>Privacy en opruimen</summary><div class="set-body" id="privacyBody"></div></details>' +
+      '<details class="set-group" data-group="feedback"' + (settingsOpen.feedback ? ' open' : '') + '><summary>Halfjaarevaluatie trainers (360°)</summary><div class="set-body" id="fbInstBody"></div></details>' +
       '<details class="set-group" data-group="gebruik"' + (settingsOpen.gebruik ? ' open' : '') + '><summary>Gebruik van de app</summary><div class="set-body" id="gebruikBody"></div></details>' +
       '<details class="set-group" data-group="app"' + (settingsOpen.app ? ' open' : '') + '><summary>App</summary><div class="set-body">' +
       '<div class="section-title" style="margin-top:22px;"><h2 style="font-size:15px;">Back-ups</h2></div>' +
@@ -6933,7 +7248,7 @@
       });
     });
     Array.prototype.forEach.call(body.querySelectorAll("details.set-group"), function(d){
-      d.addEventListener("toggle", function(){ settingsOpen[d.getAttribute("data-group")] = d.open; if (d.open && d.getAttribute("data-group") === "gebruik") vulGebruik(); });
+      d.addEventListener("toggle", function(){ settingsOpen[d.getAttribute("data-group")] = d.open; if (d.open && d.getAttribute("data-group") === "gebruik") vulGebruik(); if (d.open && d.getAttribute("data-group") === "feedback") vulFeedback(); });
     });
     $("settingsAddPlayerBtn").addEventListener("click", function(){ openPlayerSheet(null); });
     $("ajaxCompareBtn").addEventListener("click", renderAjaxVergelijk);
@@ -8311,7 +8626,7 @@
     function firstPlayer(){ return filteredPlayers()[0]; }
     function closeAll(){
       if (!$("drawOverlay").hidden) $("drawCancel").click();
-      ["playerCardOverlay", "scoreOverlay", "nameGameOverlay", "tvOverlay", "rolesOverlay", "rosterOverlay", "trapOverlay", "bankOverlay", "slOverlay", "reflOverlay"].forEach(function(id){ $(id).hidden = true; });
+      ["playerCardOverlay", "scoreOverlay", "nameGameOverlay", "tvOverlay", "rolesOverlay", "rosterOverlay", "trapOverlay", "bankOverlay", "slOverlay", "reflOverlay", "fbOverlay"].forEach(function(id){ $(id).hidden = true; });
       if (!$("oefOverlay").hidden) closeOef();
       $("accountMenu").hidden = true;
       if (Auth.getViewAs()){ Auth.setViewAs(null); renderAll(); }
@@ -8514,7 +8829,7 @@
   (function(){
     var CLOSERS = { playerCardOverlay: "closePlayerCard", nameGameOverlay: "closeNameGame", scoreOverlay: "closeScoreSheet",
       evalOverlay: "closeEvalSheet", scoutOverlay: "closeScoutSheet", pwOverlay: "closePwSheet", oefOverlay: "closeOefSheet",
-      tvOverlay: "closeTv", rosterOverlay: "closeRoster", rolesOverlay: "closeRoles", trapOverlay: "closeTrap", slOverlay: "closeSl", reflOverlay: "closeRefl", bankOverlay: "closeBank", uitlegOverlay: "uitlegOverslaan",
+      tvOverlay: "closeTv", rosterOverlay: "closeRoster", rolesOverlay: "closeRoles", trapOverlay: "closeTrap", slOverlay: "closeSl", reflOverlay: "closeRefl", fbOverlay: "closeFb", bankOverlay: "closeBank", uitlegOverlay: "uitlegOverslaan",
       playerOverlay: "closePlayerSheet", fotoLightbox: "closeFotoLightbox", drawOverlay: "drawCancel" };
     var open = [], pushed = false, ignorePop = false;
     function sync(){

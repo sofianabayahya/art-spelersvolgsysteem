@@ -219,6 +219,23 @@ Los project; heeft niets te maken met ClubComm (`~/Projects/clubcomm`).
 - Demo bijgewerkt: intro noemt het slimme startscherm, stap "Eén vorm evalueren" noemt het doorlopen naar de scoutlijst,
   stap "Reflectie van de trainer" de twee vragen en het paneel vanuit Voor jou; demo-reflectie in het nieuwe formaat.
 
+## Tweede vorm bij C en halfjaarevaluatie 360° (2026-11-22, besluit Sofian)
+- C2b: knop "+ Tweede vorm bij C" onder C in Voorbereiden (`c2bKnop`, `tweedeVormC`): kopie van C2 of lege vorm; opgeslagen als
+  `oefenvormen.volgnr` 3 (check: 1, 2, of 3 alleen bij C; migratie 20261122_c2b_en_360.sql). Namen via `vormCode`/`rijCode`:
+  C2 wordt C2a zodra C2b bestaat. `vormenVan(o, d)` telt C2b mee (status "x van 6"). Elke vorm eigen groepen. Weghalen alleen
+  hoofdtrainer (`tweedeVormWeg`, `Store.deleteOef`). Afdruk: C-rij toont C2a en C2b. "Training overnemen" neemt C2b mee.
+- 360°-feedback = halfjaarevaluatie na blok 1 en 2 (ontwikkelpunten + wensen volgend seizoen). Dit vervangt het besluit van
+  2026-10-27 "ontwikkeling trainers per blok bewust niet" (gevraagd door de coördinator). Tabellen `feedback_rondes`
+  (titel, open_tot, gesloten) en `feedback_antwoorden` (ronde, van, over, scores jsonb 0-4 met 0 = kan ik niet zien, top, tip,
+  extra jsonb bij jezelf: groei, ontwikkel, nodig, door, rol). RLS: eigen antwoorden schrijven zolang de ronde open is; lezen
+  alleen eigen rijen (hoofdtrainer alles). Uitslag via `feedback_uitslag(ronde, over)` (security definer): collega's anoniem
+  (gemiddelde + teksten in willekeurige volgorde), hoofdtrainer met naam, trainer alleen eigen uitslag en pas na sluiten.
+- App: Instellingen → "Halfjaarevaluatie trainers (360°)" (`vulFeedback`): ronde starten (naam + datum), voortgang per persoon,
+  WhatsApp-bericht, zelf invullen, sluiten en delen, uitslag per persoon met werkpunt opslaan. Voor jou (`fbVoorJou`):
+  "geef feedback (x van y)" en "Jouw uitslag staat klaar". Venster `#fbOverlay`: lijst → formulier per persoon (`fbFormulier`,
+  `FB_TRAINER` 7 stellingen, `FB_HOOFD` 5 over de hoofdtrainer, schaal zelden/soms/vaak/bijna altijd + ?), uitslag
+  (`openFbUitslag`: balken collega's/hoofdtrainer/zelf, "Uit de app" vormen + reflecties, tops/tips). Niet in de demo.
+
 ## Meten en nieuwe uitleg (2026-10-27, na cijfer 8 voor de app)
 - Advies Claude: eerst 3 à 4 zondagen gebruiken en meten, niets nieuws bouwen; daarna kiezen op basis van gebruik.
 - Tabel `gebruik` (user_id, rol, soort scherm/venster/actie, naam, datum, created_at; migratie 20261027_gebruik.sql;
